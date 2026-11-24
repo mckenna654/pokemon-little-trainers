@@ -90,6 +90,26 @@ All **Emulator (automated)** unless marked. 30 emulator tests in total now pass.
 
 Patches containing the new art were re-applied from scratch and rebuilt to the identical ROM.
 
+### 2026-11-25 — Navigation, HM-free moves, team caps, simple puzzles (patches 0011–0016)
+All **Emulator (automated)**. 48 emulator tests in total.
+
+| Check | Result |
+| --- | --- |
+| **Arrow-only play-through:** a test player that only walks where the arrow points, presses A when there is no arrow or something is in the way, and presses ATTACK in battle goes from a new game to the Boulder Badge (starter, rival, parcel, Pokédex, Viridian Forest, Brock) | Pass (about 43 minutes of game time, 63 s to run) |
+| Story goals file is consistent with the maps: all 28 goals reachable in order | Pass (`gen_nav.py --check`) |
+| At every goal from Misty to the Pokémon League, with the story state recreated by script, the game picks that goal and shows an arrow | Pass |
+| Ordinary trainer with three Pokémon brings two; Lt. Surge brings two with no badges and three with three; Lorelei brings four including Lapras | Pass |
+| Cut a tree and Surf with a Charmander that knows neither move, once the HM and badge are held; refused before | Pass |
+| Rock Tunnel is lit | Pass |
+| Kadabra evolves into Alakazam at level 36 with no trade | Pass |
+| Lift in the Rocket Hideout opens on B4F when Giovanni is the goal, with no floor menu | Pass |
+| Spin tile does not carry the player away | Pass |
+| Lt. Surge's gates are open and the arrow leads to him | Pass |
+| Victory Road's first rock barrier is walkable | Pass |
+
+Not covered by automation: play beyond Brock as a continuous run; Snorlax with the Flute; Safari
+Zone step limit; Silph Co. doors; Cinnabar Gym door; Strength; Sabrina, Koga and Blaine's gyms.
+
 GitHub Actions (Ubuntu): baseline checksum match, patch build and the opening play-through passed
 on the foundation commit.
 

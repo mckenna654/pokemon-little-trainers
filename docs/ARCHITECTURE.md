@@ -110,6 +110,36 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0008 | Heart health display | `battle_interface.c` → `MoveBattleBarGraphically` uses `LT_HeartTile()` | `heartHealth` |
 | 0009 | Start menu pictures; trainer card entry dropped | `start_menu.c` → `PrintStartMenuItems`, `SetUpStartMenu_NormalField/SafariZone`; `new_menu_helpers.c` → `CreateStartMenuWindow` (8 tiles wide instead of 7; the menu owns 91 tiles from `0x13D`, so at most six entries) | `menuIcons` |
 
+| 0010 | Fast text by default | `new_game.c` | all presets |
+| 0011 | Opponent team caps | `battle_main.c` → `CreateNPCTrainerParty` via `LT_TrainerPartyCap()` | `trainerPartyCap`, `leaderPartyCap`, `bossPartyCap` |
+| 0012 | Field moves without teaching HMs; lit caves | `scrcmd.c` → `ScrCmd_checkpartymove`, `field_player_avatar.c` → `PartyHasMonWithSurf`, `overworld.c` → `SetDefaultFlashLevel`, via `LT_CanUseFieldMove()` | `hmFree` |
+| 0013 | Trade evolutions by level, easier friendship evolutions | `pokemon.c` → `GetEvolutionTargetSpecies` | `tradeEvoLevel`, `friendshipEvoThreshold` |
+| 0014–0015 | Navigation arrow | new `src/little_trainers_nav.c`, generated `src/data/little_trainers_nav.h`; hooks in `overworld.c` (`CB1_Overworld`) and `malloc.c` (`InitHeap`) | `navArrow` |
+| 0016 | Simple puzzles | `little_trainers.c` → `LT_OpenPuzzleGates()` (called before map transition scripts in `overworld.c`), `field_player_avatar.c` (spin tiles), `safari_zone.c` (step limit), `little_trainers_nav.c` (lifts) | `simplePuzzles` |
+
+### Navigation arrow
+- **Goals:** `tools/nav/objectives.json` lists the story goals in order; each has a "done"
+  condition (flag set, variable reached, item owned) and a target (a person, a sign, a tile or
+  just a map). The current goal is the first one not done.
+- **Routes (offline):** `tools/gen_nav.py` reads every map's collision, warps and connections and
+  models the world as areas joined by doors, map edges, one-way ledges and lifts. Trees, boulders
+  and water only count as passable once the goal says the player has Cut, Strength or Surf, and
+  each goal can list maps to avoid (Saffron's gates before the Tea, Snorlax routes before the
+  Flute, Cycling Road). For each goal it writes, per map, up to two exits to head for, and it
+  fails loudly if a goal cannot be reached from the one before. Warp events on tiles that can
+  never trigger are ignored.
+- **Path (in game):** `BuildField()` flood-fills outwards from the target or exit over the live
+  map (`VMap`), storing for each tile the direction to walk; ledges are followed one way; people
+  who stand still, uncuttable trees and so on are obstacles (taken from the map's object list,
+  since distant objects are not spawned). If the arrow would lead into a person, the path is
+  rebuilt around everyone. The field lives on the heap and is forgotten whenever the heap is reset.
+- **Arrow:** a 16×16 sprite beside the player (above, below, left or right), drawn with the
+  player's own palette. Hidden during conversations, cut-scenes and menus. On stairs and exit
+  mats it shows which way to push.
+- **Lifts:** with simple puzzles on, stepping into a lift sets its destination to the floor the
+  current goal needs (`sLtNavLifts`), so no floor menu is involved.
+- Re-run `python3 tools/gen_nav.py` after changing goals or maps (`--check --why` explains failures).
+
 The simple menu is off in the old man's catching lesson, the Poké Dude lessons and the Safari Zone,
 which run on their own battle controllers.
 

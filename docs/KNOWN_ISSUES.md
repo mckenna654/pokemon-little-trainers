@@ -16,7 +16,16 @@
 - **Status protection is shown as SAFEGUARD:** when an opponent tries a status move the game says
   the party is protected by Safeguard. Opponents' AI therefore avoids status moves.
 - **Oak's battle lecture is skipped** in the first rival battle on the Little Trainer preset.
-- **Trainers and gyms are not rebalanced yet** beyond the global damage scaling.
+- **Beyond Brock is only checked goal by goal.** The arrow has been shown to appear at every story
+  goal, but no continuous play-through past the first gym has been run. Expect rough edges in
+  dungeons (Mt. Moon, Rock Tunnel, Pokémon Tower, Silph Co.).
+- **The arrow follows the main story only.** It does not guide to Pokémon Centres, shops or
+  optional areas, and Fly still needs the party menu.
+- **Arrow and gates that the map data cannot see:** inside Sabrina's, Koga's and Blaine's gyms and
+  the Pokémon Mansion the arrow may stop at a barrier or teleporter.
+- **The Pokémon Mansion is skipped** on the Little Trainer preset (Cinnabar Gym is already
+  unlocked), so its items and Pokémon are optional.
+- **Opponent levels are unchanged**; only team sizes and damage are reduced.
 - **Graphics research incomplete:** the four PokeCommunity threads in the specification could not
   be read (HTTP 403 to automated access). Asset reuse terms are unconfirmed, so no third-party art
   is included yet. See `docs/GRAPHICS.md`.

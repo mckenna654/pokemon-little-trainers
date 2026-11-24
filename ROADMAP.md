@@ -43,14 +43,14 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [ ] Hide the HP numbers under the player's hearts; pictures for Yes/No boxes, the new-game
       screens and the party screen
 
-## Milestone 3 — First gym vertical slice (v0.3.0) — most important early milestone
-- [ ] Shortened intro, safe default names, fast text
-- [ ] Starter selection with large previews
-- [ ] Simplified dialogue Pallet → Pewter
-- [ ] Navigation assistance (story-aware objective arrow)
-- [ ] Easier Viridian Forest trainers; Brock tuned so every starter can win
-- [ ] Badge celebration and autosave at safe checkpoints
-- [ ] Scripted emulator play-through Pallet → Boulder Badge; parent playtest checklist run
+## Milestone 3 — First gym vertical slice (v0.3.0)
+- [x] Navigation arrow, story-aware, from the bedroom to the Boulder Badge
+- [x] An arrow-following test player completes new game → Brock using only the arrow, A and ATTACK
+- [x] Fast text by default; the rival battle uses the picture menu
+- [x] Brock within reach of every starter (team of 2, damage scaling, type-safe attack choice)
+- [ ] Shorter intro and simpler dialogue on the Pallet → Pewter path
+- [ ] Badge celebration screen; autosave at safe checkpoints
+- [ ] Parent playtest checklist run with a real child
 
 ## Milestone 4 — Graphical remaster (v0.4.0, runs alongside)
 - [ ] Our own UI art (icons, hearts, cursor, title branding)
@@ -59,8 +59,15 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [ ] Comparison screenshots for the 15 reference scenes
 
 ## Milestone 5 — Complete Kanto progression (v0.5.0)
-- [ ] All gyms, Rocket events, Pokémon Tower, Safari Zone, Seafoam, Cinnabar, Victory Road, League
-- [ ] HM-free field moves; puzzle simplification; trade/version exclusives obtainable
+- [x] Story goals and arrow routes for all eight gyms, Rocket Hideout, Pokémon Tower, Silph Co.,
+      Safari Zone and the Pokémon League (generator-validated; arrow shown at every goal in the emulator)
+- [x] HM-free field moves (Cut and Surf emulator-tested), lit caves
+- [x] Simple puzzles: spin tiles, Surge's gates, Cinnabar Gym lock, Victory Road barriers, Silph
+      doors, Safari step limit, automatic lifts
+- [x] Opponent team caps for trainers, leaders, rival and Elite Four; trade evolutions by level
+- [ ] A scripted play-through beyond Brock (Mt. Moon onwards has only goal-by-goal checks so far)
+- [ ] Sabrina's teleport maze, Koga's invisible walls, Blaine's quiz and Pokémon Tower checked in play
+- [ ] Version-exclusive and missable Pokémon made obtainable; Fly without a menu
 
 ## Milestone 6 — Collection and interface (v0.9.0)
 - [ ] Simplified party and storage, sticker-book Pokédex, collection celebrations

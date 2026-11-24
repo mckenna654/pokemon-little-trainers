@@ -3,16 +3,14 @@
 _Last updated: 2026-11-25 (session 2)_
 
 ## Where things stand
-- **Milestone 0 (environment and baseline): complete.** CI green.
-- **Milestone 1 (simplified gameplay): done and emulator-tested**, apart from the unchecked
-  boxes in `ROADMAP.md` (Rare Candy prompts, trainer trims, preset switching, a manual session).
-- **Milestone 2 (battle interface): done and emulator-tested** (patches 0004–0008): picture
-  buttons, automatic attack choice with fallbacks, recommended-attack star, hearts, and the picture
-  menu in the first rival battle. Leftovers are small (see `ROADMAP.md`).
-- **Start menu has pictures** (patch 0009) and saving through it is tested across a power cycle.
-- **Milestone 3 (Pallet → Brock slice): not started.** This is the next big piece.
-- Graphics: battle UI art is our own and in the game. No tiles, sprites or backgrounds changed yet
-  (`docs/GRAPHICS.md`).
+- **Milestones 0–2: complete** (environment, simplified rules, picture battle menu, hearts).
+- **Milestone 3 (Pallet → Brock): playable end to end by following the arrow**, proven by an
+  automated arrow-following player. Intro/dialogue trimming, badge celebration and autosave remain.
+- **Milestone 5 (all of Kanto): systems in place** — story goals and routes to the League,
+  HM-free field moves, simple puzzles, team caps — but only checked goal by goal past Brock.
+- **Milestone 4 (graphical remaster):** battle UI, Start menu and arrow art are ours and in the
+  game; tiles, sprites and backgrounds are unchanged.
+- Patches 0001–0016 in `patches/`. Remaining items are the unchecked boxes in `ROADMAP.md`.
 
 ## Verified
 `docs/TESTING.md` has the full tables. In short: byte-exact baseline; BPS round trip with two
@@ -26,19 +24,16 @@ of the Little Trainer rules, each proven to fail on unmodified FireRed.
   Chrome extension, or paste the first post of each thread).
 
 ## Next actions (in order)
-1. Milestone 3 groundwork: extend `tests/emu/story.py` from Route 1 to Viridian City, the parcel
-   errand, Viridian Forest and Brock. It gives automated coverage of ordinary trainer battles and
-   is the yardstick for everything else in the slice.
-2. More pictures for menus (Jake asked for images instead of words): done so far are the battle
-   menu, hearts and the Start menu. Next candidates: Yes/No boxes (tick and cross), the new-game
-   flow, the party screen. The generator in `assets/ui/` and the blit helpers in
-   `src/little_trainers_battle_ui.c` are the pattern; field windows can use palette entries 1–9
-   (white, greys, red, orange, greens, blues) without loading anything.
-3. Intro trim and fast text by default; navigation arrow for the Pallet → Brock objectives
-   (objective table keyed on story vars/flags; see the specification notes in `ROADMAP.md`).
-4. Brock and Viridian Forest trainer tuning; badge celebration; autosave at safe checkpoints.
-5. Small leftovers: more type symbols, hide HP numbers, storage-full message, Rare Candy prompts,
-   a parent settings screen to change preset (unlocks Junior/Classic tests).
+1. Extend the arrow-following play-through past Brock (Mt. Moon → Misty → Bill → S.S. Anne → Surge)
+   in `tests/emu/emu_arrow.py`; fix whatever stops it. `FireRed.run_script` can set up later
+   starting points (see `tests/emu/emu_world.py` → `story_state`).
+2. Autosave at badges; a badge celebration; parent option to change preset (then test Junior and
+   Classic); shorter intro and simpler critical-path dialogue.
+3. Graphics: a brighter palette pass, then tiles (needs the PokeCommunity terms or our own art).
+4. Small leftovers listed in `ROADMAP.md`.
+
+When goals or maps change: `python3 tools/gen_nav.py --check --why`, then `python3 tools/gen_nav.py`,
+rebuild, `scripts/export-patches.sh`. When UI art changes: `python3 assets/ui/make_battle_icons.py`.
 
 ## How to resume
 ```bash

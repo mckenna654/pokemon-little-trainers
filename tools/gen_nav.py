@@ -162,6 +162,7 @@ class World:
     def edges(self, water, avoid):
         """Directed edges {(map, area): [((map2, area2), hop_code)]}."""
         out = {}
+        self.lifts = getattr(self, "lifts", {})
 
         def add(a, b, code):
             if a[1] is None or b[1] is None or a[0] in avoid or b[0] in avoid:
@@ -187,8 +188,10 @@ class World:
                 # A lift cabin's own doors have no fixed destination; it can return to any floor
                 # that has a door into it.
                 for j, back in enumerate(dwarps):
-                    if back["dest_map"] == "MAP_DYNAMIC":
+                    if back["dest_map"] == "MAP_DYNAMIC" and dest.behavior(back["x"], back["y"]) in self.warp_behaviors:
                         add((dest.name, dest.area_of(back["x"], back["y"], water)), here, HOP_WARP + j)
+                        # leaving the cabin onto this floor puts the player at the floor's own lift door
+                        self.lifts[(dest.name, HOP_WARP + j, here)] = (m, i)
             # Ledges are one-way: standing above one you can hop down to the tile beyond it.
             for y in range(m.h):
                 for x in range(m.w):
@@ -230,6 +233,11 @@ def resolve_target(world, obj):
                 return (o["x"], o["y"])
         raise SystemExit(f'{obj["id"]}: no object matching {target["object"]!r} on {m.name}: '
                          f'{[o["script"] for o in m.objects]}')
+    if "bg" in target:
+        for b in m.json.get("bg_events", []):
+            if target["bg"].lower() in str(b.get("script", "")).lower():
+                return (b["x"], b["y"])
+        raise SystemExit(f'{obj["id"]}: no sign or switch matching {target["bg"]!r} on {m.name}')
     if "warp_to" in target:
         for w in m.warps:
             if w["dest_map"] == target["warp_to"]:
@@ -243,8 +251,9 @@ def main():
     world = World()
     flags = constants("flags.h", "FLAG_", seed=constants("opponents.h", ""))
     variables = constants("vars.h", "VAR_")
+    items = constants("items.h", "ITEM_")
     blocks = spec["blocks"]
-    graphs, routes, rows, problems, notes = {}, {}, [], [], []
+    graphs, routes, rows, problems, notes, lift_rows = {}, {}, [], [], [], []
     previous = ("PalletTown_PlayersHouse_2F", world.maps["PalletTown_PlayersHouse_2F"].area_of(6, 6, (False, False, False)))
 
     for obj in spec["objectives"]:
@@ -258,6 +267,8 @@ def main():
         done = obj["done"]
         if "flag" in done:
             cond = (0, flags[done["flag"]], 0, done["flag"])
+        elif "item" in done:
+            cond = (2, items[done["item"]], 0, f'has {done["item"]}')
         else:
             cond = (1, variables[done["var"]], done["ge"], f'{done["var"]} >= {done["ge"]}')
 
@@ -296,14 +307,15 @@ def main():
             goals = [(m.name, area)] if area is not None else every_area
             dist = distances(goals)
             def hop_from(node, depth=0):
-                """The door or edge to aim for from an area: follow ledge jumps to the next real exit."""
+                """The door or edge to aim for from an area (and where it leads): follow ledge
+                jumps to the next real exit."""
                 outs = edges.get(node, [])
                 if not outs or depth > 8:
-                    return None
+                    return None, None
                 nxt = min(outs, key=lambda e: dist.get(e[0], 10 ** 9))
                 if dist.get(nxt[0], 10 ** 9) >= dist[node]:
-                    return None
-                return hop_from(nxt[0], depth + 1) if nxt[1] == HOP_LEDGE else nxt[1]
+                    return None, None
+                return hop_from(nxt[0], depth + 1) if nxt[1] == HOP_LEDGE else (nxt[1], nxt[0])
 
             table = []
             for mm in world.order:
@@ -311,11 +323,16 @@ def main():
                 for node in edges:
                     if node[0] != mm.name or node not in dist or dist[node] == 0:
                         continue
-                    code = hop_from(node)
+                    code, leads_to = hop_from(node)
                     if code:
-                        best[code] = min(best.get(code, 10 ** 9), dist[node])
-                hops = [code for code, _ in sorted(best.items(), key=lambda kv: kv[1])][:MAX_CANDIDATES]
+                        if dist[node] < best.get(code, (10 ** 9,))[0]:
+                            best[code] = (dist[node], leads_to)
+                hops = [code for code, _ in sorted(best.items(), key=lambda kv: kv[1][0])][:MAX_CANDIDATES]
                 table.append(hops + [0] * (MAX_CANDIDATES - len(hops)))
+                # A lift cabin: remember which floor this route wants, so the game can send it there.
+                if hops and (mm.name, hops[0], best[hops[0]][1]) in world.lifts:
+                    floor, door = world.lifts[(mm.name, hops[0], best[hops[0]][1])]
+                    lift_rows.append((len(routes), world.index[mm.name], floor, door))
             routes[key] = (len(routes), table, dist)
         route_id, _, dist = routes[key]
         if previous not in dist:
@@ -358,6 +375,12 @@ def main():
         lines.append("")
     lines.append("static const u8 (*const sLtNavRoutes[])[LT_NAV_CANDIDATES] = {" +
                  ", ".join(f"sLtNavRoute{i}" for i in range(len(routes))) + "};")
+    lines.append("")
+    lines.append("// Lift cabins: for a route, the floor the lift should open onto.")
+    lines.append("static const struct LtNavLift sLtNavLifts[] = {")
+    for route_id, map_index, floor, door in lift_rows:
+        lines.append(f"    {{{route_id}, {map_index}, {floor.group}, {floor.num}, {door}}}, // {world.order[map_index].name} -> {floor.name}")
+    lines.append("};")
     lines.append("")
     lines.append("static const struct LtNavGoal sLtNavGoals[] = {")
     for name, cond, m, xy, route_id in rows:
