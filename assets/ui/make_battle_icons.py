@@ -10,6 +10,9 @@ Outputs (all 16-colour indexed, GBA-ready):
     battle_marker.png  8x8 star shown on the recommended attack
     hearts.png         72x8 strip of health hearts (empty, half, full), drawn with the colours of
                        the game's own health-box palette so no extra palette is needed
+    start_menu_icons.png  16 px wide strip of 16x16 icons for the Start menu, drawn with the
+                       colours every field menu window already has (white, greys, red, orange,
+                       greens, blues), so no extra palette is needed
     battle_icons.pal   JASC palette (index 0 is transparent, index 14 is the ring, which the game pulses)
 
 Each button is a cream badge on the battle panel with a 24x24 icon. Shapes are rasterised with
@@ -273,6 +276,40 @@ def hearts_strip():
     return [[px for tile in tiles for px in tile[y]] for y in range(8)]
 
 
+# --- Start menu icons ----------------------------------------------------------------------------
+# Indices into graphics/interface/std_menu.pal / text_window/stdpal_*.pal (entries 0-9 are shared).
+M_WHITE, M_DARK, M_LIGHT, M_RED, M_ORANGE, M_GREEN, M_LGREEN, M_BLUE, M_LBLUE = 1, 2, 3, 4, 5, 6, 7, 8, 9
+MENU_PALETTE = [(115, 205, 164), (255, 255, 255), (98, 98, 98), (213, 213, 205), (230, 8, 8), (255, 189, 115),
+                (32, 156, 8), (148, 246, 148), (49, 82, 205), (164, 197, 246)] + [(0, 0, 0)] * 6
+
+
+def menu_icon(layers):
+    """14x14 icon in the top-left of a 16x16 cell (rows are 15 px apart in the Start menu)."""
+    icon = render(layers, size=14)          # outline colour DARK (2) is dark grey in this palette too
+    return [row + [T, T] for row in icon] + [[T] * 16, [T] * 16]
+
+
+def start_menu_icons():
+    ball = ellipse(7, 7, 5.8)
+    pokedex = menu_icon([(rounded(1, 1, 13, 13, 2.5), M_RED), (ellipse(4.6, 4.6, 2.3), M_WHITE), (ellipse(4.6, 4.6, 1.5), M_LBLUE),
+                         (line(8.5, 4, 11.5, 4, 1.2), M_ORANGE), (rounded(3, 8, 11, 11.5, 1), M_WHITE)])
+    pokemon = menu_icon([(ball, M_WHITE), (both(ball, lambda x, y: y < 7), M_RED), (both(ball, lambda x, y: abs(y - 7) < 0.9), M_DARK),
+                         (ellipse(7, 7, 2.3), M_DARK), (ellipse(7, 7, 1.3), M_WHITE)])
+    bag = menu_icon([(minus(ellipse(7, 3.6, 2.8), ellipse(7, 3.6, 1.5)), M_ORANGE), (rounded(2, 4, 12, 13, 2.6), M_GREEN),
+                     (rounded(2, 4, 12, 8, 2.4), M_LGREEN), (line(2.5, 8, 11.5, 8, 0.9), M_DARK), (rounded(5.8, 7, 8.2, 9.6, 0.6), M_ORANGE)])
+    card = menu_icon([(rounded(1, 2.5, 13, 11.5, 1.6), M_LBLUE), (ellipse(4.5, 6, 1.7), M_WHITE), (ellipse(4.5, 9.8, 2.5, 1.7), M_WHITE),
+                      (line(8, 5.5, 11.3, 5.5, 1), M_BLUE), (line(8, 8, 11.3, 8, 1), M_BLUE)])
+    save = menu_icon([(rounded(2, 1.5, 12.5, 12.5, 1.4), M_BLUE), (poly([(4.2, 3), (11, 3), (11, 11), (4.2, 11)]), M_WHITE),
+                      (line(5.5, 6.5, 9.8, 6.5, 0.9), M_LIGHT), (line(5.5, 8.7, 9.8, 8.7, 0.9), M_LIGHT),
+                      (poly([(8.2, 1.5), (10.4, 1.5), (10.4, 5.6), (9.3, 4.6), (8.2, 5.6)]), M_RED)])
+    option = menu_icon([(star(7, 7, 6.4, 4.5, 8), M_LIGHT), (ellipse(7, 7, 4.5), M_LIGHT), (ellipse(7, 7, 2), M_DARK),
+                        (ellipse(7, 7, 1.1), M_WHITE)])
+    close = menu_icon([(line(3.2, 3.2, 10.8, 10.8, 2.7), M_RED), (line(10.8, 3.2, 3.2, 10.8, 2.7), M_RED)])
+    retire = menu_icon([(poly([(4.6, 1.8), (12.3, 4.6), (4.6, 7.4)]), M_ORANGE), (line(4, 1.5, 4, 12.6, 1.3), M_DARK)])
+    # Order matches the STARTMENU_* enum in src/start_menu.c
+    return [pokedex, pokemon, bag, card, save, option, close, retire, card]
+
+
 # --- file writers ----------------------------------------------------------------------------------
 def chunk(tag, body):
     return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", zlib.crc32(tag + body))
@@ -318,6 +355,20 @@ def main():
     write_indexed_png(os.path.join(OUT, "battle_marker.png"),
                       render([(star(4, 4, 3.4, 1.5, 4), YELLOW), (ellipse(4, 4, 0.9), WHITE)], size=8))
     write_indexed_png(os.path.join(OUT, "hearts.png"), hearts_strip(), HEALTHBOX_PALETTE)
+    menu_cells = start_menu_icons()
+    write_indexed_png(os.path.join(OUT, "start_menu_icons.png"), [row for cell in menu_cells for row in cell], MENU_PALETTE)
+    if "--menu-preview" in sys.argv:
+        big = []
+        for y in range(16):
+            row = []
+            for cell in menu_cells:
+                row += [MENU_PALETTE[1] if c == T else MENU_PALETTE[c] for c in cell[y]]
+            for _ in range(8):
+                big.append([c for c in row for _ in range(8)])
+        raw = b"".join(b"\x00" + b"".join(bytes(c) for c in row) for row in big)
+        with open(sys.argv[sys.argv.index("--menu-preview") + 1], "wb") as f:
+            f.write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", len(big[0]), len(big), 8, 2, 0, 0, 0))
+                    + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
     with open(os.path.join(OUT, "battle_icons.pal"), "w", newline="\r\n") as f:
         f.write("JASC-PAL\n0100\n16\n" + "".join(f"{r} {g} {b}\n" for r, g, b in PALETTE))
     if "--preview" in sys.argv:

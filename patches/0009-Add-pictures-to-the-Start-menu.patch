@@ -1,0 +1,186 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 18:16:11 +1100
+Subject: Add pictures to the Start menu
+
+On the Little and Junior presets each Start menu entry has an icon (Pokedex,
+Poke Ball, bag, save book, gear, exit cross, Safari flag). The window is one
+tile wider and the trainer card entry is dropped so it still fits the menu's
+tile budget. Icons use colours every field menu window already has.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/graphics/little_trainers/start_menu_icons.png b/graphics/little_trainers/start_menu_icons.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1f8e7419435d52c591d320e23ca0c891ecafd07f
+GIT binary patch
+literal 459
+zcmeAS@N?(olHy`uVBq!ia0vp^0zf>0g&9bG&i&Q}qznRlLR^c_F8Tlee^OG?)vITp
+zad7<KTdXjLW6HNFhCyeS9Q_7Vg$CqBFCSxIU<~tgaSW-rb#{_<-eCitHrBfiYuhV=
+zGu1P%zhE)6*^<o=tI*7U;b^s5X^#2*Z8ayhH1Fs<E@bfM;dB2$eko>=V-mN6Dw1Dq
+zbI1_rb5;!CbM0Y~UtCmj^Kj@Qi*Oz1ZU?#Cg}&1dHBGO-Yv!}HWX7rV=-dU*rZUO|
+z%stdy&GaXrP^6A+M)4F!PT7B}Ue5hHBiE)=KyecbM@^}1Ydq8D_sRb~=NVU(PkFWL
+zMk&)>(;2e=&R-J#cQ1gic1I)A-FzN<mejU<^CeRf6~DSZh|xU7G3{*syv$wm-c<Uo
+ztX=+CrHPx-?l<oa-owQlv)#Lxj=DxIdGg#>TtDqj<ca*~R_0()CyO%&+ZY;SUKEIW
+za?RScc9z%`vEa+r@2A>#PtH#5k)D%qUYO73q0P-rNxFwvW=WlmTF0H$9lEeMcl+`h
+vsW}BF1S*ekZc>^Vd9~t`=?1lbM{WKyeRf{hAaW|e1{CO?u6{1-oD!M<)vmtn
+
+literal 0
+HcmV?d00001
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index 9871b4a64..ed8267441 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -56,6 +56,7 @@ struct LtRules
+     // Interface
+     bool8 simpleBattleMenu;     // ATTACK / SPECIAL / CATCH / RUN instead of the move list and bag
+     bool8 heartHealth;          // health is shown as six hearts instead of a bar
++    bool8 menuIcons;            // the Start menu shows a picture beside each entry (and drops the trainer card)
+ };
+ 
+ // Buttons of the simple battle menu, left to right.
+@@ -108,6 +109,12 @@ void LT_BattleMenu_Tick(void);                      // once per frame while the
+ void LT_BattleMenu_Hide(void);
+ u8 LT_BattleMenu_ButtonCount(void);
+ 
++// Start menu pictures. The wider window only fits in the menu's tile budget with up to six entries.
++#define LT_START_MENU_MAX_ICON_ROWS 6
++#define LT_START_MENU_TEXT_X        26
++bool32 LT_StartMenuIconsActive(u8 numItems);
++void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y);
++
+ // 8x8 heart tile for one slice of the HP bar with 0-8 of its pixels filled.
+ const u8 *LT_HeartTile(u8 filledPixels);
+ 
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 7d88ce403..4a2a044b0 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -38,6 +38,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = TRUE,
+         .heartHealth = TRUE,
++        .menuIcons = TRUE,
+     },
+     [LT_DIFFICULTY_JUNIOR] =
+     {
+@@ -61,6 +62,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = FALSE,
+         .heartHealth = TRUE,
++        .menuIcons = TRUE,
+     },
+     [LT_DIFFICULTY_CLASSIC] =
+     {
+@@ -84,6 +86,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .noEvolutionCancel = FALSE,
+         .simpleBattleMenu = FALSE,
+         .heartHealth = FALSE,
++        .menuIcons = FALSE,
+     },
+ };
+ 
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 92c498c01..3c09a9eef 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -24,6 +24,7 @@ static const u8 sRingGfx[] = INCBIN_U8("graphics/little_trainers/battle_ring.4bp
+ static const u8 sMarkerGfx[] = INCBIN_U8("graphics/little_trainers/battle_marker.4bpp");
+ static const u16 sIconsPal[] = INCBIN_U16("graphics/little_trainers/battle_icons.gbapal");
+ static const u8 sHeartsGfx[] = INCBIN_U8("graphics/little_trainers/hearts.4bpp");
++static const u8 sStartMenuIconsGfx[] = INCBIN_U8("graphics/little_trainers/start_menu_icons.4bpp");
+ 
+ // Order of the buttons in battle_icons.png
+ enum
+@@ -64,6 +65,18 @@ static EWRAM_DATA u8 sPulseTimer = 0;
+ 
+ static const u8 sLabelColors[] = {COLOR_PANEL, COLOR_WHITE, COLOR_DARK};
+ 
++bool32 LT_StartMenuIconsActive(u8 numItems)
++{
++    return LT_Rules()->menuIcons && numItems <= LT_START_MENU_MAX_ICON_ROWS;
++}
++
++// Icons are 16x16 cells in the order of the STARTMENU_* enum, drawn with colours that every
++// field menu window already has, so they need no palette of their own.
++void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y)
++{
++    BlitBitmapToWindow(windowId, &sStartMenuIconsGfx[startMenuItem * (16 * 16 / 2)], 9, y, 16, 16);
++}
++
+ const u8 *LT_HeartTile(u8 filledPixels)
+ {
+     if (filledPixels > 8)
+diff --git a/src/new_menu_helpers.c b/src/new_menu_helpers.c
+index 08c032027..38b09497c 100644
+--- a/src/new_menu_helpers.c
++++ b/src/new_menu_helpers.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "help_message.h"
+ #include "menu.h"
+@@ -668,6 +669,11 @@ u8 CreateStartMenuWindow(u8 height)
+     if (sStartMenuWindowId == 0xFF)
+     {
+         struct WindowTemplate template = SetWindowTemplateFields(0, 0x16, 1, 7, height * 2 - 1, DLG_WINDOW_PALETTE_NUM, 0x13D);
++
++        // Little Trainers: one tile wider to make room for a picture beside each entry. The menu
++        // has 91 tiles of VRAM; 8 wide x 11 high (six entries) uses 88.
++        if (LT_StartMenuIconsActive(height))
++            template = SetWindowTemplateFields(0, 0x15, 1, 8, height * 2 - 1, DLG_WINDOW_PALETTE_NUM, 0x13D);
+         sStartMenuWindowId = AddWindow(&template);
+         PutWindowTilemap(sStartMenuWindowId);
+     }
+diff --git a/src/start_menu.c b/src/start_menu.c
+index 88cc377ce..82e8e2252 100644
+--- a/src/start_menu.c
++++ b/src/start_menu.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "scanline_effect.h"
+ #include "overworld.h"
+@@ -217,7 +218,8 @@ static void SetUpStartMenu_NormalField(void)
+     if (FlagGet(FLAG_SYS_POKEMON_GET) == TRUE)
+         AppendToStartMenuItems(STARTMENU_POKEMON);
+     AppendToStartMenuItems(STARTMENU_BAG);
+-    AppendToStartMenuItems(STARTMENU_PLAYER);
++    if (!LT_Rules()->menuIcons) // Little Trainers: the trainer card is left out to keep the menu short
++        AppendToStartMenuItems(STARTMENU_PLAYER);
+     AppendToStartMenuItems(STARTMENU_SAVE);
+     AppendToStartMenuItems(STARTMENU_OPTION);
+     AppendToStartMenuItems(STARTMENU_EXIT);
+@@ -229,7 +231,8 @@ static void SetUpStartMenu_SafariZone(void)
+     AppendToStartMenuItems(STARTMENU_POKEDEX);
+     AppendToStartMenuItems(STARTMENU_POKEMON);
+     AppendToStartMenuItems(STARTMENU_BAG);
+-    AppendToStartMenuItems(STARTMENU_PLAYER);
++    if (!LT_Rules()->menuIcons)
++        AppendToStartMenuItems(STARTMENU_PLAYER);
+     AppendToStartMenuItems(STARTMENU_OPTION);
+     AppendToStartMenuItems(STARTMENU_EXIT);
+ }
+@@ -280,7 +283,18 @@ static s8 PrintStartMenuItems(s8 *cursor_p, u8 nitems)
+     s16 i = *cursor_p;
+     do
+     {
+-        if (sStartMenuOrder[i] == STARTMENU_PLAYER || sStartMenuOrder[i] == STARTMENU_PLAYER2)
++        if (LT_StartMenuIconsActive(sNumStartMenuItems))
++        {
++            // Little Trainers: a picture first, then the word (in the small font if it would not fit)
++            u8 font = FONT_NORMAL;
++
++            LT_DrawStartMenuIcon(GetStartMenuWindowId(), sStartMenuOrder[i], i * 15);
++            StringExpandPlaceholders(gStringVar4, sStartMenuActionTable[sStartMenuOrder[i]].text);
++            if (GetStringWidth(font, gStringVar4, 0) > 8 * 8 - LT_START_MENU_TEXT_X)
++                font = FONT_SMALL;
++            AddTextPrinterParameterized(GetStartMenuWindowId(), font, gStringVar4, LT_START_MENU_TEXT_X, i * 15, 0xFF, NULL);
++        }
++        else if (sStartMenuOrder[i] == STARTMENU_PLAYER || sStartMenuOrder[i] == STARTMENU_PLAYER2)
+         {
+             Menu_PrintFormatIntlPlayerName(GetStartMenuWindowId(), sStartMenuActionTable[sStartMenuOrder[i]].text, 8, i * 15);
+         }

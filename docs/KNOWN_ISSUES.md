@@ -8,8 +8,9 @@
   steel); Normal-type specials also use it.
 - **HP numbers still show under the player's hearts**, and the opponent's hearts are the same red
   whatever its health (the original bar's green/yellow/red is not used).
-- **Other menus are still words:** Start menu, Yes/No boxes, the new-game screens, the party
-  screen opened by CHANGE.
+- **Some menus are still words only:** Yes/No boxes, the new-game screens, the bag, and the party
+  screen opened by CHANGE. The Start menu has pictures but no trainer card entry on the Little and
+  Junior presets.
 - **No bag or switching in wild battles** on the Little Trainer preset (by design; healing is
   automatic). If party and PC storage are both full, CATCH only plays an error sound.
 - **Status protection is shown as SAFEGUARD:** when an opponent tries a status move the game says

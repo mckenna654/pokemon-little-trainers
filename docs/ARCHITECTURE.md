@@ -108,6 +108,7 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0007 | Status protection (permanent Safeguard on the player's side) | `battle_main.c` → `BattleStartClearSetData` calls `LT_OnBattleDataCleared()` | `playerStatusShield` |
 | 0007 | No move questions during evolution; B cannot cancel evolution | `evolution_scene.c` (both evolution tasks, `tCanStop`) | `autoLearnMoves`, `noEvolutionCancel` |
 | 0008 | Heart health display | `battle_interface.c` → `MoveBattleBarGraphically` uses `LT_HeartTile()` | `heartHealth` |
+| 0009 | Start menu pictures; trainer card entry dropped | `start_menu.c` → `PrintStartMenuItems`, `SetUpStartMenu_NormalField/SafariZone`; `new_menu_helpers.c` → `CreateStartMenuWindow` (8 tiles wide instead of 7; the menu owns 91 tiles from `0x13D`, so at most six entries) | `menuIcons` |
 
 The simple menu is off in the old man's catching lesson, the Poké Dude lessons and the Safari Zone,
 which run on their own battle controllers.

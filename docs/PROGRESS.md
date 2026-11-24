@@ -9,6 +9,7 @@ _Last updated: 2026-11-25 (session 2)_
 - **Milestone 2 (battle interface): done and emulator-tested** (patches 0004–0008): picture
   buttons, automatic attack choice with fallbacks, recommended-attack star, hearts, and the picture
   menu in the first rival battle. Leftovers are small (see `ROADMAP.md`).
+- **Start menu has pictures** (patch 0009) and saving through it is tested across a power cycle.
 - **Milestone 3 (Pallet → Brock slice): not started.** This is the next big piece.
 - Graphics: battle UI art is our own and in the game. No tiles, sprites or backgrounds changed yet
   (`docs/GRAPHICS.md`).
@@ -28,9 +29,11 @@ of the Little Trainer rules, each proven to fail on unmodified FireRed.
 1. Milestone 3 groundwork: extend `tests/emu/story.py` from Route 1 to Viridian City, the parcel
    errand, Viridian Forest and Brock. It gives automated coverage of ordinary trainer battles and
    is the yardstick for everything else in the slice.
-2. Pictures for the other menus Jake asked about: Start menu (icon beside each entry, drawn with
-   the standard menu palette), Yes/No boxes (tick and cross), and the new-game flow. The generator
-   in `assets/ui/` and the blit approach in `src/little_trainers_battle_ui.c` are the pattern.
+2. More pictures for menus (Jake asked for images instead of words): done so far are the battle
+   menu, hearts and the Start menu. Next candidates: Yes/No boxes (tick and cross), the new-game
+   flow, the party screen. The generator in `assets/ui/` and the blit helpers in
+   `src/little_trainers_battle_ui.c` are the pattern; field windows can use palette entries 1–9
+   (white, greys, red, orange, greens, blues) without loading anything.
 3. Intro trim and fast text by default; navigation arrow for the Pallet → Brock objectives
    (objective table keyed on story vars/flags; see the specification notes in `ROADMAP.md`).
 4. Brock and Viridian Forest trainer tuning; badge celebration; autosave at safe checkpoints.

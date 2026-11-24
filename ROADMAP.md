@@ -39,8 +39,9 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Picture menu in the first rival battle (trainer layout tested there)
 - [ ] More type symbols (fighting, poison, flying, dragon, dark, steel currently use the sparkle)
 - [ ] Friendly handling when party and storage are both full (currently just an error sound)
-- [ ] Hide the HP numbers under the player's hearts; picture versions of other menus
-      (Start menu, Yes/No, new-game screens)
+- [x] Start menu: a picture beside each entry
+- [ ] Hide the HP numbers under the player's hearts; pictures for Yes/No boxes, the new-game
+      screens and the party screen
 
 ## Milestone 3 — First gym vertical slice (v0.3.0) — most important early milestone
 - [ ] Shortened intro, safe default names, fast text

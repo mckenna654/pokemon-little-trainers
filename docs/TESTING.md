@@ -71,7 +71,7 @@ to play through the new menu and still pass.
 | Menu shows the four actions (screenshot checked by eye; later replaced by pictures) | Pass |
 
 ### 2026-11-25 — Picture menu, hearts and remaining rules (patches 0005–0008)
-All **Emulator (automated)** unless marked. 27 emulator tests in total now pass.
+All **Emulator (automated)** unless marked. 30 emulator tests in total now pass.
 
 | Check | Result |
 | --- | --- |
@@ -84,6 +84,9 @@ All **Emulator (automated)** unless marked. 27 emulator tests in total now pass.
 | Benched Pokémon evolves (Caterpie → Metapod) while the test taps B throughout: evolution is not cancelled, Harden is skipped with no question, moves unchanged | Pass |
 | Buttons, ring, recommended star, label text, hearts (full / half / empty) | Screenshots checked by eye |
 | Wild encounter rate halved | Source review only |
+| Start menu opens with pictures, has no trainer card entry, closes with EXIT and with B | Pass |
+| SAVE from the new Start menu, then power cycle and CONTINUE: same map, position, Pokémon, level and money | Pass |
+| Start menu and save dialog drawn cleanly | Screenshots checked by eye |
 
 Patches containing the new art were re-applied from scratch and rebuilt to the identical ROM.
 
