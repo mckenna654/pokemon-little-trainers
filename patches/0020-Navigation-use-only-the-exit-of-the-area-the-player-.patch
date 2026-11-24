@@ -1,0 +1,382 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 20:47:38 +1100
+Subject: Navigation: use only the exit of the area the player is in; recover
+ when off the path; version-exclusive wild Pokemon
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index b581d3170..ec1ac44d2 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -48,6 +48,10 @@ struct LtRules
+     bool8 playerStatusShield;   // the player's side is always protected from sleep, poison, burn,
+                                 // freeze, paralysis and confusion (a permanent Safeguard)
+ 
++    // Collecting
++    u8 versionExclusivePercent; // chance that a wild Pokemon is replaced by its LeafGreen-only
++                                // counterpart (Ekans <-> Sandshrew and so on), so one cartridge has both
++
+     // Exploring
+     u8 encounterRatePercent;    // how often wild Pokemon appear (100 = original)
+     bool8 navArrow;             // an arrow beside the player points along the way to the next story goal
+@@ -156,6 +160,9 @@ void LT_Nav_OnHeapReset(void);
+ // True if the player may use this HM move in the field without a Pokemon knowing it.
+ bool32 LT_CanUseFieldMove(u16 move);
+ 
++// Sometimes turns a wild Pokemon into its counterpart from the other version.
++u16 LT_MaybeSwapVersionExclusive(u16 species);
++
+ // How many Pokemon the given trainer brings under the active preset.
+ u8 LT_TrainerPartyCap(u16 trainerNum);
+ 
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index ec672acbf..a9f801980 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -10,6 +10,8 @@
+ #include "little_trainers.h"
+ #include "palette.h"
+ #include "pokemon.h"
++#include "random.h"
++#include "constants/species.h"
+ #include "constants/battle_move_effects.h"
+ #include "constants/flags.h"
+ #include "constants/vars.h"
+@@ -38,6 +40,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .playerDamagePercent = 150,
+         .enemyDamagePercent = 60,
+         .playerStatusShield = TRUE,
++        .versionExclusivePercent = 35,
+         .encounterRatePercent = 50,
+         .simplePuzzles = TRUE,
+         .navArrow = TRUE,
+@@ -73,6 +76,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .playerDamagePercent = 120,
+         .enemyDamagePercent = 80,
+         .playerStatusShield = TRUE,
++        .versionExclusivePercent = 35,
+         .encounterRatePercent = 75,
+         .simplePuzzles = FALSE,
+         .navArrow = TRUE,
+@@ -108,6 +112,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .playerDamagePercent = 100,
+         .enemyDamagePercent = 100,
+         .playerStatusShield = FALSE,
++        .versionExclusivePercent = 0,
+         .encounterRatePercent = 100,
+         .simplePuzzles = FALSE,
+         .navArrow = FALSE,
+@@ -497,6 +502,38 @@ bool32 LT_CanUseFieldMove(u16 move)
+     return CheckBagHasItem(hm, 1);
+ }
+ 
++// FireRed-only wild Pokemon and the LeafGreen-only Pokemon found in the same places.
++static const u16 sVersionCounterparts[][2] =
++{
++    {SPECIES_EKANS,      SPECIES_SANDSHREW},
++    {SPECIES_ARBOK,      SPECIES_SANDSLASH},
++    {SPECIES_ODDISH,     SPECIES_BELLSPROUT},
++    {SPECIES_GLOOM,      SPECIES_WEEPINBELL},
++    {SPECIES_GROWLITHE,  SPECIES_VULPIX},
++    {SPECIES_PSYDUCK,    SPECIES_SLOWPOKE},
++    {SPECIES_GOLDUCK,    SPECIES_SLOWBRO},
++    {SPECIES_SHELLDER,   SPECIES_STARYU},
++    {SPECIES_ELECTABUZZ, SPECIES_MAGMAR},
++    {SPECIES_SCYTHER,    SPECIES_PINSIR},
++    {SPECIES_MANKEY,     SPECIES_MEOWTH},
++};
++
++u16 LT_MaybeSwapVersionExclusive(u16 species)
++{
++    u8 i;
++
++    for (i = 0; i < ARRAY_COUNT(sVersionCounterparts); i++)
++    {
++        if (sVersionCounterparts[i][0] == species)
++        {
++            if (Random() % 100 < LT_Rules()->versionExclusivePercent)
++                return sVersionCounterparts[i][1];
++            break;
++        }
++    }
++    return species;
++}
++
+ u8 LT_TrainerPartyCap(u16 trainerNum)
+ {
+     const struct LtRules *rules = LT_Rules();
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 16f20f25c..edb82f0e7 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -54,6 +54,7 @@ struct LtNavLift
+ #define FIELD_UNVISITED 0
+ // 1-4 are DIR_SOUTH, DIR_NORTH, DIR_WEST, DIR_EAST
+ #define FIELD_GOAL      5
++#define FIELD_AREA      0xE     // temporary mark: part of the area the player is standing in
+ #define FIELD_BLOCKED   0xF
+ 
+ #define QUEUE_SIZE 2048     // ring buffer of tile indices for the flood fill
+@@ -82,6 +83,7 @@ static EWRAM_DATA u8 sMetCount = 0;
+ static EWRAM_DATA u8 sMetX[MAX_MET] = {0};
+ static EWRAM_DATA u8 sMetY[MAX_MET] = {0};
+ static EWRAM_DATA u8 sShownDir = 0;         // where the arrow last pointed
++static EWRAM_DATA u8 sNoPathTimer = 0;      // frames spent standing somewhere the path does not cover
+ static EWRAM_DATA u8 sSavedGoalPlus1 = 0;   // the goal that was current at the last autosave check, +1 (0 = not known yet)  // the path was made while standing on the door just arrived through
+ static EWRAM_DATA bool8 sWasBusy = FALSE;   // a conversation, battle or menu has happened since the path was made
+ 
+@@ -266,55 +268,179 @@ static void SeedExit(struct Fill *fill, u8 exit, u8 from, u8 to)
+     }
+ }
+ 
+-// Seeds everything worth walking to on this map: the goal itself if it is here, and the exit the
+-// route table lists for each separate area of the map. Each listed exit belongs to one area, so
+-// every area ends up pointing at its own way onward.
+-static void SeedGoals(struct Fill *fill, const struct LtNavGoal *goal)
++// Marks the area the player is standing in: every tile that can be walked to from here without
++// hopping a ledge. Uses the fill queue; leaves FIELD_AREA marks behind.
++static void MarkPlayerArea(struct Fill *fill)
+ {
+-    const u8 *exits;
+-    u16 mapIndex;
+-    u8 i, count;
++    FillPush(fill, gSaveBlock1Ptr->pos.x + MAP_OFFSET, gSaveBlock1Ptr->pos.y + MAP_OFFSET, FIELD_AREA);
++    while (fill->count != 0)
++    {
++        u16 index = fill->queue[fill->head];
++        s32 x = index % fill->width;
++        s32 y = index / fill->width;
++        u8 dir;
++
++        fill->head = (fill->head + 1) % QUEUE_SIZE;
++        fill->count--;
++        for (dir = DIR_SOUTH; dir <= DIR_EAST; dir++)
++        {
++            s32 nx = x + sDirDelta[dir][0];
++            s32 ny = y + sDirDelta[dir][1];
++
++            if (nx < 0 || ny < 0 || nx >= fill->width || ny >= fill->height)
++                continue;
++            if (sField[ny * fill->width + nx] == FIELD_UNVISITED && TileWalkable(nx, ny, fill->canSurf))
++                FillPush(fill, nx, ny, FIELD_AREA);
++        }
++    }
++}
++
++static bool32 InPlayerArea(struct Fill *fill, s32 x, s32 y)
++{
++    if (x < 0 || y < 0 || x >= fill->width || y >= fill->height)
++        return FALSE;
++    return sField[y * fill->width + x] == FIELD_AREA;
++}
+ 
+-    if (gSaveBlock1Ptr->location.mapGroup == goal->mapGroup
+-     && gSaveBlock1Ptr->location.mapNum == goal->mapNum
+-     && goal->x != 0xFF)
++// A tile, or one beside it (doors and people are often on solid tiles), is in the player's area
++static bool32 NearPlayerArea(struct Fill *fill, s32 x, s32 y)
++{
++    return InPlayerArea(fill, x, y) || InPlayerArea(fill, x, y + 1) || InPlayerArea(fill, x, y - 1)
++        || InPlayerArea(fill, x + 1, y) || InPlayerArea(fill, x - 1, y);
++}
++
++static bool32 ExitInPlayerArea(struct Fill *fill, u8 exit, u8 from, u8 to)
++{
++    s32 i;
++
++    if (exit >= LT_NAV_HOP_WARP)
++    {
++        const struct MapEvents *events = gMapHeader.events;
++
++        exit -= LT_NAV_HOP_WARP;
++        return events != NULL && exit < events->warpCount
++            && NearPlayerArea(fill, events->warps[exit].x + MAP_OFFSET, events->warps[exit].y + MAP_OFFSET);
++    }
++    for (i = from + MAP_OFFSET; i <= to + MAP_OFFSET; i++)
+     {
+-        s32 x = goal->x + MAP_OFFSET;
+-        s32 y = goal->y + MAP_OFFSET;
++        s32 x = i, y = i;
+ 
+-        if (goal->localId != 0)
++        switch (exit)
+         {
+-            // Where that person is standing right now, or where the map will put them
+-            const struct MapEvents *events = gMapHeader.events;
++        case CONNECTION_NORTH:
++            y = MAP_OFFSET;
++            break;
++        case CONNECTION_SOUTH:
++            y = MAP_OFFSET + gMapHeader.mapLayout->height - 1;
++            break;
++        case CONNECTION_WEST:
++            x = MAP_OFFSET;
++            break;
++        default:
++            x = MAP_OFFSET + gMapHeader.mapLayout->width - 1;
++            break;
++        }
++        if (InPlayerArea(fill, x, y))
++            return TRUE;
++    }
++    return FALSE;
++}
+ 
+-            if (events != NULL && goal->localId <= events->objectEventCount && goal->localId <= OBJECT_EVENT_TEMPLATES_COUNT)
+-            {
+-                x = gSaveBlock1Ptr->objectEventTemplates[goal->localId - 1].x + MAP_OFFSET;
+-                y = gSaveBlock1Ptr->objectEventTemplates[goal->localId - 1].y + MAP_OFFSET;
+-            }
+-            for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
++// Where the goal itself is on this map (the person is looked up live, because scripts move people)
++static bool32 GoalTile(const struct LtNavGoal *goal, s32 *x, s32 *y)
++{
++    u8 i;
++
++    if (gSaveBlock1Ptr->location.mapGroup != goal->mapGroup
++     || gSaveBlock1Ptr->location.mapNum != goal->mapNum
++     || goal->x == 0xFF)
++        return FALSE;
++
++    *x = goal->x + MAP_OFFSET;
++    *y = goal->y + MAP_OFFSET;
++    if (goal->localId != 0)
++    {
++        const struct MapEvents *events = gMapHeader.events;
++
++        if (events != NULL && goal->localId <= events->objectEventCount && goal->localId <= OBJECT_EVENT_TEMPLATES_COUNT)
++        {
++            *x = gSaveBlock1Ptr->objectEventTemplates[goal->localId - 1].x + MAP_OFFSET;
++            *y = gSaveBlock1Ptr->objectEventTemplates[goal->localId - 1].y + MAP_OFFSET;
++        }
++        for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
++        {
++            if (gObjectEvents[i].active && !gObjectEvents[i].isPlayer && gObjectEvents[i].localId == goal->localId
++             && gObjectEvents[i].mapGroup == goal->mapGroup && gObjectEvents[i].mapNum == goal->mapNum)
+             {
+-                if (gObjectEvents[i].active && !gObjectEvents[i].isPlayer && gObjectEvents[i].localId == goal->localId
+-                 && gObjectEvents[i].mapGroup == goal->mapGroup && gObjectEvents[i].mapNum == goal->mapNum)
+-                {
+-                    x = gObjectEvents[i].currentCoords.x;
+-                    y = gObjectEvents[i].currentCoords.y;
+-                    break;
+-                }
++                *x = gObjectEvents[i].currentCoords.x;
++                *y = gObjectEvents[i].currentCoords.y;
++                break;
+             }
+         }
+-        FillPush(fill, x, y, FIELD_GOAL);
+     }
++    return TRUE;
++}
+ 
+-    if (gSaveBlock1Ptr->location.mapGroup >= ARRAY_COUNT(sLtNavGroupStart))
+-        return;
+-    mapIndex = sLtNavGroupStart[gSaveBlock1Ptr->location.mapGroup] + gSaveBlock1Ptr->location.mapNum;
+-    if (mapIndex >= LT_NAV_NUM_MAPS)
+-        return;
+-    exits = &sLtNavExits[sLtNavRoutes[goal->route][mapIndex]];
+-    count = *exits++;
+-    for (i = 0; i < count; i++, exits += 3)
+-        SeedExit(fill, exits[0], exits[1], exits[2]);
++// Seeds the fill with what to walk to. The route table lists one exit for each separate area of
++// the map, so only the exit of the area the player is standing in is used: otherwise a one-way
++// ledge could pull the path towards another area's exit. If the goal itself is in reach, that
++// wins; if nothing listed is in the player's area (the way on starts with a ledge hop), every
++// listed exit is used.
++static void SeedGoals(struct Fill *fill, const struct LtNavGoal *goal)
++{
++    const u8 *exits = NULL;
++    s32 goalX, goalY;
++    bool32 hasGoal = GoalTile(goal, &goalX, &goalY);
++    u8 qualified = 0;      // bit i: exit i is in the player's area (up to 8 are checked)
++    u8 count = 0;
++    u8 i;
++
++    if (gSaveBlock1Ptr->location.mapGroup < ARRAY_COUNT(sLtNavGroupStart))
++    {
++        u16 mapIndex = sLtNavGroupStart[gSaveBlock1Ptr->location.mapGroup] + gSaveBlock1Ptr->location.mapNum;
++
++        if (mapIndex < LT_NAV_NUM_MAPS)
++        {
++            exits = &sLtNavExits[sLtNavRoutes[goal->route][mapIndex]];
++            count = *exits++;
++        }
++    }
++
++    MarkPlayerArea(fill);
++    if (hasGoal && NearPlayerArea(fill, goalX, goalY))
++    {
++        count = 0; // the goal is right here: nothing else matters
++    }
++    else
++    {
++        for (i = 0; i < count && i < 8; i++)
++        {
++            if (ExitInPlayerArea(fill, exits[i * 3], exits[i * 3 + 1], exits[i * 3 + 2]))
++                qualified |= 1 << i;
++        }
++    }
++
++    // wipe the area marks before the real fill
++    {
++        u32 n = fill->width * fill->height;
++        u32 j;
++
++        for (j = 0; j < n; j++)
++        {
++            if (sField[j] == FIELD_AREA)
++                sField[j] = FIELD_UNVISITED;
++        }
++    }
++    fill->head = 0;
++    fill->count = 0;
++
++    if (hasGoal)
++        FillPush(fill, goalX, goalY, FIELD_GOAL);
++    for (i = 0; i < count; i++)
++    {
++        if (qualified == 0 || (i < 8 && (qualified & (1 << i))))
++            SeedExit(fill, exits[i * 3], exits[i * 3 + 1], exits[i * 3 + 2]);
++    }
+ }
+ 
+ static bool32 IsFieldObstacleGfx(u8 graphicsId)
+@@ -781,6 +907,22 @@ void LT_Nav_Update(void)
+         BuildField(goal, PATH_AROUND_EVERYONE);
+         dir = FieldAtPlayer();
+     }
++    if (gPlayerAvatar.tileTransitionState != T_TILE_TRANSITION && (dir == FIELD_UNVISITED || dir == FIELD_BLOCKED))
++    {
++        // Standing somewhere the path does not cover: the player stepped onto a tile that was
++        // taken when the path was made, or there was no way through at the time. Look again
++        // twice a second; people move.
++        if (++sNoPathTimer >= 30)
++        {
++            sNoPathTimer = 0;
++            BuildField(goal, PATH_AROUND_STANDING);
++            dir = FieldAtPlayer();
++        }
++    }
++    else
++    {
++        sNoPathTimer = 0;
++    }
+     if (dir == FIELD_GOAL)
+     {
+         dir = PushDirectionAtPlayer();
+diff --git a/src/wild_encounter.c b/src/wild_encounter.c
+index a35221c4f..247e84259 100644
+--- a/src/wild_encounter.c
++++ b/src/wild_encounter.c
+@@ -229,6 +229,7 @@ static void GenerateWildMon(u16 species, u8 level, u8 slot)
+     u32 personality;
+     s8 chamber;
+     ZeroEnemyPartyMons();
++    species = LT_MaybeSwapVersionExclusive(species);
+     if (species != SPECIES_UNOWN)
+     {
+         CreateMonWithNature(&gEnemyParty[0], species, level, USE_RANDOM_IVS, Random() % NUM_NATURES);
