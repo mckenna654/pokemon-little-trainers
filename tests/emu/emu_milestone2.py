@@ -100,12 +100,6 @@ class SimpleBattleMenu(BattleTestCase):
         self.assertLess(g.battle_mon(1)["hp"], TOUGH)
         self.assertEqual(g.last_move(0), EMBER)
 
-    def test_one_attack_only_means_both_buttons_use_it(self):
-        g = self.start_battle([SCRATCH, GROWL, 0, 0])
-        g.set_battle_hp(1, TOUGH)
-        self.press_and_watch(g.special)
-        self.assertEqual(g.last_move(0), SCRATCH)
-
     def test_pokemon_without_attacks_borrows_tackle_and_keeps_its_own_moves(self):
         g = self.start_battle([GROWL, LEER, 0, 0])
         g.set_battle_hp(1, TOUGH)

@@ -21,7 +21,9 @@ examining them.
    can affect.
 3. **Examine every sheet** with the Read tool, tile by tile, against the defect list below. For
    anything doubtful, open that tile's own `shot-NNN.png`. Done when every sheet has been opened
-   and every tile judged clean or defective: a sheet not opened is a sheet not tested.
+   and every tile judged clean or defective: a sheet not opened is a sheet not tested. A tile
+   that does not show what `INDEX.txt` says it shows is a defect in the tour: fix the tour and run
+   it again, because a scene the tour missed has not been tested.
 4. **Play as the child** when navigation, battles or story flow changed: `scripts/test.sh full`
    (new game to Hall of Fame by arrow and A only). Done when it passes, or its stopping place is
    understood.
@@ -46,8 +48,11 @@ Judge each tile as a four-year-old's parent would, looking for:
   sensible.
 - **Dead ends for an A-masher**: any screen in the tour's "gave up here" tiles.
 
-Compare with the previous tour when one exists: a tile that changed without a reason is a defect
-until explained.
+Compare with the previous tour when one exists (copy `tour/` aside before a change, for example
+to `tour-before/`): a tile that changed without a reason is a defect until explained.
+
+A fresh pair of eyes finds more: hand the sheets to a subagent that has not seen the change, with
+this defect list and no hints about what to expect, and check what it reports yourself.
 
 ## Limits
 

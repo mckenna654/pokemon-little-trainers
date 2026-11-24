@@ -1,5 +1,6 @@
 """Emulator tests for game-wide rules that need late-game situations. Set-up uses
 FireRed.run_script (the game's own script engine) to reach them quickly."""
+import struct
 import unittest
 
 from . import emu_arrow_goals as goals
@@ -191,6 +192,64 @@ class PuzzlesMadeSimple(WorldTestCase):
         for y in (14, 15):                                # where the rock barrier stands in the original
             block = g.r16(blocks + 2 * ((y + 7) * width + (12 + 7)))
             self.assertEqual((block >> 10) & 3, 0, "the barrier tile can be walked through")
+
+
+class PeopleWhoStopWhereTheyWereBeaten(WorldTestCase):
+    """Found by the whole-game run: a trainer who wanders about stands still for good once beaten,
+    wherever that happens to be. The arrow kept avoiding the spot the trainer started from and
+    walking into the trainer; with Surf it then led into the water and straight back out, for ever."""
+
+    ROUTE13 = location_of("Route13")
+    SEBASTIAN, HIS_SPOT = 2, (63, 12)       # a wandering Rocker at the corner of the boardwalk
+    CORNER, NORTH_OF_IT = (62, 12), (62, 11)
+
+    def sebastian(self):
+        g = self.g
+        base = g.sym("gObjectEvents")
+        for i in range(1, 16):
+            raw = g.read(base + i * 0x24, 0x18)
+            if raw[0] & 1 and raw[8] == self.SEBASTIAN:
+                x, y = struct.unpack_from("<hh", raw, 0x10)
+                return x - 7, y - 7
+        return None
+
+    def beat_him_north_of_the_corner(self, delay):
+        """Stand on the corner and fight him when he wanders onto the tile to the north. He walks
+        at random, so this can go wrong (he may challenge the player from somewhere else)."""
+        g = self.g
+        PuzzlesMadeSimple.story_state(self, "blaine")          # six badges, Surf owned, heading for Cinnabar
+        g.frames(delay)
+        g.teleport(self.ROUTE13, *self.CORNER)
+        g.face("UP")
+        for _ in range(3000):
+            if g.in_battle():
+                break
+            if g.free_to_move() and self.sebastian() == self.NORTH_OF_IT:
+                g.press("A", wait=10)
+            else:
+                g.press("B", wait=6)                           # (B also moves his greeting along)
+        if not g.in_battle() or self.sebastian() != self.NORTH_OF_IT:
+            return False
+        self.assertEqual(self.win(), WON)
+        return self.sebastian() == self.NORTH_OF_IT
+
+    def test_the_arrow_gets_past_a_beaten_wanderer(self):
+        for delay in range(0, 400, 37):                        # a different moment each try
+            if self.beat_him_north_of_the_corner(delay):
+                break
+            self.g.close()
+            self.g = game_at("route1")
+        else:
+            self.fail("set-up: could not get the wandering trainer beaten north of the corner")
+        g = self.g
+        self.assertEqual(g.position(), self.CORNER)
+
+        def past_him():
+            x, y = g.position()
+            return g.location() != self.ROUTE13 or (y <= 9 and x >= 62)
+
+        g.follow_arrow(past_him, max_actions=120, what="the boardwalk north of the beaten trainer")
+        self.assertFalse(g.is_surfing(), "and the way past is on foot, round the other side of him")
 
 
 class VersionExclusives(WorldTestCase):

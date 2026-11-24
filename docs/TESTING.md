@@ -3,6 +3,9 @@
 Compiling is not testing. Each result below says **how** it was verified:
 - **Emulator (automated)**: the compiled ROM was played by script in a headless mGBA core and the
   game's memory was checked.
+- **Emulator (automated, screen)**: the same, but the test reads what is drawn: the pixels of the
+  screen, or a sprite's picture as the console holds it.
+- **Screen tour**: every sheet of `python3 -m tests.emu.screen_tour` examined tile by tile.
 - **Manual**: a person played it. **Source review**: read only. **Compiled**: builds, nothing more.
 
 ## How to run
@@ -120,7 +123,7 @@ All **Emulator (automated)**. 48 emulator tests in total.
 | Classic preset shows the original FIGHT menu and move list | Emulator (automated) | Pass |
 | Junior preset keeps the arrow but shows the move list | Emulator (automated) | Pass |
 | Autosave fires when a goal is completed and the game carries on | Emulator (automated), as part of the arrow play-through | Pass |
-| Title banner, brighter map colours, solid arrow | Screenshots checked by eye | Pass |
+| Title banner, brighter map colours, solid arrow | Screenshots checked by eye | Pass, **wrongly**: the arrow was in fact drawn from the wrong pieces and the banner was hard to read (see the playtest section below). A glance at a small screenshot is not a check |
 | **The whole game by arrow** (`tests/emu/emu_full_game.py`): one continuous play from a new game, pressing only the arrow's direction and A, nothing set up behind the game's back: all eight badges, Victory Road, the Elite Four and Champion, into the Hall of Fame | Emulator (automated, opt-in: `scripts/test.sh full`) | **Pass**: Hall of Fame after 207 minutes of game time (12 minutes to run). Badges at 17, 33, 60, 88, 123, 140, 171 and 180 minutes; the starter was Lv 68 at the eighth badge |
 | No typing: A alone starts a new game with real names; catching and gift Pokémon ask for no nickname | Emulator (automated) | Pass |
 | Tick and cross on Yes/No boxes (pixel colours read from the window) and A still answers yes | Emulator (automated) | Pass |
@@ -148,8 +151,53 @@ happens when the player wanders off the arrow's route for a long time.
 GitHub Actions (Ubuntu): baseline checksum match, patch build and the regular emulator tests pass
 on every push; the whole-game run is an extra step for `main`.
 
+### 2026-11-25 — Jake's first playtest and the fixes (issue #1, patches 0027–0033)
+**Manual (Jake, 2026-11-24):** `v0.1.0-dev` in mGBA 0.10.5 on Windows, from a new game into the
+first rival battle. He reported: the arrow "bugged"; the same word on both attack buttons; swap
+arrows on CHANGE that say nothing about Pokémon; "wrong colour in text during fight". Every one
+was plainly visible in screenshots the tests had already saved, and no test had looked.
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Each defect reproduced on the released build before any change | Screenshots, tile-map dump, enlarged crops | Reproduced: all four, plus scraps of tiles at both ends of the picture menu and a hard-to-read title banner |
+| The arrow is one whole arrow (two sides match, a point at the front, one tail), read from the sprite's tiles and flip bits, pointing up or down and sideways | Emulator (automated, screen) | Pass (failed on the old build) |
+| The picture menu fills the box: both end columns are plain panel | Emulator (automated, screen) | Pass (failed on the old build) |
+| One attack → one attack button; RIGHT from ATTACK lands on CATCH; two attacks → two buttons | Emulator (automated, screen) | Pass (failed on the old build) |
+| When the second attack goes away mid-battle the ring returns to ATTACK and each picture stays on the button that does what it shows | Emulator (automated, screen; set-up edits the move list) | Pass |
+| First rival battle, won and lost: Oak's lecture window is never written in | Emulator (automated) | Pass (failed on the old build) |
+| Classic preset still gets Oak's lecture (also proves the check above looks in the right place) | Emulator (automated) | Pass |
+| First rival battle with one Pokémon: ATTACK is the only button | Emulator (automated, screen) | Pass (failed before the fix) |
+| First rival battle with a second Pokémon (set-up: gift by script): CHANGE then A alone sends it out, and nobody explains the party screen | Emulator (automated) | Pass (failed before the fix) |
+| The Professor's "So your name is…?" box has the tick and the cross | Emulator (automated) | Pass (failed before the fix) |
+| Title words sit on a solid plaque (no see-through pixels except the rounded corners) | Unit test on the generated art | Pass (failed on the old art) |
+| New CHANGE picture, title plaque clear of the logo, PRESS START and Charizard | Screen tour and enlarged crops, by eye | Pass |
+| A beaten wandering trainer standing north of the boardwalk corner on Route 13 (set-up: story flags by script; the battle itself is real): the arrow leads round him on foot | Emulator (automated) | Pass (failed before the fix: the arrow looped into the water and back) |
+| Regular suite | `scripts/test.sh` | 23 unit tests and 72 emulator tests pass |
+| The whole game by arrow, on the build with all these fixes | `scripts/test.sh full` equivalent on a copy of the ROM | **Pass** on the final build (ROM SHA-1 `1c3dbcc5…`): Hall of Fame after 206 minutes of game time; badges at 17, 34, 60, 86, 122, 140, 168 and 177 minutes. The build just before it **failed** (see below) |
+| Screen tour, all 19 sheets, on the build with every screen change (the one before the arrow's people fix, which draws nothing new); two sheets looked at again on the final build | An agent that had not seen the changes, given the defect list; key sheets also by the author | No defects on any of the 19 sheets (225 screens). One doubt noted: the wing picture for Flying attacks is hard to name. Not shown by the tour: a left-pointing arrow, the party screen opened by CHANGE, a real badge award in a gym |
+
+How the work was checked: the screen tour was examined before the fixes by an agent given only the
+defect list (it found Jake's four problems unprompted, and the title banner), again after the
+fixes, and once more on the finished build. A separate code review of the changes found that Oak
+still lectured on the party screen if CHANGE was pressed in the first battle, and that CHANGE with
+a single Pokémon led to a list where pressing A goes round in circles; both are fixed and tested
+above.
+
+**The whole-game run failed once on the way.** The build with every battle fix stopped after the
+sixth badge: an hour of play going in and out of the water at one corner of Route 13. The cause
+was older than this session and had nothing to do with battles: the arrow's map of people used
+where each person started, not where they are, and a beaten wandering trainer no longer moves.
+The run before it had passed only because its trainer happened to be beaten on a harmless tile.
+One passing whole-game run is one sample of a game with random events, not proof. The tour tool itself had mislabelled scenes (Start menu entries that showed no menu, a
+"winning" battle that was lost); it is corrected.
+
+Not covered: nobody has played the fixed build by hand; the left-pointing arrow was not seen in
+the tour (it is the right arrow flipped, and the test honours the flip); CHANGE while held in
+place by Mean Look or Arena Trap.
+
 ## Not yet tested (be honest about it)
-- **No manual play by a person yet.** Everything above is automated. How the game *feels* to a
+- **Very little manual play.** Jake played the opening and first battle of `v0.1.0-dev`; nobody
+  has played the build with the fixes. Nearly everything above is automated. How the game *feels* to a
   child (pace, clarity of the pictures, whether the arrow is noticed) is untested.
 - **No device testing.** Only the mGBA 0.10.5 core has run the ROM: not Delta, RetroArch, Pizza
   Boy, a Steam Deck or real hardware.

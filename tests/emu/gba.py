@@ -8,7 +8,10 @@ All timing is in frames (60 per second of game time). Runs are deterministic: th
 the same ROM give the same result, so tests are repeatable.
 """
 import os
+import struct
 import subprocess
+import tempfile
+import zlib
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 GBARUN = os.path.join(ROOT, "work", "gbarun")
@@ -28,6 +31,42 @@ def load_symbols(path):
             if len(parts) == 3:
                 table.setdefault(parts[2], []).append(int(parts[0], 16))
     return table
+
+
+def read_png(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    pos, idat, width, height, colour_type = 8, b"", 0, 0, 2
+    while pos < len(data):
+        length, kind = struct.unpack(">I4s", data[pos:pos + 8])
+        body = data[pos + 8:pos + 8 + length]
+        pos += 12 + length
+        if kind == b"IHDR":
+            width, height, _, colour_type = struct.unpack(">IIBB", body[:10])
+        elif kind == b"IDAT":
+            idat += body
+    bpp = {2: 3, 6: 4}[colour_type]
+    raw, stride = zlib.decompress(idat), width * bpp
+    rows, prev, p = [], bytearray(stride), 0
+    for _ in range(height):
+        kind, line = raw[p], bytearray(raw[p + 1:p + 1 + stride])
+        p += 1 + stride
+        for i in range(stride):
+            a = line[i - bpp] if i >= bpp else 0
+            b = prev[i]
+            c = prev[i - bpp] if i >= bpp else 0
+            if kind == 1:
+                line[i] = (line[i] + a) & 255
+            elif kind == 2:
+                line[i] = (line[i] + b) & 255
+            elif kind == 3:
+                line[i] = (line[i] + (a + b) // 2) & 255
+            elif kind == 4:
+                pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
+                line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        rows.append([tuple(line[x * bpp:x * bpp + 3]) for x in range(width)])
+        prev = line
+    return width, height, rows
 
 
 class GBA:
@@ -144,6 +183,13 @@ class GBA:
     def screenshot(self, path):
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         self.cmd(f"shot {os.path.abspath(path)}")
+
+    def pixels(self):
+        """The screen as the player sees it right now: 160 rows of 240 (r, g, b) tuples."""
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "screen.png")
+            self.screenshot(path)
+            return read_png(path)[2]
 
     def save_state(self, path):
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)

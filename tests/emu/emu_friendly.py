@@ -27,7 +27,43 @@ def text(g, addr, length=8):
     return out
 
 
+def yes_no_colours(g, x0, y0, x1, y1):
+    """The colour numbers drawn in part of the Yes/No box that is open."""
+    window = g.sym("gWindows") + 12 * g.r8(g.sym("sYesNoWindowId"))
+    width = g.r8(window + 3)
+    tiles = g.r32(window + 8)
+    found = set()
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            byte = g.r8(tiles + ((y // 8) * width + x // 8) * 32 + (y % 8) * 4 + (x % 8) // 2)
+            found.add(byte >> 4 if x % 2 else byte & 0xF)
+    return found
+
+
+def task_running(g, name):
+    func = g.sym(name) | 1
+    tasks = g.sym("gTasks")
+    return any(g.r8(tasks + 0x28 * i + 4) and g.r32(tasks + 0x28 * i) | 1 == func for i in range(16))
+
+
 class NewGame(unittest.TestCase):
+    def test_the_professors_name_question_has_a_tick_and_a_cross(self):
+        """The first Yes/No box in the game: "So your name is ...?" """
+        g = FireRed()
+        try:
+            for _ in range(1500):
+                if task_running(g, "Task_OakSpeech_HandleConfirmNameInput"):
+                    break
+                g.press("A", hold=3, wait=17)
+            else:
+                self.fail("the Professor never asked to confirm the name")
+            g.frames(10)
+            self.assertIn(GREEN, yes_no_colours(g, 33, 3, 45, 15), "a green tick beside YES")
+            self.assertIn(RED, yes_no_colours(g, 33, 17, 45, 29), "a red cross beside NO")
+            g.shot("friendly-name-question")
+        finally:
+            g.close()
+
     def test_a_new_game_needs_only_the_a_button(self):
         g = FireRed()
         try:
@@ -98,21 +134,9 @@ class NoReadingNeeded(unittest.TestCase):
         g.run_script([0x6E, 20, 8], wait=False)       # yesnobox
         g.frames(30)
         self.assertFalse(g.free_to_move(), "the question waits for an answer")
-        window = g.sym("gWindows") + 12 * g.r8(g.sym("sYesNoWindowId"))
-        width = g.r8(window + 3)
-        tiles = g.r32(window + 8)
-
-        def colours(x0, y0, x1, y1):
-            found = set()
-            for y in range(y0, y1):
-                for x in range(x0, x1):
-                    byte = g.r8(tiles + ((y // 8) * width + x // 8) * 32 + (y % 8) * 4 + (x % 8) // 2)
-                    found.add(byte >> 4 if x % 2 else byte & 0xF)
-            return found
-
-        self.assertIn(GREEN, colours(33, 3, 45, 15), "a green tick beside YES")
-        self.assertIn(RED, colours(33, 17, 45, 29), "a red cross beside NO")
-        self.assertNotIn(RED, colours(33, 3, 45, 15))
+        self.assertIn(GREEN, yes_no_colours(g, 33, 3, 45, 15), "a green tick beside YES")
+        self.assertIn(RED, yes_no_colours(g, 33, 17, 45, 29), "a red cross beside NO")
+        self.assertNotIn(RED, yes_no_colours(g, 33, 3, 45, 15))
         g.shot("friendly-yes-no")
         g.press("A", wait=40)
         self.assertEqual(g.r16(g.sym("gSpecialVar_Result")), 1, "A still answers yes")

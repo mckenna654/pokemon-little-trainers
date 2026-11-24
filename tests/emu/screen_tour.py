@@ -18,6 +18,7 @@ import zlib
 from . import story
 from .checkpoints import game_at
 from .firered import FireRed, SHOTS
+from .gba import read_png
 
 OUT = os.path.join(SHOTS, "tour")
 LEADER_BROCK = 414
@@ -59,6 +60,29 @@ class Tour:
         self.shot(g, scene + " (gave up here)")
 
 
+def open_start_menu(g, entry=0):
+    """Open the Start menu with the cursor on an entry (0 = the top one). The menu remembers
+    where the cursor was left, so it is moved from wherever it is."""
+    for _ in range(6):
+        g.press("START", wait=40)
+        if not g.free_to_move():
+            break
+        g.frames(30)                                # still fading in from a battle: try again
+    else:
+        raise RuntimeError("the Start menu did not open")
+    cursor = g.r8(g.sym("sStartMenuCursorPos"))
+    for _ in range(abs(entry - cursor)):
+        g.press("DOWN" if entry > cursor else "UP", wait=12)
+
+
+def close_menus(g):
+    for _ in range(8):
+        if g.free_to_move():
+            return
+        g.press("B", wait=60)
+    raise RuntimeError("could not get back to the field")
+
+
 def tour():
     t = Tour()
 
@@ -66,8 +90,15 @@ def tour():
     g = FireRed()
     for frame in (200, 400, 800, 1200):
         g.frames(frame - g.frame)
-        t.shot(g, "power-on and title")
-    t.press_through(g, "new game: the Professor's talk", lambda: g.callback2() == "CB2_Overworld", every=4)
+        t.shot(g, "power-on and the opening film")
+    while g.callback2() != "CB2_TitleScreenRun":
+        g.frames(10)
+    g.frames(240)                                # the title fades in
+    for _ in range(4):                           # PRESS START blinks and the flames move: four looks
+        g.frames(77)
+        t.shot(g, "title screen")
+    t.press_through(g, "new game: from the title screen through the Professor's talk",
+                    lambda: g.callback2() == "CB2_Overworld", every=4)
     g.frames(120)
     t.shot(g, "bedroom with the arrow")
     g.follow_arrow(lambda: g.location() == (3, 0) and g.free_to_move(), max_actions=400, what="Pallet Town")
@@ -87,7 +118,8 @@ def tour():
     g = game_at("starter")
     t.shot(g, "Oak's lab with a starter")
     story.start_rival_battle(g)
-    t.press_through(g, "first rival battle", lambda: not g.in_battle() and g.free_to_move(), max_presses=500, every=2)
+    t.press_through(g, "first rival battle", lambda: not g.in_battle(), max_presses=500, every=2)
+    t.press_through(g, "after the first rival battle (the rival leaves, the game saves itself)", g.free_to_move, max_presses=200, every=2)
     g.close()
 
     # 3. A wild battle: every button, then a catch
@@ -95,115 +127,90 @@ def tour():
     t.shot(g, "Route 1")
     story.find_wild_battle(g)
     g.wait_action_menu()
+    g.frames(20)
+    t.shot(g, "wild battle menu as it opens (the ring starts on the suggested attack)")
     for _ in range(4):
-        t.shot(g, "wild battle menu, each button")
-        g.press("RIGHT", wait=20)
-    g.wait_action_menu()
+        g.press("LEFT", wait=8)
+    for _ in range(4):
+        g.frames(20)
+        t.shot(g, "wild battle menu, each button from the left")
+        g.press("RIGHT", wait=8)
     g.catch()
     t.press_through(g, "catching", lambda: not g.in_battle() and g.callback2() == "CB2_Overworld", every=2)
 
     # 4. Field menus
     g.settle()
-    g.press("START", wait=40)
-    t.shot(g, "Start menu")
-    for _ in range(5):
-        g.press("DOWN", wait=12)
+    g.frames(90)
+    open_start_menu(g)
+    entries = g.r8(g.sym("sNumStartMenuItems"))
+    for _ in range(entries):
         t.shot(g, "Start menu, each entry")
-    g.press("B", wait=40)
-    g.press("START", wait=40)
+        g.press("DOWN", wait=12)
+    close_menus(g)
+    open_start_menu(g, 0)
     g.press("A", wait=120)
     t.shot(g, "party screen from the Start menu")
     g.press("A", wait=40)
     t.shot(g, "party screen, a Pokemon chosen")
-    for _ in range(4):
-        g.press("B", wait=60)
-    g.press("START", wait=40)
-    g.press("DOWN", wait=12)
+    close_menus(g)
+    open_start_menu(g, 1)
     g.press("A", wait=120)
     t.shot(g, "bag")
-    for _ in range(4):
-        g.press("B", wait=60)
-    g.press("START", wait=40)
-    for _ in range(2):
-        g.press("DOWN", wait=12)
+    close_menus(g)
+    open_start_menu(g, 2)
     g.press("A", wait=60)
     t.press_through(g, "saving", g.free_to_move, max_presses=60)
-    g.press("START", wait=40)
-    for _ in range(3):
-        g.press("DOWN", wait=12)
+    open_start_menu(g, 3)
     g.press("A", wait=90)
     t.shot(g, "options")
-    g.press("B", wait=120)
-    g.press("B", wait=60)
-    g.run_script([0x6E, 20, 8], wait=False)       # a plain yes/no question
+    close_menus(g)
+    g.run_script([0x6E, 20, 8], wait=False)       # a plain yes/no question (no question text: set-up)
     g.frames(30)
-    t.shot(g, "yes/no box")
+    t.shot(g, "yes/no box (shown by itself, without its question)")
     g.press("B", wait=40)
 
-    # 5. A gym leader: the trainer battle menu, a beaten Pokemon, the party screen in battle
+    # 5. A gym leader: the trainer battle menu, a beaten Pokemon, the party screen in battle.
+    # (Set-up: the battle is started on Route 1, and HP is written to memory to force a beaten
+    # Pokemon and then a win, so the hearts jump instead of draining.)
     g.settle()
     g.start_trainer_battle(LEADER_BROCK)
     g.wait_action_menu()
+    for _ in range(4):
+        g.press("LEFT", wait=8)
     for _ in range(3):
-        t.shot(g, "trainer battle menu, each button")
-        g.press("RIGHT", wait=20)
-    g.wait_action_menu()
-    g.set_battle_hp(0, 1)                         # set-up: the lead is beaten by the next hit
+        g.frames(20)
+        t.shot(g, "trainer battle menu, each button from the left")
+        g.press("RIGHT", wait=8)
+    for _ in range(4):
+        g.press("LEFT", wait=8)
+    g.set_battle_hp(0, 1)                         # the lead is beaten by the next hit
     g.set_battle_hp(1, 300)
     g.attack()
-    t.press_through(g, "a beaten Pokemon and the party screen",
+    t.press_through(g, "the turns up to a beaten Pokemon, then the party screen",
                     lambda: g.at_action_menu() or not g.in_battle(), max_presses=200, every=2)
-    if g.in_battle():
-        g.set_battle_hp(1, 1)
-        t.press_through(g, "winning against a leader", lambda: not g.in_battle() and g.free_to_move(),
-                        max_presses=600, every=8)
+    for press in range(900):
+        if not g.in_battle() and g.free_to_move():
+            break
+        if g.at_action_menu():
+            g.set_battle_hp(0, g.battle_mon(0)["max_hp"])
+            g.set_battle_hp(1, 1)
+        if press % 6 == 0:
+            t.shot(g, "winning against a leader")
+        g.press("A", hold=3, wait=17)
+    else:
+        t.shot(g, "winning against a leader (gave up here)")
 
-    # 6. Badge confetti
+    # 6. Badge confetti (set-up: the badge is handed over by a test script, here on Route 1)
     g.settle()
     g.run_script([0x29, *struct.pack("<H", FLAG_BADGE02_GET)])
-    g.frames(60)
-    t.shot(g, "badge confetti")
+    for _ in range(3):
+        g.frames(40)
+        t.shot(g, "badge confetti (forced, away from the gym)")
     g.close()
     return t.shots
 
 
 # --- contact sheets (no image library needed) ---------------------------------------------------
-def read_png(path):
-    with open(path, "rb") as f:
-        data = f.read()
-    pos, idat, width, height, colour_type = 8, b"", 0, 0, 2
-    while pos < len(data):
-        length, kind = struct.unpack(">I4s", data[pos:pos + 8])
-        body = data[pos + 8:pos + 8 + length]
-        pos += 12 + length
-        if kind == b"IHDR":
-            width, height, _, colour_type = struct.unpack(">IIBB", body[:10])
-        elif kind == b"IDAT":
-            idat += body
-    bpp = {2: 3, 6: 4}[colour_type]
-    raw, stride = zlib.decompress(idat), width * bpp
-    rows, prev, p = [], bytearray(stride), 0
-    for _ in range(height):
-        kind, line = raw[p], bytearray(raw[p + 1:p + 1 + stride])
-        p += 1 + stride
-        for i in range(stride):
-            a = line[i - bpp] if i >= bpp else 0
-            b = prev[i]
-            c = prev[i - bpp] if i >= bpp else 0
-            if kind == 1:
-                line[i] = (line[i] + a) & 255
-            elif kind == 2:
-                line[i] = (line[i] + b) & 255
-            elif kind == 3:
-                line[i] = (line[i] + (a + b) // 2) & 255
-            elif kind == 4:
-                pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
-                line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
-        rows.append([tuple(line[x * bpp:x * bpp + 3]) for x in range(width)])
-        prev = line
-    return width, height, rows
-
-
 def write_sheet(paths, out):
     rows_n = (len(paths) + COLUMNS - 1) // COLUMNS
     width = COLUMNS * 240 * SCALE + (COLUMNS + 1) * GAP

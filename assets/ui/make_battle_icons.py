@@ -200,10 +200,26 @@ def icon_catch():       # Poke Ball
                    (ellipse(12, 12, 3.6), DARK), (ellipse(12, 12, 2.3), WHITE), (ellipse(8, 7, 1.6, 1.1), WHITE)])
 
 
-def icon_change():      # swap arrows
-    right = poly([(2.5, 5.5), (14, 5.5), (14, 2.5), (21.5, 7.8), (14, 13), (14, 10), (2.5, 10)])
-    left = poly([(21.5, 14), (10, 14), (10, 11), (2.5, 16.3), (10, 21.5), (10, 18.5), (21.5, 18.5)])
-    return render([(right, BLUE), (left, GREEN)])
+def creature_head(cx, cy, r, colour, face=True, inner_ear=None):
+    """A round head with two round ears: our own made-up creature, not any particular Pokemon."""
+    ears = [(cx - r * 0.68, cy - r * 0.72), (cx + r * 0.68, cy - r * 0.72)]
+    layers = [(ellipse(x, y, r * 0.42), colour) for x, y in ears]
+    if inner_ear is not None:
+        layers += [(ellipse(x, y, r * 0.2), inner_ear) for x, y in ears]
+    layers.append((ellipse(cx, cy, r, r * 0.9), colour))
+    if face:
+        layers += [(ellipse(cx - r * 0.38, cy - r * 0.05, r * 0.2, r * 0.26), DARK),
+                   (ellipse(cx + r * 0.38, cy - r * 0.05, r * 0.2, r * 0.26), DARK),
+                   (ellipse(cx - r * 0.42, cy - r * 0.14, r * 0.07), WHITE),
+                   (ellipse(cx + r * 0.34, cy - r * 0.14, r * 0.07), WHITE),
+                   (line(cx - r * 0.2, cy + r * 0.42, cx + r * 0.2, cy + r * 0.42, 1.1), DARK)]
+    return layers
+
+
+def icon_change():      # another Pokemon steps forward: one head goes back (grey), a new one comes in
+    arrow = poly([(14, 2.6), (18.6, 2.6), (18.6, 0.8), (23.2, 4.3), (18.6, 7.8), (18.6, 6), (14, 6)])
+    return render(creature_head(7.2, 8.2, 5.6, GREY, face=False)
+                  + creature_head(14.8, 15, 7.2, ORANGE, inner_ear=YELLOW) + [(arrow, BLUE)])
 
 
 def icon_run():         # running shoe with speed lines
@@ -388,14 +404,12 @@ PLAYER_PALETTE = [(131, 123, 164), (172, 123, 65), (255, 197, 148), (222, 148, 1
 
 
 def nav_arrow_sheet():
-    """32x16: an arrow pointing up, then one pointing right (the game flips them for down/left)."""
-    up = [(7.5, 1.5), (13.5, 8.5), (10, 8.5), (10, 14.5), (5, 14.5), (5, 8.5), (1.5, 8.5)]
-    right = [(15 - y, x) for x, y in up]
-    frames = []
-    for pts in (up, right):
-        shade = poly([(x + 0.9, y + 0.9) for x, y in pts])
-        frames.append(render([(shade, 14), (poly(pts), 13)], size=16, outline_colour=15))
-    return [frames[0][y] + frames[1][y] for y in range(16)]
+    """16x32: an arrow pointing up, and under it one pointing right (the game flips them for down
+    and left). One flat colour with a dark outline. The two frames are stacked, not side by side:
+    the game reads a sprite sheet four tiles (one 16x16 frame) at a time, in rows of the image."""
+    up = [(7.5, 1), (14.5, 8), (10, 8), (10, 15), (5, 15), (5, 8), (0.5, 8)]
+    right = [(16 - y, x) for x, y in up]
+    return [row for pts in (up, right) for row in render([(poly(pts), 13)], size=16, outline_colour=15)]
 
 
 def confetti_sheet():
@@ -409,43 +423,46 @@ def confetti_sheet():
 
 # --- title screen banner -------------------------------------------------------------------------
 # "LITTLE / TRAINERS" in a chunky pixel font of our own, 128x32, cut into four 32x32 sprites.
-FONT = {
-    "L": ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
-    "I": ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
-    "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
-    "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
-    "R": ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
-    "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
-    "N": ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
-    "S": ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+FONT = {     # 5x6, drawn at twice the size
+    "L": ["10000", "10000", "10000", "10000", "10000", "11111"],
+    "I": ["11111", "00100", "00100", "00100", "00100", "11111"],
+    "T": ["11111", "00100", "00100", "00100", "00100", "00100"],
+    "E": ["11111", "10000", "11110", "10000", "10000", "11111"],
+    "R": ["11110", "10001", "11110", "10100", "10010", "10001"],
+    "A": ["01110", "10001", "10001", "11111", "10001", "10001"],
+    "N": ["10001", "11001", "10101", "10011", "10001", "10001"],
+    "S": ["01111", "10000", "01110", "00001", "00001", "11110"],
 }
-BANNER_PALETTE = [(255, 0, 255), (40, 40, 56), (255, 222, 90), (255, 255, 255), (232, 120, 32)] + [(0, 0, 0)] * 11
-B_OUTLINE, B_FILL, B_SHINE, B_SHADE = 1, 2, 3, 4
+BANNER_PALETTE = [(255, 0, 255), (32, 36, 64), (255, 222, 90), (255, 255, 255), (232, 120, 32)] + [(0, 0, 0)] * 11
+B_PLAQUE, B_FILL, B_SHINE, B_SHADE = 1, 2, 3, 4
+BANNER_WIDTH, BANNER_HEIGHT = 110, 30       # the plaque, centred in the 128x32 sprite strip
 
 
 def title_banner():
+    """The words on a solid dark plaque with an orange border. The title screen has flames, a
+    horizon and a logo behind this spot; with a see-through background the words were lost in them."""
     width, height, scale = 128, 32, 2
+    left, top = (width - BANNER_WIDTH) // 2, (height - BANNER_HEIGHT) // 2
+    right, bottom = left + BANNER_WIDTH - 1, top + BANNER_HEIGHT - 1
     grid = [[T] * width for _ in range(height)]
-    for line, word in enumerate(("LITTLE", "TRAINERS")):
+    for y in range(top, bottom + 1):
+        for x in range(left, right + 1):
+            corner = min(x - left, right - x) + min(y - top, bottom - y)
+            if corner < 2:
+                continue                    # rounded corners
+            edge = min(x - left, right - x, y - top, bottom - y)
+            grid[y][x] = B_SHADE if edge == 0 or corner == 2 else B_PLAQUE
+    for row, word in enumerate(("LITTLE", "TRAINERS")):
         x0 = (width - len(word) * 6 * scale + scale) // 2
-        y0 = 1 + line * 16
+        y0 = top + 2 + row * 14
         for i, ch in enumerate(word):
-            for y, row in enumerate(FONT[ch]):
-                for x, bit in enumerate(row):
+            for y, bits in enumerate(FONT[ch]):
+                for x, bit in enumerate(bits):
                     if bit == "1":
                         for sy in range(scale):
                             for sx in range(scale):
-                                colour = B_SHINE if (y == 0 and sy == 0) else B_SHADE if (y == 6 and sy == 1) else B_FILL
+                                colour = B_SHINE if (y == 0 and sy == 0) else B_SHADE if (y == 5 and sy == 1) else B_FILL
                                 grid[y0 + y * scale + sy][x0 + (i * 6 + x) * scale + sx] = colour
-    src = [r[:] for r in grid]
-    for y in range(height):                 # dark outline, including diagonals, so it reads on any background
-        for x in range(width):
-            if src[y][x] != T:
-                continue
-            for dy in (-1, 0, 1):
-                for dx in (-1, 0, 1):
-                    if 0 <= y + dy < height and 0 <= x + dx < width and src[y + dy][x + dx] not in (T, B_OUTLINE):
-                        grid[y][x] = B_OUTLINE
     # four 32x32 frames stacked vertically, left to right
     return [grid[y][f * 32:(f + 1) * 32] for f in range(4) for y in range(32)]
 

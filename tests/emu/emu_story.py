@@ -40,16 +40,14 @@ class OpeningTests(unittest.TestCase):
     def test_4_rival_battle_can_be_won_by_mashing_a(self):
         g = self.g
         story.start_rival_battle(g)
-        # The very first battle already uses the picture menu, in its trainer layout:
-        # ATTACK, SPECIAL, CHANGE and no RUN button.
+        # The very first battle already uses the picture menu. With one Pokemon that knows one
+        # attack there is a single button: no SPECIAL, no CHANGE, and no RUN against a trainer.
         self.assertTrue(g.wait_action_menu())
         for _ in range(5):
             g.press("RIGHT", wait=8)
-        self.assertEqual(g.menu_cursor(), g.CHANGE, "the row ends at CHANGE against a trainer")
+        self.assertEqual(g.menu_cursor(), g.ATTACK, "ATTACK is the only button")
         g.frames(20)
         g.shot("04-rival-battle-menu")
-        for _ in range(5):
-            g.press("LEFT", wait=8)
         outcome = story.finish_battle(g)
         self.assertEqual(outcome, 1, "B_OUTCOME_WON")
         self.assertTrue(self.g.free_to_move())

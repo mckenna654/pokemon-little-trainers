@@ -1,0 +1,144 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 08:35:43 +1100
+Subject: art: CHANGE button shows a creature's head stepping forward; title
+ words on a solid plaque
+
+CHANGE was two swap arrows, which say nothing about Pokemon. It is now our own
+made-up creature head coming in front of a greyed one, with an arrow.
+The LITTLE TRAINERS banner was thin letters with a see-through background over
+the flames and horizon; it is now a navy plaque with an orange border.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/graphics/little_trainers/battle_icons.png b/graphics/little_trainers/battle_icons.png
+index 9346fbe4a2d2f1b6b6c2081e1c4a15d409bd1456..56982d618f040592115c27964574567ec386c7ff 100644
+GIT binary patch
+delta 1832
+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
+WiZENBxBEo^0000<MNUMnLSTY<)N0rO
+
+delta 1796
+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
+
+diff --git a/graphics/little_trainers/title_banner.pal b/graphics/little_trainers/title_banner.pal
+index 4fc8a540e..a6efd4186 100644
+--- a/graphics/little_trainers/title_banner.pal
++++ b/graphics/little_trainers/title_banner.pal
+@@ -2,7 +2,7 @@ JASC-PAL
+ 0100
+ 16
+ 255 0 255
+-40 40 56
++32 36 64
+ 255 222 90
+ 255 255 255
+ 232 120 32
+diff --git a/graphics/little_trainers/title_banner.png b/graphics/little_trainers/title_banner.png
+index 9397fee40a66fb51113ce7296f7f35b248da3619..c035e04a502f01e2ee82b0a22399c5cc6b418b3b 100644
+GIT binary patch
+delta 358
+zcmV-s0h#{j1Fr*+ECV1UK#?yhe>kEz`Tzg{I!Q!9RCwCWl<jTAAPk26;}(FhfY|_L
+zfkR^dnF<&?4j)Ocjnw)SPI*L(U;F~VG+s%9Kr|9GL0-4e0gL|?_zt+#fkB)C+nytA
+zy8!ER;3=uaZrM5Tw*VgoE|zEB%CXs(k-7lWMFqTDWdx&ktBhczN*ezPe;g$>ko81Y
+zR7KjexwsR^0;}B6Gy`QTqo}oLk-JiJbf8YY1Y{Fc=>W=jUS$BXtQ6)VIfFEh;)Z5F
+z;g9Bxz&?TI4P>9dQM4+34TevCkmCx7b)lW4#6J0kKZ?#R9OnUa3u;nZo2`}|0oI>q
+zQ_VpBmrwH9p8=iJE`c-yShP3hr{P!rcoR6%IRbkSLQ_0;K$Wlncniz}U??obk8{xN
+zQ8i1Y)K~`Gq&46RXARWVw*Ytx*l+^K8*wJiEt=iO7f_U{i8E{PJpcdz07*qoM6N<$
+Ef_=@OOaK4?
+
+delta 416
+zcmV;R0bl;F1Ly;gECVPgIFT<Zf3tL&p8x;>b4f%&RCwCeRf}zeFbwqy1{N?IASOV{
+z{xda>KiJOo&{b8XM#6VI;ZL5Q6M(c3^E<3Z0T%kdz+Ql@!MEE-T{jbFU&nfeaD7n-
+zintIzrG}pX`y)WV3~ZM?i3{C6hLyNro48;bxDcEA5t9BnAUlwf1`vxLe?V*P+8SGB
+zBW`@`ME`ZG@StF2t9<lmJqcS4%_&70&Ibdj2?e-ayiyP603@J)4#`D;7_{4*wtpfo
+zRv20x-pcI~Wf&`f&Ol&6nmm408;9w{v_YnmG$+nS>D*hOx^U3<z-L*4aAo*RCpIU|
+zbmDUo_$c$jOsvN}G1`|9e{|tiQb@aSvndqDFE0U3ATBJA5l&>mpG^SXE-nQNIsv#i
+zAccVg)=-3~4V{-fGxLpd)*EFfc({a~*W^Kuz~@Qk!lu&O_2gpwI3TA-U`0-kJ)U6F
+zf&`SS?gbD%G$<uL#u-%#3vsaCqBH?|p2oC$3M$&TpkAx~{sl^s5@8p^2gYmw0000<
+KMNUMnLSTYQ54HCI
+
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index a1cbc7860..27941e771 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -136,8 +136,8 @@ static const struct SpriteTemplate sTitleBannerTemplate =
+     .callback = SpriteCallbackDummy,
+ };
+ 
+-#define TITLE_BANNER_X 6    // left edge of the 128x32 banner
+-#define TITLE_BANNER_Y 94   // top edge
++#define TITLE_BANNER_X 13   // left edge of the 128x32 sprite strip (the plaque is 110x30 in its middle)
++#define TITLE_BANNER_Y 95   // top edge: the plaque sits between the version logo and PRESS START
+ 
+ void LT_ShowTitleBanner(void)
+ {

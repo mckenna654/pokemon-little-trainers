@@ -4,6 +4,7 @@
 - **MODE replaces BATTLE STYLE** in the OPTION menu; battle style stays on SHIFT. A child who
   opens OPTION could change MODE: it is not locked.
 - **Normal-type special attacks use the generic sparkle symbol.**
+- **The wing picture for Flying attacks is hard to name** (a reviewer could not tell what it was).
 - **Hearts are the same red whatever the health** (the original bar's green/yellow/red is not used).
 - **Some menus are still words only:** the boy/girl choice, the bag, the party screen opened by
   CHANGE, shop lists and the "use next Pokémon?" question in battle. Yes/No boxes on the field have
@@ -19,9 +20,19 @@
   automatic). If party and PC storage are both full, CATCH only plays an error sound.
 - **Status protection is shown as SAFEGUARD:** when an opponent tries a status move the game says
   the party is protected by Safeguard. Opponents' AI therefore avoids status moves.
-- **Oak's battle lecture is skipped** in the first rival battle on the Little Trainer preset.
+- **Oak's battle lecture is skipped** in the first rival battle on the Little Trainer preset (it
+  is all text, and explains a menu the picture menu replaces). Junior and Classic keep it.
+- **Buttons come and go.** A Pokémon with one attacking move has one attack button; SPECIAL
+  appears when there is a second attack to offer. CHANGE appears only when another Pokémon can
+  come in. So the first rival battle has a single button, and the same picture can sit in a
+  different place from one battle to the next.
+- **CHANGE when the Pokémon is held in place** (Mean Look, Arena Trap and the like) still opens
+  the party screen and the game then says it cannot switch. Not yet simplified.
 - **The whole game has been finished by an automated player, not yet by a person.** It follows
   the arrow exactly; a child will wander, and places off the route are much less tested.
+- **A person who walks about and stops in a narrow place** can make the arrow suggest the water
+  (the Surf question) and then the land again until they move on. People who never move again
+  (beaten trainers) are now gone round properly.
 - **The arrow follows the main story only.** It does not guide to Pokémon Centres, shops or
   optional areas, and Fly still needs the party menu.
 - **Junior preset and puzzles:** Junior keeps the original gym puzzles, so its arrow can stop at a
@@ -35,7 +46,9 @@
   be read (HTTP 403 to automated access). Asset reuse terms are unconfirmed, so no third-party art
   is included yet. See `docs/GRAPHICS.md`.
 - **Only one emulator core tested:** mGBA 0.10.5 (headless). No device compatibility is claimed.
-- **No manual play yet:** all gameplay checks so far are automated.
+- **Manual play so far:** Jake, the opening and first rival battle of `v0.1.0-dev` in mGBA 0.10.5
+  on Windows (2026-11-24). What he found is GitHub issue #1 and is fixed on `develop`; the fixed
+  build has not been played by a person yet.
 - **Slow moments:** the arrow's path is worked out in one go when the map or goal changes, which
   can take longer than one frame on big maps (a brief hitch, not measured on real hardware).
 - **Vanilla saves unsupported:** start a fresh save with Little Trainers.

@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 08:49:28 +1100
+Subject: fix: tick and cross on the Professor's "so your name is...?" question
+
+The first Yes/No box of the game is made by the opening speech itself, not by the
+field helper that draws the pictures, so it was the one box without them.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/oak_speech.c b/src/oak_speech.c
+index e7741bafb..de4f25278 100644
+--- a/src/oak_speech.c
++++ b/src/oak_speech.c
+@@ -1499,6 +1499,8 @@ static void Task_OakSpeech_ConfirmName(u8 taskId)
+             else
+             {
+                 CreateYesNoMenu(&sIntro_WindowTemplates[WIN_INTRO_YESNO], FONT_NORMAL, 0, 2, GetStdWindowBaseTileNum(), 14, 0);
++                // Little Trainers: the tick and the cross, as on every field Yes/No box
++                LT_DrawYesNoIcons(GetYesNoMenuWindowId(), 2, GetFontAttribute(FONT_NORMAL, FONTATTR_MAX_LETTER_HEIGHT) + GetFontAttribute(FONT_NORMAL, FONTATTR_LINE_SPACING));
+                 gTasks[taskId].func = Task_OakSpeech_HandleConfirmNameInput;
+             }
+         }

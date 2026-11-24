@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 08:32:12 +1100
+Subject: fix: navigation arrow drawn as one whole arrow
+
+The sheet had its two frames side by side, but a sprite sheet is read four tiles
+(one 16x16 frame) at a time in image rows, so each frame was the top half of the
+up arrow above the top half of the right arrow. Frames are now stacked, and the
+arrow is one flat colour with a dark outline (no offset shade).
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/graphics/little_trainers/nav_arrow.png b/graphics/little_trainers/nav_arrow.png
+index e3f11904b379e578e6e3f587c73074e5d7829c71..e5d3532a0a1a54f9846b7ff760f0042c2c354dd1 100644
+GIT binary patch
+delta 151
+zcmaFBc$QJIGr-TCmrII^fq{Y7)59eQNDBb50t+*ce7XGT|A~tBxe=Z&jv*DdruLua
+zJz&7$yqEDefBHrzu?~&>t4wUKPLJ?6lwc6p@@-Z43f>c;4XrXNToW`L6%4nh8Gk+R
+z(drz_ylDHw)idk2_Pq7)HLDVmU0M0iIP(14mE5d1iz+K_S%w1bV(@hJb6Mw<&;$Ui
+CAvXd5
+
+delta 171
+zcmX@h_<&KdGr-TCmrII^fq{Y7)59eQNGkxb01GpaY}HH1ny6@BpY7@57*cU7xBoWp
+z0R<lB&5qyX&y_T(=`du<UEo^zC&FrekJFdW6-#psstUiTKCqg^w#dkM${~jkhg7aW
+zRgTv1*0mxTdmDBb<@;-1FmbDO>0NeWuG6}zga2~5q>n^#>MvMX!gOzY$BXh`%vbb^
+Wq&yuRxPjI)c)I$ztaD0WYytqP{XF*o
+

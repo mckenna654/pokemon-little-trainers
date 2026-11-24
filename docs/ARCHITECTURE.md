@@ -103,7 +103,7 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0005 | Picture battle menu (buttons, ring, recommended star, word label) | new `src/little_trainers_battle_ui.c`; `battle_controller_player.c` calls `LT_BattleMenu_Show/MoveCursor/Tick/Hide`; art in `graphics/little_trainers/` | `simpleBattleMenu` |
 | 0005 | Attacks that cannot affect the opponent are never offered; Struggle (typeless) is the last resort | `little_trainers.c` → `EffectiveScore()`, `LT_ChooseAttackSlots()`, `LT_RecommendedAttack()` | `simpleBattleMenu` |
 | 0005 | No recoil for the player | `battle_script_commands.c` → `SetMoveEffect` (`MOVE_EFFECT_RECOIL_25/33`) | `noPlayerRecoil` |
-| 0006 | Picture menu in the first rival battle | `battle_controllers.c` (player controller instead of Oak's when the simple menu is on) | `simpleBattleMenu` |
+| 0006, 0028 | Picture menu in the first rival battle, no Oak lecture | `battle_controllers.c` (player controller instead of Oak's), `battle_controller_opponent.c` (lecture lines after the first hit and after a loss), `party_menu.c` (lecture on the party screen), all via `LT_OakBattleLectureActive()` | `simpleBattleMenu` |
 | 0007 | Fewer wild encounters | `wild_encounter.c` → `DoWildEncounterRateTest` | `encounterRatePercent` |
 | 0007 | Status protection (permanent Safeguard on the player's side) | `battle_main.c` → `BattleStartClearSetData` calls `LT_OnBattleDataCleared()` | `playerStatusShield` |
 | 0007 | No move questions during evolution; B cannot cancel evolution | `evolution_scene.c` (both evolution tasks, `tCanStop`) | `autoLearnMoves`, `noEvolutionCancel` |
@@ -114,7 +114,7 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0011 | Opponent team caps | `battle_main.c` → `CreateNPCTrainerParty` via `LT_TrainerPartyCap()` | `trainerPartyCap`, `leaderPartyCap`, `bossPartyCap` |
 | 0012 | Field moves without teaching HMs; lit caves | `scrcmd.c` → `ScrCmd_checkpartymove`, `field_player_avatar.c` → `PartyHasMonWithSurf`, `overworld.c` → `SetDefaultFlashLevel`, via `LT_CanUseFieldMove()` | `hmFree` |
 | 0013 | Trade evolutions by level, easier friendship evolutions | `pokemon.c` → `GetEvolutionTargetSpecies` | `tradeEvoLevel`, `friendshipEvoThreshold` |
-| 0014–0015 | Navigation arrow | new `src/little_trainers_nav.c`, generated `src/data/little_trainers_nav.h`; hooks in `overworld.c` (`CB1_Overworld`) and `malloc.c` (`InitHeap`) | `navArrow` |
+| 0014–0015, 0033 | Navigation arrow | new `src/little_trainers_nav.c`, generated `src/data/little_trainers_nav.h`; hooks in `overworld.c` (`CB1_Overworld`) and `malloc.c` (`InitHeap`) | `navArrow` |
 | 0016 | Simple puzzles | `little_trainers.c` → `LT_OpenPuzzleGates()` (called before map transition scripts in `overworld.c`), `field_player_avatar.c` (spin tiles), `safari_zone.c` (step limit), `little_trainers_nav.c` (lifts) | `simplePuzzles` |
 
 | 0017 | MODE option (parent control) | `option_menu.c` (BATTLE STYLE row repurposed), strings | all presets |
@@ -136,7 +136,9 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
   target and from the exit listed for each separate area of the map, storing for each tile the
   direction to walk. Ledges are followed one way. Obstacles: people who stand still, trees and
   boulders the player cannot clear yet (taken from the map's object list, because distant objects
-  are not spawned), and every door or ladder that is not being aimed for. Three passes are tried:
+  are not spawned; an object the game has on the map is blocked where it is now, since a wandering
+  trainer stops for good where they were beaten and a boulder stays where it was pushed), and
+  every door or ladder that is not being aimed for. Three passes are tried:
   around standing people; around everyone (when the arrow ran into a walker); and, if there is no
   way round, straight up to whoever or whatever blocks the way, so the player talks to it, fights
   it or picks it up. People already dealt with are then routed around. The path is rebuilt after
@@ -156,15 +158,29 @@ The simple menu is off in the old man's catching lesson, the Poké Dude lessons 
 which run on their own battle controllers.
 
 ### How the picture menu is drawn
-- It reuses `B_WIN_OAK_OLD_MAN` (a 208×32 window over the message box) and background palette 7.
-  The original game only uses both for Professor Oak's tutorial text, never in a battle where the
-  picture menu is active, so no extra VRAM or palette is needed.
+- It is drawn into the message window itself (`B_WIN_MSG`, 224×32), and
+  `PutWindowRectTilemapOverridePalette` shows that window's tiles with background palette 7 while
+  the menu is up. No extra window, so no extra memory. (It first borrowed `B_WIN_OAK_OLD_MAN`,
+  which is two tiles narrower and shares the message window's tile memory: the box's end columns
+  then showed scraps of the menu's pixels.)
+- Palette 7 is the one the original game only uses for Professor Oak's tutorial text.
+  `LT_OakBattleLectureActive()` is the one rule that keeps the two apart: with the picture menu
+  on, none of the lecture runs (Oak's own controller, the opponent controller's lines after the
+  first hit and after a loss, and the party screen's explanation of the list).
+- A button has a **slot** (`LT_MENU_*`: what it does, and the value the cursor holds) and a
+  **position** (where it is drawn). A button is only shown when it does something of its own
+  (`SlotShown`): SPECIAL is left out when it would be the same move as ATTACK, and CHANGE when no
+  other Pokémon can come in. The rest close up to the left (`SlotPosition`).
 - `graphics/little_trainers/battle_icons.png` is a strip of 32×32 buttons;
   `BlitBitmapToWindow` copies one per slot (palette index 0 is transparent). The selection ring is
   a second blit on top; `LT_BattleMenu_Tick()` pulses palette index 14 between yellow and white.
 - The background does not scroll to the original menu page (`gBattle_BG0_Y` stays 0).
-  `LT_BattleMenu_Hide()` redraws the empty message window, which restores its tiles and palette.
-- `gActionSelectionCursor[battler]` holds the selected button (`LT_MENU_*`, left to right).
+  `LT_BattleMenu_Hide()` redraws the empty message window, which clears the buttons and puts the
+  window's own palette back on its tiles.
+- `gActionSelectionCursor[battler]` holds the selected button's slot (`LT_MENU_*`).
+- Sprite sheets with more than one frame (`nav_arrow.png`, `title_banner.png`) stack their frames
+  **vertically**. The game reads a sheet one frame's worth of tiles at a time in image rows, so
+  frames placed side by side come out as a mix of each other's halves.
 - All art is generated by `assets/ui/make_battle_icons.py` (shapes → 16-colour indexed PNG).
   Re-run it after changing an icon; it writes into `game/graphics/little_trainers/`.
 - Hearts are 9 tiles (`hearts.png`) indexed with the health box's own palette; the engine still

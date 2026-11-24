@@ -1,6 +1,6 @@
 # Progress and handoff
 
-_Last updated: 2026-11-24 (session 3)_
+_Last updated: 2026-11-25 (session 4)_
 
 ## Where things stand
 - **The main story is playable from start to finish without reading.** An automated player that
@@ -14,11 +14,31 @@ _Last updated: 2026-11-24 (session 3)_
   banner, and brighter map colours (`LT_VividPalette`). Tiles, sprites, battle backgrounds and
   fonts are original FireRed. Blocked on art permissions (see below).
 - **Milestones 6–7: mostly not started** (party/storage/Pokédex simplification, following Pokémon).
-- All game changes are in `patches/`. `main` is at the released commit; `develop` carries later
-  documentation only.
+- All game changes are in `patches/` (33 files).
 - **Pre-release `v0.1.0-dev`** (2026-11-24, at Jake's request): the BPS patch and its checksum on
-  the private repo's Releases page, built from `main` at `a749e31`. No ROM is attached, and none
-  ever should be. Jake has started playing this build by hand ("without issue" so far).
+  the private repo's Releases page, built from commit `a749e31`. No ROM is attached, and none ever
+  should be. **It does not contain the session 4 fixes**: a new pre-release needs Jake's say-so.
+- **Jake's first playtest (2026-11-24)** of that build found four visible defects in the first
+  five minutes (GitHub issue #1). Session 4 fixed them and four more found while looking.
+
+## What changed in session 4 (2026-11-25)
+Fixes for issue #1, each with a test that failed first: the navigation arrow's picture (its sprite
+sheet was laid out the wrong way, so every arrow was two half-arrows); one attack button when
+ATTACK and SPECIAL would be the same move; a new CHANGE picture (a made-up creature's head);
+no Professor Oak lecture anywhere in the first rival battle on Little Trainer; no scraps at the
+ends of the picture menu (it is now drawn into the message window itself); a solid plaque behind
+the title words. Found on the way and also fixed: CHANGE is hidden when no other Pokémon can come
+in (it led to a screen where A goes round in circles); the Professor's first Yes/No box had no
+tick and cross; and the arrow walked into beaten trainers who used to wander (the whole-game run
+got stuck on Route 13 because of it: see `docs/TESTING.md`). **Experience rates were not changed**
+(Jake withdrew that request).
+
+New ways of checking, because memory-reading tests had passed all of the above:
+`tests/emu/emu_playtest1.py` reads screen pixels and the arrow's sprite tiles; `GBA.pixels()`
+gives any test the screen; `tests/test_art.py` checks generated art; the screen tour
+(`python3 -m tests.emu.screen_tour`) has honest scene labels; the `playtest` skill says to hand the
+sheets to a reviewer who has not seen the change. The Superpowers plugin (systematic debugging,
+test first, verify before claiming, code review) was used throughout.
 
 ## What changed in session 3
 No typing or nickname questions; pre-filled name screens; shorter start; Yes/No pictures; nine
@@ -30,11 +50,14 @@ LeafGreen exclusives in the wild; and a long list of navigation fixes found by t
 
 ## Verified
 `docs/TESTING.md` has the tables. In short: byte-exact baseline; BPS round trip with two
-independent tools; 21 unit tests; 61 regular emulator tests; the whole-game run. CI (Ubuntu)
-repeats the build and the regular tests on every push, and the whole-game run on `main`.
+independent tools; 23 unit tests; 72 regular emulator tests; the whole-game run; the screen tour
+examined sheet by sheet. CI (Ubuntu) repeats the build and the regular tests on every push, and
+the whole-game run on `main`.
 
 ## Unverified / open
-- **No person has played the build.** Feel, pacing and whether a child notices the arrow are unknown.
+- **The fixed build has not been played by a person.** Jake played the opening of `v0.1.0-dev`
+  only. Feel, pacing and whether a child notices the arrow are unknown.
+- The picture for CHANGE and the title plaque are our own first attempts: Jake has not seen them.
 - **Only the mGBA 0.10.5 core has run it.** No Delta, RetroArch, handheld or real hardware check.
 - A child who leaves the arrow's route is much less tested than one who follows it.
 - Junior and Classic presets: menu and rule checks only, no long play.
@@ -44,10 +67,11 @@ repeats the build and the regular tests on every push, and the whole-game run on
   the remaster uses only art drawn for this project.
 
 ## Next actions (in order)
-1. **Jake is playing it** (and, if possible, a child will). Ask him what he found; the checklist
-   is at the end of `docs/TESTING.md`. Record what happened there.
-2. Fix what that shows, then bump `VERSION` to 0.1.0 and release it the same way as the
-   pre-release (patch and checksum only; ask Jake before tagging or releasing).
+1. **Ask Jake whether he wants a new pre-release** with the session 4 fixes (patch and checksum
+   only, never a ROM), and what he thinks of the new CHANGE picture and title plaque.
+2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
+   them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
+   The parent checklist is at the end of `docs/TESTING.md`.
 3. Graphics, once the permission question is answered.
 4. Leftovers in `ROADMAP.md`: pictures for the boy/girl choice, bag and party screens; Fly without
    a menu; missable Pokémon; storage-full handling; simpler dialogue; Milestone 6.
@@ -59,6 +83,10 @@ repeats the build and the regular tests on every push, and the whole-game run on
   emulator state on each map change, then replay from the last state with a trace of position,
   arrow and `sPathMode`. Save states only work with the exact ROM build that made them. To keep
   building while a long run is going, point it at a copy with `LT_TEST_ROM` / `LT_TEST_SYM`.
+- The whole-game run is one sample of a game with random events: any change to the ROM shifts
+  the timing and so the whole history. A failure may be an old bug that this timeline happened to
+  meet. Replaying from a save state changes the timing too, so reproduce from the start with a
+  logging copy of the run (frame limit just past the stall, save a state there), then inspect.
 - A value read from the emulator between frames can be mid-update when the game is running slow
   (a party member's species has shown up as nonsense in progress notes); check twice before
   believing a single odd reading.

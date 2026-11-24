@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 09:27:23 +1100
+Subject: fix: the arrow goes round people where they stand now, not where they
+ started
+
+A trainer who wanders stops for good where they were beaten (the game changes
+their movement type but not their saved position). The path kept the starting
+tile blocked and the real one open, so the arrow walked into them; with Surf it
+then led into the water and straight back out, for ever. Found by the whole-game
+run on Route 13.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 0b87ce76b..57e854397 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -577,6 +577,7 @@ static void BlockStandingObjects(void)
+ {
+     const struct MapEvents *events = gMapHeader.events;
+     u8 i;
++    u8 objectEventId;
+ 
+     if (events != NULL)
+     {
+@@ -597,7 +598,13 @@ static void BlockStandingObjects(void)
+             {
+                 continue;
+             }
+-            BlockTile(template->x + MAP_OFFSET, template->y + MAP_OFFSET);
++            // Where they are now, if the game has them on the map: a trainer who wanders stops
++            // for good where they were beaten, which is not where they started.
++            objectEventId = GetObjectEventIdByLocalIdAndMap(template->localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup);
++            if (objectEventId < OBJECT_EVENTS_COUNT)
++                BlockTile(gObjectEvents[objectEventId].currentCoords.x, gObjectEvents[objectEventId].currentCoords.y);
++            else
++                BlockTile(template->x + MAP_OFFSET, template->y + MAP_OFFSET);
+         }
+     }
+ 

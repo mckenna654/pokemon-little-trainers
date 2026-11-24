@@ -1,0 +1,155 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 08:33:20 +1100
+Subject: fix: picture battle menu fills the whole message box; one attack
+ button when there is one attack
+
+The menu borrowed Oak's window, which is two tiles narrower than the message box
+and shares its tile memory, so the box's end columns showed scraps of the menu.
+It now has a window of its own with the message box's exact footprint.
+SPECIAL is left out when it would be the same move as ATTACK.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/include/constants/battle.h b/include/constants/battle.h
+index d46776ab9..beb9830e9 100644
+--- a/include/constants/battle.h
++++ b/include/constants/battle.h
+@@ -350,6 +350,7 @@
+ #define B_WIN_VS_OUTCOME_LEFT    22
+ #define B_WIN_VS_OUTCOME_RIGHT   23
+ #define B_WIN_OAK_OLD_MAN        24
++#define B_WIN_LT_MENU            25 // Little Trainers: the picture battle menu
+ 
+ #define B_TEXT_FLAG_NPC_CONTEXT_FONT    (1 << 6)
+ #define B_TEXT_FLAG_WINDOW_CLEAR        (1 << 7)
+diff --git a/src/battle_bg.c b/src/battle_bg.c
+index 3bcc50080..71082bb82 100644
+--- a/src/battle_bg.c
++++ b/src/battle_bg.c
+@@ -365,6 +365,17 @@ static const struct WindowTemplate sStandardBattleWindowTemplates[] = {
+         .paletteNum = 7,
+         .baseBlock = 0x090
+     },
++    // Little Trainers: the picture battle menu. It covers exactly the tiles of B_WIN_MSG (and
++    // shares its tile memory), so nothing of the message box is left showing beside it.
++    [B_WIN_LT_MENU] = {
++        .bg = 0,
++        .tilemapLeft = 1,
++        .tilemapTop = 15,
++        .width = 28,
++        .height = 4,
++        .paletteNum = 7,
++        .baseBlock = 0x090
++    },
+     DUMMY_WIN_TEMPLATE
+ };
+ 
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 4c6dd3f61..a1cbc7860 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -16,8 +16,12 @@
+ // box, with a pulsing ring around the selected button and a small word beside the row for
+ // grown-ups. The art is our own (assets/ui/make_battle_icons.py in the project repository).
+ //
+-// It uses the window and background palette that the original game reserves for Professor Oak's
+-// tutorial text, which are idle in every battle where this menu is active.
++// It has a window of its own over the message box, and uses the background palette that the
++// original game reserves for Professor Oak's tutorial text, which is never shown in a battle
++// where this menu is active (LT_OakBattleLectureActive).
++//
++// Buttons have a slot (LT_MENU_*: what they do, and what the cursor holds) and a position (where
++// they are drawn). The two differ when SPECIAL is left out because it would repeat ATTACK.
+ 
+ static const u8 sIconsGfx[] = INCBIN_U8("graphics/little_trainers/battle_icons.4bpp");
+ static const u8 sRingGfx[] = INCBIN_U8("graphics/little_trainers/battle_ring.4bpp");
+@@ -53,12 +57,12 @@ enum
+     ICON_STEEL,
+ };
+ 
+-#define MENU_WINDOW     B_WIN_OAK_OLD_MAN   // 208x32 pixels over the message box
++#define MENU_WINDOW     B_WIN_LT_MENU       // 224x32 pixels: the whole inside of the message box
+ #define MENU_PALETTE    7
+ #define BUTTON_SIZE     32
+ #define BUTTON_BYTES    (BUTTON_SIZE * BUTTON_SIZE / 2)
+-#define BUTTON_X(slot)  (2 + 34 * (slot))
+-#define LABEL_X         140
++#define BUTTON_X(position) (10 + 34 * (position))
++#define LABEL_X         148
+ #define LABEL_WIDTH     68
+ 
+ // Palette indices in battle_icons.pal
+@@ -226,9 +230,31 @@ static u8 ButtonIcon(u8 battler, u8 slot)
+     }
+ }
+ 
++// With a single attack to offer, ATTACK and SPECIAL would be two buttons for the same move:
++// only ATTACK is shown.
++static bool32 SlotShown(u8 slot)
++{
++    if (slot == LT_MENU_SPECIAL)
++        return sBasicSlot != sSpecialSlot;
++    return slot < LT_BattleMenu_ButtonCount();
++}
++
++static u8 SlotPosition(u8 slot)
++{
++    u8 i;
++    u8 position = 0;
++
++    for (i = 0; i < slot; i++)
++    {
++        if (SlotShown(i))
++            position++;
++    }
++    return position;
++}
++
+ static void DrawButton(u8 battler, u8 slot, bool32 selected)
+ {
+-    u16 x = BUTTON_X(slot);
++    u16 x = BUTTON_X(SlotPosition(slot));
+ 
+     FillWindowPixelRect(MENU_WINDOW, PIXEL_FILL(COLOR_PANEL), x, 0, BUTTON_SIZE, BUTTON_SIZE);
+     BlitBitmapToWindow(MENU_WINDOW, &sIconsGfx[ButtonIcon(battler, slot) * BUTTON_BYTES], x, 0, BUTTON_SIZE, BUTTON_SIZE);
+@@ -287,7 +313,7 @@ void LT_BattleMenu_Show(u8 battler)
+         gActionSelectionCursor[battler] = sRecommended;
+         sCursorPlacedThisBattle = TRUE;
+     }
+-    if (gActionSelectionCursor[battler] >= count)
++    if (!SlotShown(gActionSelectionCursor[battler]))
+         gActionSelectionCursor[battler] = LT_MENU_ATTACK;
+ 
+     BattlePutTextOnWindow(gText_EmptyString3, B_WIN_MSG);
+@@ -296,7 +322,10 @@ void LT_BattleMenu_Show(u8 battler)
+ 
+     FillWindowPixelBuffer(MENU_WINDOW, PIXEL_FILL(COLOR_PANEL));
+     for (slot = 0; slot < count; slot++)
+-        DrawButton(battler, slot, slot == gActionSelectionCursor[battler]);
++    {
++        if (SlotShown(slot))
++            DrawButton(battler, slot, slot == gActionSelectionCursor[battler]);
++    }
+     DrawLabel(battler, gActionSelectionCursor[battler]);
+     PutWindowTilemap(MENU_WINDOW);
+     CopyWindowToVram(MENU_WINDOW, COPYWIN_FULL);
+@@ -305,10 +334,14 @@ void LT_BattleMenu_Show(u8 battler)
+ bool32 LT_BattleMenu_MoveCursor(u8 battler, s8 delta)
+ {
+     u8 old = gActionSelectionCursor[battler];
+-    s8 new = old + delta;
++    s8 new = old;
+ 
+-    if (new < 0 || new >= LT_BattleMenu_ButtonCount())
+-        return FALSE;
++    do
++    {
++        new += delta;
++        if (new < 0 || new >= LT_BattleMenu_ButtonCount())
++            return FALSE;
++    } while (!SlotShown(new));
+ 
+     gActionSelectionCursor[battler] = new;
+     DrawButton(battler, old, FALSE);
