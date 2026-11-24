@@ -18,26 +18,29 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Unlimited Poké Balls (catch works with an empty bag)
 - [x] Automatic full heal after every battle
 - [x] Experience ×2.5 and party-wide experience
-- [x] Simplified player attacks: no PP limits, player moves do not miss
+- [x] Simplified player attacks: no PP limits, player moves do not miss, no recoil
 - [x] Gentler opponents: damage scaling (150% dealt / 60% taken), no enemy critical hits
-- [x] Automatic move learning in battle (no "forget a move?" prompts)
+- [x] No status conditions on the player's Pokémon
+- [x] Automatic move learning in battle and during evolution; evolution cannot be cancelled
 - [x] No loss penalties: no money lost, friendly "need a little rest" message
-- [ ] Automatic move learning outside battle (evolution scene, Rare Candy)
-- [ ] Softer status conditions (sleep, paralysis, confusion, poison) and no recoil for the player
-- [ ] Lower wild encounter rate; trainer party trims for the early routes
+- [~] Wild encounters halved (built; checked in source only, no statistical test)
+- [ ] Automatic move learning from Rare Candy (still asks)
+- [ ] Trainer party trims for the early routes
 - [ ] Junior and Classic presets exercised by tests (needs a way to switch preset)
 - [ ] Manual play session by a person, then tag v0.1.0
 
 ## Milestone 2 — Child-friendly battle interface (v0.2.0)
-- [x] One-press ATTACK / SPECIAL / CATCH (wild) or CHANGE (trainer) / RUN menu, text labels
-- [x] Automatic choice of basic and special attack per Pokémon, with a Tackle fallback
+- [x] One-press ATTACK / SPECIAL / CATCH (wild) or CHANGE (trainer) / RUN
+- [x] Large pixel-art buttons instead of words; special-attack symbol follows the move's type
+- [x] Automatic choice of basic and special attack per Pokémon, with fallbacks (Tackle, Struggle)
+- [x] Recommended attack marked with a star and selected by default
 - [x] Direct catch with no bag; B does nothing; running always works
-- [ ] Large pixel-art icons in place of the text labels (needs our own UI art)
-- [ ] Recommended action highlight (type effectiveness)
-- [ ] Five-heart health display
-- [ ] Simple menu in the first rival battle (currently Oak's tutorial menu) and a trainer-battle test
+- [x] Six-heart health display
+- [x] Picture menu in the first rival battle (trainer layout tested there)
+- [ ] More type symbols (fighting, poison, flying, dragon, dark, steel currently use the sparkle)
 - [ ] Friendly handling when party and storage are both full (currently just an error sound)
-- [ ] Type-immunity safety net (a Pokémon whose attacks cannot affect the opponent)
+- [ ] Hide the HP numbers under the player's hearts; picture versions of other menus
+      (Start menu, Yes/No, new-game screens)
 
 ## Milestone 3 — First gym vertical slice (v0.3.0) — most important early milestone
 - [ ] Shortened intro, safe default names, fast text

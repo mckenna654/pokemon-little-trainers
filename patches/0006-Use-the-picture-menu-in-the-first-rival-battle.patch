@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 18:04:48 +1100
+Subject: Use the picture menu in the first rival battle
+
+On presets with the simple battle menu, the tutorial rival fight runs on the
+normal player controller instead of Professor Oak's lecture controller.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/src/battle_controllers.c b/src/battle_controllers.c
+index a2662c39a..eff41129f 100644
+--- a/src/battle_controllers.c
++++ b/src/battle_controllers.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "battle.h"
+ #include "battle_ai_script_commands.h"
+ #include "battle_anim.h"
+@@ -98,9 +99,11 @@ static void InitSinglePlayerBtlControllers(void)
+         {
+             if (gBattleTypeFlags & BATTLE_TYPE_SAFARI)
+                 gBattlerControllerFuncs[0] = SetControllerToSafari;
+-            else if (gBattleTypeFlags & (BATTLE_TYPE_OLD_MAN_TUTORIAL | BATTLE_TYPE_FIRST_BATTLE))
++            else if (gBattleTypeFlags & BATTLE_TYPE_OLD_MAN_TUTORIAL)
+                 gBattlerControllerFuncs[0] = SetControllerToOakOrOldMan;
+-            else
++            else if ((gBattleTypeFlags & BATTLE_TYPE_FIRST_BATTLE) && !LT_Rules()->simpleBattleMenu)
++                gBattlerControllerFuncs[0] = SetControllerToOakOrOldMan;
++            else // Little Trainers: the first rival battle uses the normal (picture) menu, without Oak's battle lecture
+                 gBattlerControllerFuncs[0] = SetControllerToPlayer;
+             gBattlerPositions[0] = B_POSITION_PLAYER_LEFT;
+             gBattlerControllerFuncs[1] = SetControllerToOpponent;
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index b743c88f6..d10d4fdd3 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -212,8 +212,8 @@ bool32 LT_SimpleBattleMenuActive(void)
+ {
+     if (!LT_BattleRulesActive() || !LT_Rules()->simpleBattleMenu)
+         return FALSE;
+-    // Tutorial and Safari battles have their own menus and controllers.
+-    if (gBattleTypeFlags & (BATTLE_TYPE_SAFARI | BATTLE_TYPE_POKEDUDE | BATTLE_TYPE_OLD_MAN_TUTORIAL | BATTLE_TYPE_FIRST_BATTLE))
++    // The catching tutorial, Poke Dude lessons and the Safari Zone have their own menus and controllers.
++    if (gBattleTypeFlags & (BATTLE_TYPE_SAFARI | BATTLE_TYPE_POKEDUDE | BATTLE_TYPE_OLD_MAN_TUTORIAL))
+         return FALSE;
+     return TRUE;
+ }

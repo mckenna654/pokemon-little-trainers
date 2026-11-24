@@ -1,9 +1,12 @@
-"""Emulator tests for the Little Trainer battle menu: ATTACK / CATCH / SPECIAL / RUN, one press
-each, with no move list and no bag."""
+"""Emulator tests for the Little Trainer picture battle menu: ATTACK / SPECIAL / CATCH / RUN
+buttons, one press each, with no move list and no bag."""
 import unittest
 
 from . import story
-from .emu_milestone1 import BattleTestCase, CAUGHT, EMBER, GROWL, LEER, RAN, SCRATCH, TACKLE, TOUGH, WON
+from .emu_milestone1 import BattleTestCase, CAUGHT, EMBER, GROWL, LEER, RAN, SCRATCH, TACKLE, TOUGH, WON, damage_rolls
+
+STRUGGLE = 165
+GASTLY, TYPE_GHOST, TYPE_POISON = 92, 7, 3
 
 
 class SimpleBattleMenu(BattleTestCase):
@@ -35,9 +38,51 @@ class SimpleBattleMenu(BattleTestCase):
         return seen
 
     def test_menu_screenshot(self):
-        g = self.start_battle()
+        g = self.start_battle([SCRATCH, GROWL, EMBER, 0])
         g.frames(30)
-        g.shot("m2-simple-menu-wild")
+        g.shot("m2-picture-menu-wild")
+        g.press("RIGHT", wait=20)
+        g.shot("m2-picture-menu-catch-selected")
+
+    def test_cursor_starts_on_the_recommended_attack(self):
+        g = self.start_battle([SCRATCH, GROWL, EMBER, 0])
+        self.assertEqual(g.menu_cursor(), g.SPECIAL, "Ember (own type) beats Scratch")
+        g.set_battle_hp(1, TOUGH)
+        g.attack()                                   # the child chooses something else...
+        self.assertTrue(g.wait_action_menu())
+        self.assertEqual(g.menu_cursor(), g.ATTACK, "...and the cursor stays where they left it")
+
+    def test_cursor_starts_on_first_button_when_there_is_one_attack(self):
+        g = self.start_battle([SCRATCH, GROWL, 0, 0])
+        self.assertEqual(g.menu_cursor(), g.ATTACK)
+
+    def test_cursor_cannot_leave_the_row(self):
+        g = self.start_battle()
+        for _ in range(6):
+            g.press("RIGHT", wait=8)
+        self.assertEqual(g.menu_cursor(), g.RUN)
+        for _ in range(6):
+            g.press("LEFT", wait=8)
+        self.assertEqual(g.menu_cursor(), g.ATTACK)
+        g.press("UP", wait=8)
+        g.press("DOWN", wait=8)
+        self.assertEqual(g.menu_cursor(), g.ATTACK)
+        self.assertTrue(g.at_action_menu())
+
+    def test_ghost_opponent_cannot_leave_the_player_without_an_attack(self):
+        g = self.start_battle([SCRATCH, GROWL, 0, 0])            # only a Normal-type attack
+        foe_addr = g.sym("gBattleMons") + 0x58
+        g.w16(foe_addr, GASTLY)                                  # set-up: turn the opponent into a Ghost
+        g.w8(foe_addr + 0x21, TYPE_GHOST)
+        g.w8(foe_addr + 0x22, TYPE_POISON)
+        g.set_battle_hp(1, TOUGH)
+        me, foe = self.battler_stats(0), self.battler_stats(1)
+        self.press_and_watch(g.attack)
+        self.assertEqual(g.last_move(0), STRUGGLE, "a typeless attack is borrowed when Scratch cannot hit")
+        self.assertLess(g.battle_mon(1)["hp"], TOUGH, "and it does damage")
+        taken = me["hp"] - self.battler_stats(0)["hp"]
+        from_opponent = damage_rolls(foe["level"], foe["attack"], me["defense"], 35, 60) | {0}
+        self.assertIn(taken, from_opponent, "no recoil damage on top of what the opponent did")
 
     def test_attack_is_one_press_and_uses_the_basic_move(self):
         g = self.start_battle([SCRATCH, GROWL, EMBER, 0])

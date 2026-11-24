@@ -1,0 +1,194 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 18:08:56 +1100
+Subject: Calmer exploring and safer battles for Little Trainers
+
+Wild encounters are half as frequent, the player's side is protected from
+status conditions for the whole battle (a permanent Safeguard), a full move
+list no longer raises questions during evolution, and pressing B cannot
+cancel an evolution.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index b032312f3..eb2d1d79a 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -43,9 +43,15 @@ struct LtRules
+     u8 enemyDamagePercent;      // damage dealt by opposing Pokemon (100 = original)
+     bool8 alwaysRunAway;        // running from a wild Pokemon never fails
+     bool8 noPlayerRecoil;       // the player's Pokemon take no recoil damage from their own moves
++    bool8 playerStatusShield;   // the player's side is always protected from sleep, poison, burn,
++                                // freeze, paralysis and confusion (a permanent Safeguard)
+ 
+-    // Moves
++    // Exploring
++    u8 encounterRatePercent;    // how often wild Pokemon appear (100 = original)
++
++    // Moves and evolution
+     bool8 autoLearnMoves;       // new moves replace the weakest one automatically, no prompts
++    bool8 noEvolutionCancel;    // pressing B during an evolution does not stop it
+ 
+     // Interface
+     bool8 simpleBattleMenu;     // ATTACK / SPECIAL / CATCH / RUN instead of the move list and bag
+@@ -71,6 +77,9 @@ bool32 LT_BattleRulesActive(void);
+ // Called once when a battle is being set up.
+ void LT_OnBattleStart(void);
+ 
++// Called after the engine has reset its per-battle state.
++void LT_OnBattleDataCleared(void);
++
+ // How suitable a move is for a young player: 0 = never choose it (no damage, or a confusing or
+ // self-harming effect), otherwise larger is better (roughly power x accuracy).
+ u16 LT_MoveScore(u16 move);
+diff --git a/src/battle_main.c b/src/battle_main.c
+index 1da537fa0..2848f25a2 100644
+--- a/src/battle_main.c
++++ b/src/battle_main.c
+@@ -2327,6 +2327,7 @@ static void BattleStartClearSetData(void)
+         gBattleResults.playerMon2Name[i] = 0;
+         gBattleResults.caughtMonNick[i] = 0;
+     }
++    LT_OnBattleDataCleared();
+ }
+ 
+ void SwitchInClearSetData(void)
+diff --git a/src/evolution_scene.c b/src/evolution_scene.c
+index 442aa15ff..4962d296c 100644
+--- a/src/evolution_scene.c
++++ b/src/evolution_scene.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "battle.h"
+ #include "battle_message.h"
+@@ -294,7 +295,7 @@ void EvolutionScene(struct Pokemon* mon, u16 postEvoSpecies, bool8 canStopEvo, u
+     gTasks[id].tState = 0;
+     gTasks[id].tPreEvoSpecies = currSpecies;
+     gTasks[id].tPostEvoSpecies = postEvoSpecies;
+-    gTasks[id].tCanStop = canStopEvo;
++    gTasks[id].tCanStop = canStopEvo && !LT_Rules()->noEvolutionCancel; // Little Trainers: B cannot cancel an evolution
+     gTasks[id].tLearnsFirstMove = TRUE;
+     gTasks[id].tEvoWasStopped = FALSE;
+     gTasks[id].tPartyId = partyId;
+@@ -801,7 +802,19 @@ static void Task_EvolutionScene(u8 taskId)
+                 GetMonData(mon, MON_DATA_NICKNAME, text);
+                 StringCopy_Nickname(gBattleTextBuff1, text);
+ 
+-                if (var == MON_HAS_MAX_MOVES)
++                if (var == MON_HAS_MAX_MOVES && LT_Rules()->autoLearnMoves)
++                {
++                    // Little Trainers: no "forget a move?" questions. Swap the new move in for
++                    // the weakest one, or skip it and look for the next move at this level.
++                    u8 slot = LT_ChooseMoveSlotToReplace(mon, gMoveToLearn);
++
++                    if (slot == MAX_MON_MOVES)
++                        break;
++                    RemoveMonPPBonus(mon, slot);
++                    SetMonMoveSlot(mon, gMoveToLearn, slot);
++                    gTasks[taskId].tState = EVOSTATE_LEARNED_MOVE;
++                }
++                else if (var == MON_HAS_MAX_MOVES)
+                     gTasks[taskId].tState = EVOSTATE_REPLACE_MOVE;
+                 else if (var == MON_ALREADY_KNOWS_MOVE)
+                     break;
+@@ -1232,7 +1245,17 @@ static void Task_TradeEvolutionScene(u8 taskId)
+                 GetMonData(mon, MON_DATA_NICKNAME, text);
+                 StringCopy_Nickname(gBattleTextBuff1, text);
+ 
+-                if (var == MON_HAS_MAX_MOVES)
++                if (var == MON_HAS_MAX_MOVES && LT_Rules()->autoLearnMoves)
++                {
++                    u8 slot = LT_ChooseMoveSlotToReplace(mon, gMoveToLearn); // Little Trainers: see Task_EvolutionScene
++
++                    if (slot == MAX_MON_MOVES)
++                        break;
++                    RemoveMonPPBonus(mon, slot);
++                    SetMonMoveSlot(mon, gMoveToLearn, slot);
++                    gTasks[taskId].tState = T_EVOSTATE_LEARNED_MOVE;
++                }
++                else if (var == MON_HAS_MAX_MOVES)
+                     gTasks[taskId].tState = T_EVOSTATE_REPLACE_MOVE;
+                 else if (var == MON_ALREADY_KNOWS_MOVE)
+                     break;
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index d10d4fdd3..8f83fb27c 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -30,9 +30,12 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .enemyNoCrits = TRUE,
+         .playerDamagePercent = 150,
+         .enemyDamagePercent = 60,
++        .playerStatusShield = TRUE,
++        .encounterRatePercent = 50,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
+         .autoLearnMoves = TRUE,
++        .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = TRUE,
+     },
+     [LT_DIFFICULTY_JUNIOR] =
+@@ -49,9 +52,12 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .enemyNoCrits = TRUE,
+         .playerDamagePercent = 120,
+         .enemyDamagePercent = 80,
++        .playerStatusShield = TRUE,
++        .encounterRatePercent = 75,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
+         .autoLearnMoves = FALSE,
++        .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = FALSE,
+     },
+     [LT_DIFFICULTY_CLASSIC] =
+@@ -68,9 +74,12 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .enemyNoCrits = FALSE,
+         .playerDamagePercent = 100,
+         .enemyDamagePercent = 100,
++        .playerStatusShield = FALSE,
++        .encounterRatePercent = 100,
+         .noPlayerRecoil = FALSE,
+         .alwaysRunAway = FALSE,
+         .autoLearnMoves = FALSE,
++        .noEvolutionCancel = FALSE,
+         .simpleBattleMenu = FALSE,
+     },
+ };
+@@ -120,6 +129,18 @@ void LT_OnBattleStart(void)
+     LT_BattleMenu_Reset();
+ }
+ 
++void LT_OnBattleDataCleared(void)
++{
++    if (LT_BattleRulesActive() && LT_Rules()->playerStatusShield)
++    {
++        // A Safeguard that lasts the whole battle. The engine and the opponent's AI already
++        // understand Safeguard, so no status code needs changing.
++        gSideStatuses[B_SIDE_PLAYER] |= SIDE_STATUS_SAFEGUARD;
++        gSideTimers[B_SIDE_PLAYER].safeguardTimer = 255;
++        gSideTimers[B_SIDE_PLAYER].safeguardBattlerId = 0;
++    }
++}
++
+ u16 LT_MoveScore(u16 move)
+ {
+     const struct BattleMove *info;
+diff --git a/src/wild_encounter.c b/src/wild_encounter.c
+index fa358c028..a35221c4f 100644
+--- a/src/wild_encounter.c
++++ b/src/wild_encounter.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "random.h"
+ #include "wild_encounter.h"
+ #include "event_data.h"
+@@ -314,6 +315,7 @@ static bool8 DoWildEncounterRateTest(u32 encounterRate, bool8 ignoreAbility)
+     encounterRate += sWildEncounterData.encounterRateBuff * 16 / 200;
+     ApplyFluteEncounterRateMod(&encounterRate);
+     ApplyCleanseTagEncounterRateMod(&encounterRate);
++    encounterRate = encounterRate * LT_Rules()->encounterRatePercent / 100; // Little Trainers: calmer walks
+     if (!ignoreAbility)
+     {
+         switch (sWildEncounterData.abilityEffect)

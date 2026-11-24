@@ -17,6 +17,8 @@ STAT_ATK, STAT_DEF, STAT_ACC = 1, 2, 6
 STAGE = [(10, 40), (10, 35), (10, 30), (10, 25), (10, 20), (10, 15), (10, 10),
          (15, 10), (20, 10), (25, 10), (30, 10), (35, 10), (40, 10)]
 TOUGH = 300     # HP given to a wild Pokemon when a test needs the battle to last
+THUNDER_WAVE, STRING_SHOT = 86, 81
+CATERPIE, METAPOD = 10, 11
 
 
 def exp_for(level):
@@ -177,6 +179,38 @@ class Milestone1(BattleTestCase):
     def test_full_move_list_skips_a_move_that_does_no_damage(self):
         mon = self.level_up_with_moves([SCRATCH, EMBER, METAL_CLAW, GROWL], 19)  # Smokescreen at 19
         self.assertEqual(mon.moves, [SCRATCH, EMBER, METAL_CLAW, GROWL])
+
+    def test_no_move_question_during_evolution(self):
+        g = self.g
+        story.find_wild_battle(g)                    # catch something for the bench...
+        self.assertTrue(g.wait_action_menu())
+        g.catch()
+        g.advance_text(g.free_to_move, what="control after catching")
+        # ...and (set-up) turn it into a Caterpie one point away from level 7, with a full move list.
+        # Metapod tries to learn Harden when it evolves, which the original game asks about.
+        moves = [TACKLE, STRING_SHOT, GROWL, LEER]
+        g.edit_party_mon(1, species=CATERPIE, moves=moves, exp=7 ** 3 - 1, level=6)
+        story.find_wild_battle(g)
+        self.assertEqual(self.fight(), WON)          # the benched Caterpie levels up and evolves;
+        evolved = g.party()[1]                       # the test taps B the whole time, which must not cancel it
+        self.assertEqual(evolved.species, METAPOD, "pressing B did not stop the evolution")
+        self.assertEqual(evolved.moves, moves, "Harden was skipped without asking; attacks kept")
+
+    # --- status conditions ----------------------------------------------------------------
+    def test_player_pokemon_cannot_be_paralysed(self):
+        g = self.g
+        story.find_wild_battle(g)
+        self.assertTrue(g.wait_action_menu())
+        foe = g.sym("gBattleMons") + 0x58
+        for slot in range(4):                        # set-up: the wild Pokemon only knows Thunder Wave
+            g.w16(foe + 0x0C + 2 * slot, THUNDER_WAVE)
+            g.w8(foe + 0x24 + slot, 20)
+        g.set_battle_hp(1, TOUGH)
+        for _ in range(4):
+            g.attack()
+            self.assertTrue(g.wait_action_menu())
+            self.assertEqual(g.r32(g.sym("gBattleMons") + 0x4C), 0, "no status condition")
+        self.assertEqual(g.chosen_move(1), THUNDER_WAVE, "set-up: the opponent really tried")
 
     # --- losing ---------------------------------------------------------------------------
     def test_losing_costs_nothing_and_party_is_restored(self):

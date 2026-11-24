@@ -1,16 +1,17 @@
 # Progress and handoff
 
-_Last updated: 2026-11-24 (session 1)_
+_Last updated: 2026-11-25 (session 2)_
 
 ## Where things stand
 - **Milestone 0 (environment and baseline): complete.** CI green.
-- **Milestone 1 (simplified gameplay): core rules done and emulator-tested** (patches 0001–0003).
-- **Milestone 2 (battle interface): mechanics done and emulator-tested** (patch 0004): one-press
-  ATTACK / CATCH / SPECIAL / RUN with automatic move choice. Still text labels; icons, hearts and
-  the recommended-action highlight are not started.
-- **Milestone 3+ : not started.**
-- Graphics: strategy decided (source-level, incremental; `docs/GRAPHICS.md`); no art changed yet.
-- Remaining items for each milestone are the unchecked boxes in `ROADMAP.md`.
+- **Milestone 1 (simplified gameplay): done and emulator-tested**, apart from the unchecked
+  boxes in `ROADMAP.md` (Rare Candy prompts, trainer trims, preset switching, a manual session).
+- **Milestone 2 (battle interface): done and emulator-tested** (patches 0004–0008): picture
+  buttons, automatic attack choice with fallbacks, recommended-attack star, hearts, and the picture
+  menu in the first rival battle. Leftovers are small (see `ROADMAP.md`).
+- **Milestone 3 (Pallet → Brock slice): not started.** This is the next big piece.
+- Graphics: battle UI art is our own and in the game. No tiles, sprites or backgrounds changed yet
+  (`docs/GRAPHICS.md`).
 
 ## Verified
 `docs/TESTING.md` has the full tables. In short: byte-exact baseline; BPS round trip with two
@@ -24,19 +25,17 @@ of the Little Trainer rules, each proven to fail on unmodified FireRed.
   Chrome extension, or paste the first post of each thread).
 
 ## Next actions (in order)
-1. Milestone 3 groundwork, because it unlocks testing of everything else: extend
-   `tests/emu/story.py` from Route 1 to Viridian City, the parcel errand, Viridian Forest and
-   Brock, so trainer battles (and the ATTACK / CHANGE / SPECIAL layout) run under automation.
-2. Use the simple menu in the first rival battle (`src/battle_controllers.c` assigns
-   `SetControllerToOakOrOldMan` for `BATTLE_TYPE_FIRST_BATTLE`; check what the Oak controller
-   prints at the end of that battle before bypassing it).
-3. Finish Milestone 1 leftovers: auto-learn in `src/evolution_scene.c` and the Rare Candy path
-   (`src/party_menu.c`); softer status conditions; lower wild encounter rate
-   (`src/wild_encounter.c`).
-4. Milestone 2 art: draw our own icons (attack star, type symbols, Poké Ball, arrows, shoe) and
-   hearts in `assets/`, then swap the text labels in `PlayerHandleChooseAction` for tiles and add
-   hearts in `src/battle_interface.c`.
-5. Navigation arrow and intro trim for the Pallet → Brock slice.
+1. Milestone 3 groundwork: extend `tests/emu/story.py` from Route 1 to Viridian City, the parcel
+   errand, Viridian Forest and Brock. It gives automated coverage of ordinary trainer battles and
+   is the yardstick for everything else in the slice.
+2. Pictures for the other menus Jake asked about: Start menu (icon beside each entry, drawn with
+   the standard menu palette), Yes/No boxes (tick and cross), and the new-game flow. The generator
+   in `assets/ui/` and the blit approach in `src/little_trainers_battle_ui.c` are the pattern.
+3. Intro trim and fast text by default; navigation arrow for the Pallet → Brock objectives
+   (objective table keyed on story vars/flags; see the specification notes in `ROADMAP.md`).
+4. Brock and Viridian Forest trainer tuning; badge celebration; autosave at safe checkpoints.
+5. Small leftovers: more type symbols, hide HP numbers, storage-full message, Rare Candy prompts,
+   a parent settings screen to change preset (unlocks Junior/Classic tests).
 
 ## How to resume
 ```bash

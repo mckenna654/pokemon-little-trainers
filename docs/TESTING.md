@@ -68,10 +68,24 @@ to play through the new menu and still pass.
 | CATCH is one press with an empty bag, at full health, twice in a row; the bag never opens | Pass |
 | RUN works three times in a row with speed forced to 1 | Pass |
 | Pressing B ten times in the menu does nothing | Pass |
-| Menu shows ATTACK / CATCH / SPECIAL / RUN (screenshot checked by eye) | Pass |
+| Menu shows the four actions (screenshot checked by eye; later replaced by pictures) | Pass |
 
-Not covered yet: the trainer-battle layout (ATTACK / CHANGE / SPECIAL) has only been reviewed in
-source, because the first trainer after the tutorial rival fight is in Viridian Forest.
+### 2026-11-25 — Picture menu, hearts and remaining rules (patches 0005–0008)
+All **Emulator (automated)** unless marked. 27 emulator tests in total now pass.
+
+| Check | Result |
+| --- | --- |
+| Picture menu appears; ring moves with LEFT/RIGHT and stops at both ends; UP/DOWN/B do nothing | Pass |
+| Cursor starts on the recommended attack (Ember over Scratch), then stays where the player left it | Pass |
+| With one attack only, the cursor starts on the first button | Pass |
+| Opponent turned into a Ghost in RAM: Scratch is not offered, a typeless attack is borrowed, it does damage, and there is no recoil | Pass |
+| First rival battle uses the picture menu in trainer layout (ATTACK, SPECIAL, CHANGE; no RUN) and is won by pressing A | Pass |
+| Opponent that only knows Thunder Wave: the player's Pokémon is never paralysed over four turns | Pass |
+| Benched Pokémon evolves (Caterpie → Metapod) while the test taps B throughout: evolution is not cancelled, Harden is skipped with no question, moves unchanged | Pass |
+| Buttons, ring, recommended star, label text, hearts (full / half / empty) | Screenshots checked by eye |
+| Wild encounter rate halved | Source review only |
+
+Patches containing the new art were re-applied from scratch and rebuilt to the identical ROM.
 
 GitHub Actions (Ubuntu): baseline checksum match, patch build and the opening play-through passed
 on the foundation commit.

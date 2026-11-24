@@ -1,0 +1,131 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 18:10:37 +1100
+Subject: Show health as hearts on the Little and Junior presets
+
+Each 8-pixel slice of the HP bar is drawn as a heart: empty, half or full,
+six hearts in all. The tiles use the health box's own palette, and the
+engine's HP values and bar logic are unchanged.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/graphics/little_trainers/hearts.png b/graphics/little_trainers/hearts.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..de2bdff7517276b7edf06ef092ba5ccb06cf2abb
+GIT binary patch
+literal 182
+zcmeAS@N?(olHy`uVBq!ia0vp^9ze{&!VDx=%w8e^qznRlLR^8grKRQn|NpO^-P_#U
+z?d2F1loj>=YS8~Jj`y;nivO>Py4w8zndR9v9RH&%*Eo8)uQf^m>T&dRaSW-rm7Ji!
+zwnUIoB4kd?lrM4%AD3&)IC%8v(U*6vOa8nQG*a`M*u{O}NBN5%vRr8aT)aU+zxw;^
+f7bYyKVQ2UxS^H~4+M_Q(!x%hW{an^LB{Ts5*iuKL
+
+literal 0
+HcmV?d00001
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index eb2d1d79a..9871b4a64 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -55,6 +55,7 @@ struct LtRules
+ 
+     // Interface
+     bool8 simpleBattleMenu;     // ATTACK / SPECIAL / CATCH / RUN instead of the move list and bag
++    bool8 heartHealth;          // health is shown as six hearts instead of a bar
+ };
+ 
+ // Buttons of the simple battle menu, left to right.
+@@ -107,6 +108,9 @@ void LT_BattleMenu_Tick(void);                      // once per frame while the
+ void LT_BattleMenu_Hide(void);
+ u8 LT_BattleMenu_ButtonCount(void);
+ 
++// 8x8 heart tile for one slice of the HP bar with 0-8 of its pixels filled.
++const u8 *LT_HeartTile(u8 filledPixels);
++
+ // Scales damage for the attacker's side according to the active preset.
+ s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker);
+ 
+diff --git a/src/battle_interface.c b/src/battle_interface.c
+index 36fc9a584..c9ef04a20 100644
+--- a/src/battle_interface.c
++++ b/src/battle_interface.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "battle_anim.h"
+ #include "battle_interface.h"
+@@ -1914,12 +1915,18 @@ static void MoveBattleBarGraphically(u8 battlerId, u8 whichBar)
+         for (i = 0; i < B_HEALTHBAR_NUM_TILES; i++)
+         {
+             u8 healthbarSpriteId = gSprites[gBattleSpritesDataPtr->battleBars[battlerId].healthboxSpriteId].sHealthBarSpriteId;
++            const u8 *tile = GetBattleInterfaceGfxPtr(barElementId) + filledPixels[i] * TILE_SIZE_4BPP;
++
++            // Little Trainers: each 8-pixel slice of the bar is shown as a heart (empty, half or full)
++            if (LT_BattleRulesActive() && LT_Rules()->heartHealth)
++                tile = LT_HeartTile(filledPixels[i]);
++
+             if (i < 2) // first 2 tiles are on left healthbar sprite
+-                CpuCopy32(GetBattleInterfaceGfxPtr(barElementId) + filledPixels[i] * TILE_SIZE_4BPP,
++                CpuCopy32(tile,
+                           (void *)(OBJ_VRAM0 + (gSprites[healthbarSpriteId].oam.tileNum + 2 + i) * TILE_SIZE_4BPP), // + 2 here is due to B_INTERFACE_GFX_HP_BAR_HP_TEXT
+                           1 * TILE_SIZE_4BPP);
+             else // remaining 4 tiles are on right healthbar sprite
+-                CpuCopy32(GetBattleInterfaceGfxPtr(barElementId) + filledPixels[i] * TILE_SIZE_4BPP,
++                CpuCopy32(tile,
+                           (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP),
+                           1 * TILE_SIZE_4BPP);
+         }
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 8f83fb27c..7d88ce403 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -37,6 +37,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .autoLearnMoves = TRUE,
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = TRUE,
++        .heartHealth = TRUE,
+     },
+     [LT_DIFFICULTY_JUNIOR] =
+     {
+@@ -59,6 +60,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .autoLearnMoves = FALSE,
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = FALSE,
++        .heartHealth = TRUE,
+     },
+     [LT_DIFFICULTY_CLASSIC] =
+     {
+@@ -81,6 +83,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .autoLearnMoves = FALSE,
+         .noEvolutionCancel = FALSE,
+         .simpleBattleMenu = FALSE,
++        .heartHealth = FALSE,
+     },
+ };
+ 
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 59ccf8dae..92c498c01 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -23,6 +23,7 @@ static const u8 sIconsGfx[] = INCBIN_U8("graphics/little_trainers/battle_icons.4
+ static const u8 sRingGfx[] = INCBIN_U8("graphics/little_trainers/battle_ring.4bpp");
+ static const u8 sMarkerGfx[] = INCBIN_U8("graphics/little_trainers/battle_marker.4bpp");
+ static const u16 sIconsPal[] = INCBIN_U16("graphics/little_trainers/battle_icons.gbapal");
++static const u8 sHeartsGfx[] = INCBIN_U8("graphics/little_trainers/hearts.4bpp");
+ 
+ // Order of the buttons in battle_icons.png
+ enum
+@@ -63,6 +64,13 @@ static EWRAM_DATA u8 sPulseTimer = 0;
+ 
+ static const u8 sLabelColors[] = {COLOR_PANEL, COLOR_WHITE, COLOR_DARK};
+ 
++const u8 *LT_HeartTile(u8 filledPixels)
++{
++    if (filledPixels > 8)
++        filledPixels = 8;
++    return &sHeartsGfx[filledPixels * TILE_SIZE_4BPP];
++}
++
+ void LT_BattleMenu_Reset(void)
+ {
+     sCursorPlacedThisBattle = FALSE;

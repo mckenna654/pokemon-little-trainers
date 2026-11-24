@@ -50,7 +50,7 @@ class Mon:
         self.hp, self.max_hp = struct.unpack_from("<HH", raw, 86)
 
     @staticmethod
-    def patch(raw, moves=None, exp=None, level=None, hp=None):
+    def patch(raw, moves=None, exp=None, level=None, hp=None, species=None):
         """Return a copy of a 100-byte struct Pokemon with some fields changed and the
         checksum and encryption redone, exactly as the game stores it."""
         raw = bytearray(raw)
@@ -61,6 +61,8 @@ class Mon:
         growth, attacks = order.index("G") * 12, order.index("A") * 12
         if exp is not None:
             struct.pack_into("<I", data, growth + 4, exp)
+        if species is not None:
+            struct.pack_into("<H", data, growth, species)
         if moves is not None:
             struct.pack_into("<4H", data, attacks, *moves)
         struct.pack_into("<H", raw, 28, sum(struct.unpack_from("<24H", data, 0)) & 0xFFFF)
@@ -184,7 +186,8 @@ class FireRed(GBA):
             if self.at_action_menu():
                 self.frames(4)
                 return True
-            if self.callback2() == "CB2_NamingScreen":
+            callback = self.callback2()
+            if callback == "CB2_NamingScreen":
                 self.press("START", wait=20)
                 self.press("A", wait=40)
             else:
@@ -207,18 +210,34 @@ class FireRed(GBA):
         self._move_cursor(self.sym("gActionSelectionCursor"), index)
         self.press("A", wait=20)
 
-    # Little Trainer simple menu: one press per action
-    def attack(self):
-        self.choose_action(0)
+    # Little Trainer picture menu: buttons left to right, one press per action
+    ATTACK, SPECIAL, CATCH, CHANGE, RUN = 0, 1, 2, 2, 3
 
-    def catch(self):
-        self.choose_action(1)
+    def menu_cursor(self):
+        return self.r8(self.sym("gActionSelectionCursor"))
+
+    def press_button(self, index):
+        """Move the ring to a button with LEFT/RIGHT and press A."""
+        for _ in range(4):
+            cur = self.menu_cursor()
+            if cur == index:
+                break
+            self.press("RIGHT" if cur < index else "LEFT", wait=8)
+        if self.menu_cursor() != index:
+            raise EmulatorError(f"could not move the menu cursor to button {index}")
+        self.press("A", wait=20)
+
+    def attack(self):
+        self.press_button(self.ATTACK)
 
     def special(self):
-        self.choose_action(2)
+        self.press_button(self.SPECIAL)
+
+    def catch(self):
+        self.press_button(self.CATCH)
 
     def run_away(self):
-        self.choose_action(3)
+        self.press_button(self.RUN)
 
     def set_battle_hp(self, battler, hp):
         """Test set-up only: overwrite a battler's current HP in RAM."""
@@ -226,6 +245,10 @@ class FireRed(GBA):
 
     def last_move(self, battler=0):
         return self.r16(self.sym("gLastMoves") + 2 * battler)
+
+    def chosen_move(self, battler=0):
+        """The move a battler picked this turn (set even if the move then fails)."""
+        return self.r16(self.sym("gChosenMoveByBattler") + 2 * battler)
 
     def use_move(self, slot=0):
         self.choose_action(0)
