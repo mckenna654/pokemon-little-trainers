@@ -1,0 +1,59 @@
+# --- Pokemon: Little Trainers ---
+# This repo stores only OUR changes (patches/), scripts, tests and docs.
+# The upstream decompilation is fetched into game/ by scripts/setup.sh; it is never committed.
+game/
+work/
+
+# Original and generated ROMs (never commit, even privately)
+*.gba
+*.gb
+*.gbc
+*.nds
+*.rom
+baserom*.gba
+original-rom/*
+!original-rom/README.md
+
+# Generated builds, binary patches and temporary files
+builds/
+build/
+dist/
+*.bps
+*.ips
+*.ups
+*.o
+*.elf
+*.map
+*.sym
+*.log
+*.tmp
+__pycache__/
+*.pyc
+
+# Save files and emulator states
+*.sav
+*.srm
+*.ss[0-9]
+*.state
+*.state*
+*.sgm
+saves/
+savestates/
+
+# Emulator BIOS
+gba_bios.bin
+bios/
+
+# Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
