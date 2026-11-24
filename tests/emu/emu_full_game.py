@@ -19,6 +19,7 @@ from .gba import EmulatorError
 from .maps import map_name
 
 FLAG_BADGE01_GET, FLAG_SYS_GAME_CLEAR = 0x820, 0x82C
+STALL_FRAMES = 60 * 60 * 60     # one hour of play at 60 frames a second
 BADGES = ["Boulder", "Cascade", "Thunder", "Rainbow", "Soul", "Marsh", "Volcano", "Earth"]
 
 
@@ -27,7 +28,7 @@ class WholeGameByArrow(unittest.TestCase):
     def test_new_game_to_the_hall_of_fame_using_only_the_arrow_and_a(self):
         g = FireRed()
         started = time.time()
-        seen = {"badges": 0, "map": None}
+        seen = {"badges": 0, "map": None, "held": set(), "maps": set(), "progress": 0}
 
         def note(text):
             print(f"  [{time.time() - started:4.0f}s, {g.frame // 3600:3d} min of play] {text}", file=sys.stderr, flush=True)
@@ -36,13 +37,22 @@ class WholeGameByArrow(unittest.TestCase):
             if g.flag(FLAG_SYS_GAME_CLEAR):
                 return True
             if g.free_to_move():
-                badges = sum(g.flag(FLAG_BADGE01_GET + b) for b in range(8))
-                if badges > seen["badges"]:
-                    seen["badges"] = badges
+                held = {b for b in range(8) if g.flag(FLAG_BADGE01_GET + b)}
+                for b in sorted(held - seen["held"]):
+                    seen["held"].add(b)
+                    seen["badges"] = len(seen["held"])
+                    seen["progress"] = g.frame
                     party = ", ".join(f"species {m.species} Lv{m.level}" for m in g.party())
-                    note(f"{BADGES[badges - 1]} Badge ({badges}/8) in {map_name(g.location())}; party: {party}")
-                    g.shot(f"full-badge-{badges}")
+                    note(f"{BADGES[b]} Badge ({seen['badges']}/8) in {map_name(g.location())}; party: {party}")
+                    g.shot(f"full-badge-{seen['badges']}")
                 seen["map"] = map_name(g.location())
+                if seen["map"] not in seen["maps"]:
+                    seen["maps"].add(seen["map"])
+                    seen["progress"] = g.frame
+            # Going round in circles must fail the test, not run for ever: an hour of play
+            # without a new badge or a place not seen before is far more than any stretch needs.
+            if g.frame - seen["progress"] > STALL_FRAMES:
+                raise EmulatorError(f"no new place or badge for an hour of play; last in {seen['map']}")
             return False
 
         try:

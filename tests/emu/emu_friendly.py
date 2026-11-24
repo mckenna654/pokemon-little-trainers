@@ -11,6 +11,7 @@ from .firered import FireRed
 SCRATCH, GROWL, EMBER, LEER, METAL_CLAW = 10, 45, 52, 43, 232
 ITEM_RARE_CANDY = 68
 FLAG_BADGE01_GET = 0x820
+LEADER_BROCK = 414
 BUG_CATCHER_DOUG = 103          # three Pokemon: two chances to be asked "will you switch?"
 GREEN, RED = 6, 4               # colour numbers of the tick and the cross in the menu palette
 
@@ -122,6 +123,43 @@ class NoReadingNeeded(unittest.TestCase):
         g.start_trainer_battle(BUG_CATCHER_DOUG)
         seen = self.mash_a_through_battle()
         self.assertFalse({s for s in seen if "PartyMenu" in s}, "the party screen never opened")
+
+    def test_a_tired_pokemon_is_replaced_by_pressing_a(self):
+        """When the player's Pokemon is beaten, the party screen opens. Pressing A there must
+        send out the next one (the cursor starts on a Pokemon that can battle, not on the tired
+        one at the top)."""
+        g = self.g
+        story.find_wild_battle(g)
+        g.wait_action_menu()
+        g.catch()
+        self.mash_a_through_battle()
+        self.assertEqual(g.party_count(), 2, "set-up: a second Pokemon on the bench")
+        g.start_trainer_battle(LEADER_BROCK)          # (his Pokemon attack every turn)
+        g.wait_action_menu()
+        lead = g.battle_mon(0)["species"]
+        turns = 0
+        def press_a_until_the_battle_menu():
+            for _ in range(600):
+                if not g.in_battle():
+                    return False
+                if g.at_action_menu():
+                    g.frames(4)
+                    return True
+                g.press("A", hold=3, wait=13)
+            self.fail(f"pressing A did not get back to the battle menu (screen: {g.callback2()})")
+
+        while press_a_until_the_battle_menu():
+            if g.battle_mon(0)["species"] != lead:
+                break
+            turns += 1
+            self.assertLess(turns, 30, "the lead Pokemon was never beaten")
+            g.set_battle_hp(0, 1)                     # set-up: the next hit beats the lead...
+            g.set_battle_hp(1, 300)                   # ...and the opponent outlasts it
+            g.attack()
+        self.assertTrue(g.in_battle(), "still in the battle")
+        self.assertNotEqual(g.battle_mon(0)["species"], lead, "pressing A sent out the second Pokemon")
+        g.set_battle_hp(1, 1)
+        self.mash_a_through_battle()
 
     def test_a_rare_candy_teaches_the_new_move_without_questions(self):
         g = self.g

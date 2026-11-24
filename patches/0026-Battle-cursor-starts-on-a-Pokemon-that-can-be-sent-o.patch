@@ -1,0 +1,92 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 23:00:25 +1100
+Subject: Battle: cursor starts on a Pokemon that can be sent out; never
+ recommend an attack an ability absorbs
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 35804b0a6..9ff14a89e 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -12,6 +12,7 @@
+ #include "pokemon.h"
+ #include "random.h"
+ #include "constants/species.h"
++#include "constants/abilities.h"
+ #include "constants/battle_move_effects.h"
+ #include "constants/flags.h"
+ #include "constants/vars.h"
+@@ -323,6 +324,22 @@ static u16 EffectiveScore(u8 battler, u8 slot)
+         return 0;
+ 
+     type = gBattleMoves[move].type;
++    // Abilities that soak up a whole type (a Water attack heals a Lapras with Water Absorb)
++    switch (gBattleMons[target].ability)
++    {
++    case ABILITY_WATER_ABSORB:
++        if (type == TYPE_WATER)
++            return 0;
++        break;
++    case ABILITY_VOLT_ABSORB:
++        if (type == TYPE_ELECTRIC)
++            return 0;
++        break;
++    case ABILITY_FLASH_FIRE:
++        if (type == TYPE_FIRE)
++            return 0;
++        break;
++    }
+     if (type == mon->type1 || type == mon->type2)
+         score = score * 3 / 2;
+     if ((flags & MOVE_RESULT_SUPER_EFFECTIVE) && !(flags & MOVE_RESULT_NOT_VERY_EFFECTIVE))
+diff --git a/src/party_menu.c b/src/party_menu.c
+index 3776fc48a..9c8f1fa74 100644
+--- a/src/party_menu.c
++++ b/src/party_menu.c
+@@ -420,6 +420,35 @@ COMMON_DATA void (*gItemUseCB)(u8, TaskFunc) = NULL;
+ #include "data/pokemon/tutor_learnsets.h"
+ #include "data/party_menu.h"
+ 
++// Little Trainers: when the party screen opens in a battle, the cursor starts on the first
++// Pokemon that can actually be sent out (not tired, not an Egg, not already out). Otherwise a
++// child pressing A would pick the tired Pokemon at the top again and again and never get past
++// the screen.
++static void LtPutCursorOnAMonThatCanBattle(void)
++{
++    u8 slot, i;
++
++    if (!LT_Rules()->noSwitchPrompt || IsMultiBattle() == TRUE)
++        return;
++    for (slot = 0; slot < PARTY_SIZE; slot++)
++    {
++        struct Pokemon *mon = &gPlayerParty[slot];
++
++        if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(mon, MON_DATA_IS_EGG)
++         || GetMonData(mon, MON_DATA_HP) == 0)
++            continue;
++        for (i = 0; i < gBattlersCount; i++)
++        {
++            if (GetBattlerSide(i) == B_SIDE_PLAYER && GetPartyIdFromBattleSlot(slot) == gBattlerPartyIndexes[i])
++                break;
++        }
++        if (i != gBattlersCount)
++            continue; // already in the battle
++        gPartyMenu.slotId = slot;
++        return;
++    }
++}
++
+ void InitPartyMenu(u8 menuType, u8 layout, u8 partyAction, bool8 keepCursorPos, u8 messageId, TaskFunc task, MainCallback callback)
+ {
+     u16 i;
+@@ -453,6 +482,8 @@ void InitPartyMenu(u8 menuType, u8 layout, u8 partyAction, bool8 keepCursorPos,
+             gPartyMenu.slotId = 0;
+         gTextFlags.autoScroll = FALSE;
+         CalculatePlayerPartyCount();
++        if (menuType == PARTY_MENU_TYPE_IN_BATTLE && !keepCursorPos)
++            LtPutCursorOnAMonThatCanBattle();
+         SetMainCallback2(CB2_InitPartyMenu);
+     }
+ }
