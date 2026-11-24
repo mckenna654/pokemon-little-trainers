@@ -261,8 +261,16 @@ class FireRed(GBA):
                 if on_battle:
                     on_battle()
                 else:
-                    while self.wait_action_menu():
-                        self.press("A", wait=20)            # whichever button the cursor is on
+                    # Mash A like a child would: it advances text and presses whichever battle
+                    # button the cursor is on (also in the Safari Zone, where A throws a ball).
+                    for _ in range(4000):
+                        if not self.in_battle():
+                            break
+                        if self.callback2() == "CB2_NamingScreen":
+                            self.press("START", wait=20)
+                            self.press("A", wait=40)
+                        else:
+                            self.press("A", hold=3, wait=13)
                 continue
             if not self.free_to_move():
                 if self.callback2() == "CB2_NamingScreen":

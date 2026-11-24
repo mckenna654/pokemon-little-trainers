@@ -1,0 +1,130 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 20:57:18 +1100
+Subject: Navigation: when there is no way onward, lead to the nearest person
+ not yet dealt with
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index edb82f0e7..a3aafce06 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -83,7 +83,13 @@ static EWRAM_DATA u8 sMetCount = 0;
+ static EWRAM_DATA u8 sMetX[MAX_MET] = {0};
+ static EWRAM_DATA u8 sMetY[MAX_MET] = {0};
+ static EWRAM_DATA u8 sShownDir = 0;         // where the arrow last pointed
+-static EWRAM_DATA u8 sNoPathTimer = 0;      // frames spent standing somewhere the path does not cover
++static EWRAM_DATA u8 sNoPathTimer = 0;
++
++// People within reach when there is no way onward (PATH_TO_SOMEONE)
++#define MAX_SOMEONE 6
++static EWRAM_DATA u8 sSomeoneCount = 0;
++static EWRAM_DATA u8 sSomeoneX[MAX_SOMEONE] = {0};
++static EWRAM_DATA u8 sSomeoneY[MAX_SOMEONE] = {0};      // frames spent standing somewhere the path does not cover
+ static EWRAM_DATA u8 sSavedGoalPlus1 = 0;   // the goal that was current at the last autosave check, +1 (0 = not known yet)  // the path was made while standing on the door just arrived through
+ static EWRAM_DATA bool8 sWasBusy = FALSE;   // a conversation, battle or menu has happened since the path was made
+ 
+@@ -93,6 +99,8 @@ enum
+     PATH_AROUND_STANDING,   // normal: go around people who stand still; walkers will move
+     PATH_AROUND_EVERYONE,   // the arrow ran into somebody: go around every person
+     PATH_THROUGH_PEOPLE,    // no way round: lead up to whoever (or whatever) is in the way, to talk to or pick up
++    PATH_TO_SOMEONE,        // no way at all (a locked door, say): lead to the nearest person not yet dealt with,
++                            // because talking to or beating the people nearby is what usually opens the way
+ };
+ 
+ // ---------------------------------------------------------------------------------------------
+@@ -268,6 +276,8 @@ static void SeedExit(struct Fill *fill, u8 exit, u8 from, u8 to)
+     }
+ }
+ 
++static bool32 IsFieldObstacleGfx(u8 graphicsId);
++
+ // Marks the area the player is standing in: every tile that can be walked to from here without
+ // hopping a ledge. Uses the fill queue; leaves FIELD_AREA marks behind.
+ static void MarkPlayerArea(struct Fill *fill)
+@@ -407,7 +417,41 @@ static void SeedGoals(struct Fill *fill, const struct LtNavGoal *goal)
+     }
+ 
+     MarkPlayerArea(fill);
+-    if (hasGoal && NearPlayerArea(fill, goalX, goalY))
++    if (sPathMode == PATH_TO_SOMEONE)
++    {
++        // Remember who is within reach (their tiles are collected before the marks are wiped)
++        const struct MapEvents *events = gMapHeader.events;
++
++        sSomeoneCount = 0;
++        if (events != NULL)
++        {
++            for (i = 0; i < events->objectEventCount && i < OBJECT_EVENT_TEMPLATES_COUNT && sSomeoneCount < MAX_SOMEONE; i++)
++            {
++                const struct ObjectEventTemplate *template = &gSaveBlock1Ptr->objectEventTemplates[i];
++                s32 x = template->x + MAP_OFFSET;
++                s32 y = template->y + MAP_OFFSET;
++                u8 j;
++
++                if (template->kind != OBJ_KIND_NORMAL || IsFieldObstacleGfx(template->graphicsId)
++                 || (template->flagId != 0 && FlagGet(template->flagId))
++                 || !NearPlayerArea(fill, x, y))
++                    continue;
++                for (j = 0; j < sMetCount; j++)
++                {
++                    if (sMetX[j] == x && sMetY[j] == y)
++                        break;
++                }
++                if (j != sMetCount)
++                    continue; // already dealt with
++                sSomeoneX[sSomeoneCount] = x;
++                sSomeoneY[sSomeoneCount] = y;
++                sSomeoneCount++;
++            }
++        }
++        count = 0;
++        hasGoal = FALSE;
++    }
++    else if (hasGoal && NearPlayerArea(fill, goalX, goalY))
+     {
+         count = 0; // the goal is right here: nothing else matters
+     }
+@@ -434,6 +478,11 @@ static void SeedGoals(struct Fill *fill, const struct LtNavGoal *goal)
+     fill->head = 0;
+     fill->count = 0;
+ 
++    if (sPathMode == PATH_TO_SOMEONE)
++    {
++        for (i = 0; i < sSomeoneCount; i++)
++            FillPush(fill, sSomeoneX[i], sSomeoneY[i], FIELD_GOAL);
++    }
+     if (hasGoal)
+         FillPush(fill, goalX, goalY, FIELD_GOAL);
+     for (i = 0; i < count; i++)
+@@ -504,7 +553,7 @@ static void BlockStandingObjects(void)
+                 if (CanClearFieldObstacle(template->graphicsId))
+                     continue;
+             }
+-            else if (sPathMode == PATH_THROUGH_PEOPLE || WalksAbout(template->objUnion.normal.movementType))
++            else if (sPathMode >= PATH_THROUGH_PEOPLE || WalksAbout(template->objUnion.normal.movementType))
+             {
+                 continue;
+             }
+@@ -672,6 +721,11 @@ static void BuildField(u8 goalId, u8 mode)
+         sPathMode = PATH_THROUGH_PEOPLE;
+         BuildFieldInMode(goalId);
+     }
++    if (FieldAtPlayer() == FIELD_UNVISITED)
++    {
++        sPathMode = PATH_TO_SOMEONE;
++        BuildFieldInMode(goalId);
++    }
+ }
+ 
+ static void BuildFieldInMode(u8 goalId)
+@@ -880,7 +934,7 @@ void LT_Nav_Update(void)
+         {
+             sMetCount = 0;
+         }
+-        else if (sWasBusy && sPathMode == PATH_THROUGH_PEOPLE && sMetCount < MAX_MET
++        else if (sWasBusy && sPathMode >= PATH_THROUGH_PEOPLE && sMetCount < MAX_MET
+               && sShownDir >= DIR_SOUTH && sShownDir <= DIR_EAST)
+         {
+             // The arrow led up to someone and the player has just finished with them
