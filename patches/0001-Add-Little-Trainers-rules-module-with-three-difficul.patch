@@ -1,0 +1,325 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 17:34:21 +1100
+Subject: Add Little Trainers rules module with three difficulty presets
+
+include/little_trainers.h and src/little_trainers.c hold every tunable rule
+(catching, healing, experience, battle assists, move learning) per preset.
+The preset is stored in the unused script variable 0x4029; a new game
+defaults to Little Trainer.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+new file mode 100644
+index 000000000..db63efd6f
+--- /dev/null
++++ b/include/little_trainers.h
+@@ -0,0 +1,70 @@
++#ifndef GUARD_LITTLE_TRAINERS_H
++#define GUARD_LITTLE_TRAINERS_H
++
++// Pokemon: Little Trainers - central rules for the preschool-friendly presets.
++//
++// Engine code never hard-codes Little Trainers behaviour. It asks this module, e.g.
++//     if (LT_Rules()->guaranteedCatch) ...
++// so every rule can be tuned or switched off here, per difficulty preset.
++
++enum
++{
++    LT_DIFFICULTY_LITTLE,   // ages 3-4, the default and the main target
++    LT_DIFFICULTY_JUNIOR,   // ages 5-6
++    LT_DIFFICULTY_CLASSIC,  // ages 7+, close to original FireRed rules
++    LT_DIFFICULTY_COUNT
++};
++
++// The chosen preset is kept in a script variable that FireRed never uses. Variables live in
++// SaveBlock1, so the choice is saved with the game and covered by the normal save checksums.
++// A new game starts with the variable at 0, which is LT_DIFFICULTY_LITTLE.
++#define VAR_LT_DIFFICULTY VAR_0x4029
++
++struct LtRules
++{
++    // Catching
++    bool8 guaranteedCatch;      // every ball thrown at a catchable wild Pokemon succeeds
++    bool8 freeBalls;            // Poke Balls are never used up and are always available
++    u8 catchRatePercent;        // scales catch odds when not guaranteed (100 = original)
++
++    // Recovery and losing
++    bool8 healAfterBattle;      // full party heal (HP, PP, status) when a battle ends
++    bool8 noLossPenalty;        // losing a battle never costs money
++
++    // Experience
++    u8 expPercent;              // experience gained, in percent of the original (250 = x2.5)
++    u8 benchExpPercent;         // share given to party members that did not battle (0 = original rules)
++
++    // Battles
++    bool8 infinitePP;           // the player's moves never run out of PP
++    bool8 playerNeverMisses;    // the player's damaging moves always hit
++    bool8 enemyNoCrits;         // opponents never land critical hits
++    u8 playerDamagePercent;     // damage dealt by the player's Pokemon (100 = original)
++    u8 enemyDamagePercent;      // damage dealt by opposing Pokemon (100 = original)
++
++    // Moves
++    bool8 autoLearnMoves;       // new moves replace the weakest one automatically, no prompts
++};
++
++u8 LT_GetDifficulty(void);
++void LT_SetDifficulty(u8 difficulty);
++const struct LtRules *LT_Rules(void);
++
++// True when Little Trainers battle rules apply to the current battle (never in link battles).
++bool32 LT_BattleRulesActive(void);
++
++// Called once when a battle is being set up.
++void LT_OnBattleStart(void);
++
++// How suitable a move is for a young player: 0 = never choose it (no damage, or a confusing or
++// self-harming effect), otherwise larger is better (roughly power x accuracy).
++u16 LT_MoveScore(u16 move);
++
++// Which move slot (0-3) a full move list should give up for newMove, or MAX_MON_MOVES to keep the
++// current moves and skip learning newMove.
++u8 LT_ChooseMoveSlotToReplace(struct Pokemon *mon, u16 newMove);
++
++// Scales damage for the attacker's side according to the active preset.
++s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker);
++
++#endif // GUARD_LITTLE_TRAINERS_H
+diff --git a/ld_script.ld b/ld_script.ld
+index 9a4b45031..64d06ff57 100644
+--- a/ld_script.ld
++++ b/ld_script.ld
+@@ -128,6 +128,7 @@ SECTIONS {
+         src/field_fadetransition.o(.text);
+         src/field_screen_effect.o(.text);
+         src/battle_setup.o(.text);
++        src/little_trainers.o(.text);
+         src/cable_club.o(.text);
+         src/trainer_see.o(.text);
+         src/wild_encounter.o(.text);
+@@ -453,6 +454,7 @@ SECTIONS {
+         src/field_weather_effects.o(.rodata);
+         src/field_screen_effect.o(.rodata);
+         src/battle_setup.o(.rodata);
++        src/little_trainers.o(.rodata);
+         src/cable_club.o(.rodata);
+         src/trainer_see.o(.rodata);
+         src/wild_encounter.o(.rodata);
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+new file mode 100644
+index 000000000..e4d40852e
+--- /dev/null
++++ b/src/little_trainers.c
+@@ -0,0 +1,211 @@
++#include "global.h"
++#include "battle.h"
++#include "battle_anim.h"
++#include "event_data.h"
++#include "item.h"
++#include "little_trainers.h"
++#include "pokemon.h"
++#include "constants/battle_move_effects.h"
++#include "constants/items.h"
++#include "constants/moves.h"
++
++// Pokemon: Little Trainers - rule tables and helpers. See include/little_trainers.h.
++
++static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
++{
++    [LT_DIFFICULTY_LITTLE] =
++    {
++        .guaranteedCatch = TRUE,
++        .freeBalls = TRUE,
++        .catchRatePercent = 100,
++        .healAfterBattle = TRUE,
++        .noLossPenalty = TRUE,
++        .expPercent = 250,
++        .benchExpPercent = 50,
++        .infinitePP = TRUE,
++        .playerNeverMisses = TRUE,
++        .enemyNoCrits = TRUE,
++        .playerDamagePercent = 150,
++        .enemyDamagePercent = 60,
++        .autoLearnMoves = TRUE,
++    },
++    [LT_DIFFICULTY_JUNIOR] =
++    {
++        .guaranteedCatch = FALSE,
++        .freeBalls = TRUE,
++        .catchRatePercent = 250,
++        .healAfterBattle = TRUE,
++        .noLossPenalty = TRUE,
++        .expPercent = 150,
++        .benchExpPercent = 50,
++        .infinitePP = FALSE,
++        .playerNeverMisses = FALSE,
++        .enemyNoCrits = TRUE,
++        .playerDamagePercent = 120,
++        .enemyDamagePercent = 80,
++        .autoLearnMoves = FALSE,
++    },
++    [LT_DIFFICULTY_CLASSIC] =
++    {
++        .guaranteedCatch = FALSE,
++        .freeBalls = FALSE,
++        .catchRatePercent = 100,
++        .healAfterBattle = FALSE,
++        .noLossPenalty = FALSE,
++        .expPercent = 100,
++        .benchExpPercent = 0,
++        .infinitePP = FALSE,
++        .playerNeverMisses = FALSE,
++        .enemyNoCrits = FALSE,
++        .playerDamagePercent = 100,
++        .enemyDamagePercent = 100,
++        .autoLearnMoves = FALSE,
++    },
++};
++
++u8 LT_GetDifficulty(void)
++{
++    u16 difficulty = VarGet(VAR_LT_DIFFICULTY);
++
++    if (difficulty >= LT_DIFFICULTY_COUNT)
++        difficulty = LT_DIFFICULTY_LITTLE; // unknown value (e.g. a newer save): fall back to the safest preset
++    return difficulty;
++}
++
++void LT_SetDifficulty(u8 difficulty)
++{
++    if (difficulty < LT_DIFFICULTY_COUNT)
++        VarSet(VAR_LT_DIFFICULTY, difficulty);
++}
++
++const struct LtRules *LT_Rules(void)
++{
++    return &sRules[LT_GetDifficulty()];
++}
++
++bool32 LT_BattleRulesActive(void)
++{
++    if (gBattleTypeFlags & (BATTLE_TYPE_LINK
++                          | BATTLE_TYPE_BATTLE_TOWER
++                          | BATTLE_TYPE_TRAINER_TOWER
++                          | BATTLE_TYPE_EREADER_TRAINER))
++        return FALSE;
++    return TRUE;
++}
++
++void LT_OnBattleStart(void)
++{
++    if (!LT_BattleRulesActive())
++        return;
++
++    // Free balls: make sure there is always a Poke Ball to throw. It is never used up
++    // (see BattleUseFunc_PokeBallEtc), so the count cannot run away or underflow.
++    if (LT_Rules()->freeBalls
++     && !(gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_SAFARI | BATTLE_TYPE_POKEDUDE | BATTLE_TYPE_OLD_MAN_TUTORIAL))
++     && !CheckBagHasItem(ITEM_POKE_BALL, 1))
++        AddBagItem(ITEM_POKE_BALL, 1);
++}
++
++u16 LT_MoveScore(u16 move)
++{
++    const struct BattleMove *info;
++    u16 accuracy;
++
++    if (move == MOVE_NONE || move >= MOVES_COUNT || move == MOVE_STRUGGLE)
++        return 0;
++
++    info = &gBattleMoves[move];
++    if (info->power <= 1) // status moves (0) and variable-power moves (1)
++        return 0;
++
++    switch (info->effect)
++    {
++    // hurts or removes the user
++    case EFFECT_EXPLOSION:
++    case EFFECT_RECOIL:
++    case EFFECT_DOUBLE_EDGE:
++    case EFFECT_RECOIL_IF_MISS:
++    case EFFECT_MEMENTO:
++    case EFFECT_OVERHEAT:
++    case EFFECT_SUPERPOWER:
++    // needs a turn to charge, recharge or hide, or locks the user in
++    case EFFECT_RECHARGE:
++    case EFFECT_RAZOR_WIND:
++    case EFFECT_SKY_ATTACK:
++    case EFFECT_SKULL_BASH:
++    case EFFECT_SOLAR_BEAM:
++    case EFFECT_SEMI_INVULNERABLE:
++    case EFFECT_FOCUS_PUNCH:
++    case EFFECT_FUTURE_SIGHT:
++    case EFFECT_BIDE:
++    case EFFECT_RAMPAGE:
++    case EFFECT_UPROAR:
++    case EFFECT_ROLLOUT:
++    case EFFECT_FURY_CUTTER:
++    // only works in special situations
++    case EFFECT_DREAM_EATER:
++    case EFFECT_SNORE:
++    case EFFECT_FAKE_OUT:
++    case EFFECT_SPIT_UP:
++    case EFFECT_COUNTER:
++    case EFFECT_MIRROR_COAT:
++    case EFFECT_OHKO:
++    case EFFECT_FALSE_SWIPE:
++    case EFFECT_PRESENT:
++    case EFFECT_BEAT_UP:
++        return 0;
++    }
++
++    accuracy = info->accuracy;
++    if (accuracy == 0 || LT_Rules()->playerNeverMisses)
++        accuracy = 100;
++    return info->power * accuracy / 100 + 1;
++}
++
++u8 LT_ChooseMoveSlotToReplace(struct Pokemon *mon, u16 newMove)
++{
++    u16 newScore = LT_MoveScore(newMove);
++    u16 worstScore = 0xFFFF;
++    u8 worstSlot = MAX_MON_MOVES;
++    u8 i;
++
++    if (newScore == 0)
++        return MAX_MON_MOVES; // nothing a young player would use: keep the current moves
++
++    for (i = 0; i < MAX_MON_MOVES; i++)
++    {
++        u16 move = GetMonData(mon, MON_DATA_MOVE1 + i);
++        u16 score;
++
++        if (IsHMMove2(move))
++            continue; // HM moves cannot be forgotten
++        score = LT_MoveScore(move);
++        if (score < worstScore)
++        {
++            worstScore = score;
++            worstSlot = i;
++        }
++    }
++
++    if (worstSlot == MAX_MON_MOVES || newScore <= worstScore)
++        return MAX_MON_MOVES; // the new move is no better than what the Pokemon already has
++    return worstSlot;
++}
++
++s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker)
++{
++    u8 percent;
++
++    if (!LT_BattleRulesActive() || damage <= 0)
++        return damage;
++
++    if (GetBattlerSide(battlerAttacker) == B_SIDE_PLAYER)
++        percent = LT_Rules()->playerDamagePercent;
++    else
++        percent = LT_Rules()->enemyDamagePercent;
++
++    damage = damage * percent / 100;
++    if (damage == 0)
++        damage = 1;
++    return damage;
++}

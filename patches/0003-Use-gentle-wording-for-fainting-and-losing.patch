@@ -1,0 +1,117 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 17:36:33 +1100
+Subject: Use gentle wording for fainting and losing
+
+Pokemon are 'tired' rather than fainted, and losing a battle says the
+Pokemon need a little rest. Shortens the nurse and Mum recovery speeches.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/data/text/white_out.inc b/data/text/white_out.inc
+index 1d00c1e10..3dcadb6f7 100644
+--- a/data/text/white_out.inc
++++ b/data/text/white_out.inc
+@@ -1,44 +1,24 @@
+ Text_FirstShouldRestoreMonsHealth::
+-	.string "First, you should restore your\n"
+-	.string "POKéMON to full health.$"
++	.string "Let's make your POKéMON\n"
++	.string "feel better!$"
+ 
+ Text_MonsHealedShouldBuyPotions::
+-	.string "Your POKéMON have been healed\n"
+-	.string "to perfect health.\p"
+-	.string "If your POKéMON's energy, HP,\n"
+-	.string "is down, please come see us.\p"
+-	.string "If you're planning to go far in the\n"
+-	.string "field, you should buy some POTIONS\l"
+-	.string "at the POKéMON MART.\p"
+-	.string "We hope you excel!$"
++	.string "All better!\p"
++	.string "Good luck!$"
+ 
+ Text_MonsHealed::
+-	.string "Your POKéMON have been healed\n"
+-	.string "to perfect health.\p"
+-	.string "We hope you excel!$"
++	.string "All better!\p"
++	.string "Good luck!$"
+ 
+ Text_HadQuiteAnExperienceTakeRest::
+ 	.string "MOM: {PLAYER}!\n"
+ 	.string "Welcome home.\p"
+-	.string "It sounds like you had quite\n"
+-	.string "an experience.\p"
+-	.string "Maybe you should take a quick\n"
+-	.string "rest.$"
++	.string "Have a little rest.$"
+ 
+ Text_MomExplainHPGetPotions::
+-	.string "MOM: Oh, good! You and your\n"
+-	.string "POKéMON are looking great.\p"
+-	.string "I just heard from PROF. OAK.\p"
+-	.string "He said that POKéMON's energy is\n"
+-	.string "measured in HP.\p"
+-	.string "If your POKéMON lose their HP,\n"
+-	.string "you can restore them at any\l"
+-	.string "POKéMON CENTER.\p"
+-	.string "If you're going to travel far away,\n"
+-	.string "the smart TRAINER stocks up on\l"
+-	.string "POTIONS at the POKéMON MART.\p"
+-	.string "Make me proud, honey!\p"
+-	.string "Take care!$"
++	.string "MOM: All better!\p"
++	.string "Your POKéMON look great.\p"
++	.string "Have fun, honey!$"
+ 
+ Text_WhitedOutLostMoney::
+ 	.string "{PLAYER} is out of usable\n"
+@@ -48,6 +28,5 @@ Text_WhitedOutLostMoney::
+ 	.string "{PLAYER} whited out!$"
+ 
+ Text_WhitedOut::
+-	.string "{PLAYER} is out of usable\n"
+-	.string "POKéMON!\p"
+-	.string "{PLAYER} whited out!$"
++	.string "Your POKéMON need\n"
++	.string "a little rest!$"
+diff --git a/src/battle_message.c b/src/battle_message.c
+index a6392be9a..0e2ad0bab 100644
+--- a/src/battle_message.c
++++ b/src/battle_message.c
+@@ -68,14 +68,14 @@ static const u8 sText_AvoidedDamage[] = _("{B_DEF_NAME_WITH_PREFIX} avoided\ndam
+ static const u8 sText_PkmnMakesGroundMiss[] = _("{B_DEF_NAME_WITH_PREFIX} makes GROUND\nmoves miss with {B_DEF_ABILITY}!");
+ static const u8 sText_PkmnAvoidedAttack[] = _("{B_DEF_NAME_WITH_PREFIX} avoided\nthe attack!");
+ static const u8 sText_ItDoesntAffect[] = _("It doesn't affect\n{B_DEF_NAME_WITH_PREFIX}…");
+-static const u8 sText_AttackerFainted[] = _("{B_ATK_NAME_WITH_PREFIX}\nfainted!\p");
+-static const u8 sText_TargetFainted[] = _("{B_DEF_NAME_WITH_PREFIX}\nfainted!\p");
++static const u8 sText_AttackerFainted[] = _("{B_ATK_NAME_WITH_PREFIX}\nis tired!\p");
++static const u8 sText_TargetFainted[] = _("{B_DEF_NAME_WITH_PREFIX}\nis tired!\p");
+ static const u8 sText_PlayerGotMoney[] = _("{B_PLAYER_NAME} got ¥{B_BUFF1}\nfor winning!\p");
+-static const u8 sText_PlayerWhiteout[] = _("{B_PLAYER_NAME} is out of\nusable POKéMON!\p");
++static const u8 sText_PlayerWhiteout[] = _("Your POKéMON need\na little rest!\p");
+ static const u8 sText_PlayerPanicked[] = _("{B_PLAYER_NAME} panicked and lost ¥{B_BUFF1}…\p… … … …\p{B_PLAYER_NAME} whited out!{PAUSE_UNTIL_PRESS}");
+-static const u8 sText_PlayerWhiteoutAgainstTrainer[] = _("{B_PLAYER_NAME} is out of\nusable POKéMON!\pPlayer lost against\n{B_TRAINER1_CLASS} {B_TRAINER1_NAME}!{PAUSE_UNTIL_PRESS}");
++static const u8 sText_PlayerWhiteoutAgainstTrainer[] = _("Your POKéMON need\na little rest!\pYou can try again!{PAUSE_UNTIL_PRESS}");
+ static const u8 sText_PlayerPaidAsPrizeMoney[] = _("{B_PLAYER_NAME} paid ¥{B_BUFF1} as the prize\nmoney…\p… … … …\p{B_PLAYER_NAME} whited out!{PAUSE_UNTIL_PRESS}");
+-static const u8 sText_PlayerWhiteout2[] = _("{B_PLAYER_NAME} whited out!{PAUSE_UNTIL_PRESS}");
++static const u8 sText_PlayerWhiteout2[] = _("Let's go and rest!{PAUSE_UNTIL_PRESS}");
+ static const u8 sText_PreventsEscape[] = _("{B_SCR_ACTIVE_NAME_WITH_PREFIX} prevents\nescape with {B_SCR_ACTIVE_ABILITY}!\p");
+ static const u8 sText_CantEscape2[] = _("Can't escape!\p");
+ static const u8 sText_AttackerCantEscape[] = _("{B_ATK_NAME_WITH_PREFIX} can't escape!");
+diff --git a/src/strings.c b/src/strings.c
+index c09955503..d5f0dc083 100644
+--- a/src/strings.c
++++ b/src/strings.c
+@@ -958,8 +958,8 @@ const u8 gText_Sorry[] = _("SORRY");
+ const u8 gText_YaySmileEmoji[] = _("YAY{EMOJI_BIGSMILE}");
+ const u8 gText_ThankYou[] = _("THANK YOU");
+ const u8 gText_ByeBye[] = _("BYE-BYE!");
+-const u8 gText_PlayerScurriedToCenter[] = _("{PLAYER} scurried to a POKéMON CENTER,\nprotecting the exhausted and fainted\nPOKéMON from further harm‥\p");
+-const u8 gText_PlayerScurriedBackHome[] = _("{PLAYER} scurried back home, protecting\nthe exhausted and fainted POKéMON from\nfurther harm‥\p");
++const u8 gText_PlayerScurriedToCenter[] = _("You went to a POKéMON CENTER\nfor a little rest.\p");
++const u8 gText_PlayerScurriedBackHome[] = _("You went home\nfor a little rest.\p");
+ const u8 gText_Diploma_Player[] = _("PLAYER: {DYNAMIC 0x00}");
+ const u8 gText_Diploma_ThisDocument[] = _("This document is issued in\nrecognition of your magnificent\nachievement - the completion of\nthe {DYNAMIC 0x01} POKéDEX.");
+ const u8 gText_Diploma_GameFreak[] = _("GAME FREAK");

@@ -1,0 +1,243 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 17:34:21 +1100
+Subject: Apply Little Trainer rules to battles
+
+Guaranteed catching, free Poke Balls, full heal after battle, boosted and
+party-wide experience, no PP use, player attacks never miss, no enemy
+critical hits, damage scaling, automatic move replacement and no money
+loss on defeat. All gated by LT_Rules() and never active in link battles.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/src/battle_main.c b/src/battle_main.c
+index 64c9e59b7..0a059e7b1 100644
+--- a/src/battle_main.c
++++ b/src/battle_main.c
+@@ -1,4 +1,6 @@
+ #include "global.h"
++#include "little_trainers.h"
++#include "script_pokemon_util.h"
+ #include "gflib.h"
+ #include "battle.h"
+ #include "battle_anim.h"
+@@ -615,6 +617,7 @@ void CB2_InitBattle(void)
+     AllocateBattleResources();
+     AllocateBattleSpritesData();
+     AllocateMonSpritesGfx();
++    LT_OnBattleStart();
+     if (gBattleTypeFlags & BATTLE_TYPE_MULTI)
+     {
+         HandleLinkBattleSetup();
+@@ -3918,6 +3921,9 @@ static void ReturnFromBattleToOverworld(void)
+     {
+         RandomlyGivePartyPokerus(gPlayerParty);
+         PartySpreadPokerus(gPlayerParty);
++        // Little Trainers: leave every battle fully healed (after exp, evolution and catching)
++        if (LT_BattleRulesActive() && LT_Rules()->healAfterBattle)
++            HealPlayerParty();
+     }
+     if (!(gBattleTypeFlags & BATTLE_TYPE_LINK) || !gReceivedRemoteLinkPlayers)
+     {
+diff --git a/src/battle_script_commands.c b/src/battle_script_commands.c
+index 67f90a370..213f8a5e8 100644
+--- a/src/battle_script_commands.c
++++ b/src/battle_script_commands.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "item.h"
+ #include "util.h"
+@@ -1042,6 +1043,14 @@ static void Cmd_accuracycheck(void)
+         if (AccuracyCalcHelper(move))
+             return;
+ 
++        // Little Trainers: the player's damaging moves do not miss
++        if (LT_BattleRulesActive() && LT_Rules()->playerNeverMisses
++         && GetBattlerSide(gBattlerAttacker) == B_SIDE_PLAYER && gBattleMoves[move].power != 0)
++        {
++            JumpIfMoveFailed(7, move);
++            return;
++        }
++
+         if (gBattleMons[gBattlerTarget].status2 & STATUS2_FORESIGHT)
+         {
+             u8 acc = gBattleMons[gBattlerAttacker].statStages[STAT_ACC];
+@@ -1144,6 +1153,10 @@ static void Cmd_ppreduce(void)
+         }
+     }
+ 
++    // Little Trainers: the player's moves never run out
++    if (LT_BattleRulesActive() && LT_Rules()->infinitePP && GetBattlerSide(gBattlerAttacker) == B_SIDE_PLAYER)
++        ppToDeduct = 0;
++
+     if (!(gHitMarker & (HITMARKER_NO_PPDEDUCT | HITMARKER_NO_ATTACKSTRING)) && gBattleMons[gBattlerAttacker].pp[gCurrMovePos])
+     {
+         gProtectStructs[gBattlerAttacker].notFirstStrike = 1;
+@@ -1203,6 +1216,10 @@ static void Cmd_critcalc(void)
+     else
+         gCritMultiplier = 1;
+ 
++    // Little Trainers: no surprise critical hits against the player
++    if (LT_BattleRulesActive() && LT_Rules()->enemyNoCrits && GetBattlerSide(gBattlerAttacker) == B_SIDE_OPPONENT)
++        gCritMultiplier = 1;
++
+     gBattlescriptCurrInstr++;
+ }
+ 
+@@ -1219,6 +1236,8 @@ static void Cmd_damagecalc(void)
+     if (gProtectStructs[gBattlerAttacker].helpingHand)
+         gBattleMoveDamage = gBattleMoveDamage * 15 / 10;
+ 
++    gBattleMoveDamage = LT_ScaleDamage(gBattleMoveDamage, gBattlerAttacker);
++
+     gBattlescriptCurrInstr++;
+ }
+ 
+@@ -3165,7 +3184,19 @@ static void Cmd_getexp(void)
+ 
+             calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 7;
+ 
+-            if (viaExpShare) // at least one mon is getting exp via exp share
++            if (LT_BattleRulesActive() && LT_Rules()->benchExpPercent != 0)
++            {
++                // Little Trainers: battlers share the full amount; everyone else in the party
++                // also receives a percentage of it, no Exp. Share needed.
++                *exp = SAFE_DIV(calculatedExp, viaSentIn);
++                if (*exp == 0)
++                    *exp = 1;
++
++                gExpShareExp = calculatedExp * LT_Rules()->benchExpPercent / 100;
++                if (gExpShareExp == 0)
++                    gExpShareExp = 1;
++            }
++            else if (viaExpShare) // at least one mon is getting exp via exp share
+             {
+                 *exp = SAFE_DIV(calculatedExp / 2, viaSentIn);
+                 if (*exp == 0)
+@@ -3198,6 +3229,9 @@ static void Cmd_getexp(void)
+             else
+                 holdEffect = ItemId_GetHoldEffect(item);
+ 
++            if (LT_BattleRulesActive() && LT_Rules()->benchExpPercent != 0)
++                holdEffect = (gBattleStruct->sentInPokes & 1) ? HOLD_EFFECT_NONE : HOLD_EFFECT_EXP_SHARE;
++
+             if (holdEffect != HOLD_EFFECT_EXP_SHARE && !(gBattleStruct->sentInPokes & 1))
+             {
+                 *(&gBattleStruct->sentInPokes) >>= 1;
+@@ -3233,6 +3267,8 @@ static void Cmd_getexp(void)
+                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
+                     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
++                    if (LT_BattleRulesActive())
++                        gBattleMoveDamage = (gBattleMoveDamage * LT_Rules()->expPercent) / 100;
+                     if (IsTradedMon(&gPlayerParty[gBattleStruct->expGetterMonId])
+                      && !(gBattleTypeFlags & BATTLE_TYPE_POKEDUDE))
+                     {
+@@ -3267,7 +3303,10 @@ static void Cmd_getexp(void)
+                     PREPARE_STRING_BUFFER(gBattleTextBuff2, i);
+                     PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff3, 5, gBattleMoveDamage);
+ 
+-                    PrepareStringBattle(STRINGID_PKMNGAINEDEXP, gBattleStruct->expGetterBattlerId);
++                    // Little Trainers: party members on the bench gain their share quietly,
++                    // so a full party does not mean six messages after every battle.
++                    if (!(LT_BattleRulesActive() && LT_Rules()->benchExpPercent != 0 && !(gBattleStruct->sentInPokes & 1)))
++                        PrepareStringBattle(STRINGID_PKMNGAINEDEXP, gBattleStruct->expGetterBattlerId);
+                     MonGainEVs(&gPlayerParty[gBattleStruct->expGetterMonId], gBattleMons[gBattlerFainted].species);
+                 }
+                 gBattleStruct->sentInPokes >>= 1;
+@@ -5108,6 +5147,40 @@ static void Cmd_handlelearnnewmove(void)
+     while (learnMove == MON_ALREADY_KNOWS_MOVE)
+         learnMove = MonTryLearningNewMove(&gPlayerParty[gBattleStruct->expGetterMonId], FALSE);
+ 
++    // Little Trainers: with a full move list, swap the new move in for the weakest one (or skip
++    // it) automatically instead of asking the player which move to forget.
++    while (learnMove == MON_HAS_MAX_MOVES && LT_BattleRulesActive() && LT_Rules()->autoLearnMoves)
++    {
++        struct Pokemon *mon = &gPlayerParty[gBattleStruct->expGetterMonId];
++        u8 slot = LT_ChooseMoveSlotToReplace(mon, gMoveToLearn);
++
++        if (slot == MAX_MON_MOVES)
++        {
++            // not worth learning: look for another move at this level
++            learnMove = MonTryLearningNewMove(mon, FALSE);
++            while (learnMove == MON_ALREADY_KNOWS_MOVE)
++                learnMove = MonTryLearningNewMove(mon, FALSE);
++            continue;
++        }
++
++        RemoveMonPPBonus(mon, slot);
++        SetMonMoveSlot(mon, gMoveToLearn, slot);
++        if (gBattlerPartyIndexes[0] == gBattleStruct->expGetterMonId && MOVE_IS_PERMANENT(0, slot))
++        {
++            RemoveBattleMonPPBonus(&gBattleMons[0], slot);
++            SetBattleMonMoveSlot(&gBattleMons[0], gMoveToLearn, slot);
++        }
++        if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE
++            && gBattlerPartyIndexes[2] == gBattleStruct->expGetterMonId
++            && MOVE_IS_PERMANENT(2, slot))
++        {
++            RemoveBattleMonPPBonus(&gBattleMons[2], slot);
++            SetBattleMonMoveSlot(&gBattleMons[2], gMoveToLearn, slot);
++        }
++        gBattlescriptCurrInstr = learnedMovePtr;
++        return;
++    }
++
+     if (learnMove == MOVE_NONE)
+     {
+         gBattlescriptCurrInstr = nothingToLearnPtr;
+@@ -9555,6 +9628,13 @@ static void Cmd_handleballthrow(void)
+         if (gBattleMons[gBattlerTarget].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
+             odds = (odds * 15) / 10;
+ 
++        // Little Trainers: catching is guaranteed (or just easier) depending on the preset.
++        // Trainer, ghost and tutorial battles were already handled above and are unaffected.
++        if (LT_Rules()->guaranteedCatch)
++            odds = 255;
++        else
++            odds = odds * LT_Rules()->catchRatePercent / 100;
++
+         if (gLastUsedItem != ITEM_SAFARI_BALL)
+         {
+             if (gLastUsedItem == ITEM_MASTER_BALL)
+diff --git a/src/item_use.c b/src/item_use.c
+index 954f4821d..f06807b23 100644
+--- a/src/item_use.c
++++ b/src/item_use.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "battle.h"
+ #include "berry_pouch.h"
+@@ -738,7 +739,8 @@ void BattleUseFunc_PokeBallEtc(u8 taskId)
+ {
+     if (!IsPlayerPartyAndPokemonStorageFull())
+     {
+-        RemoveBagItem(gSpecialVar_ItemId, 1);
++        if (!LT_Rules()->freeBalls) // Little Trainers: balls are not used up
++            RemoveBagItem(gSpecialVar_ItemId, 1);
+         Bag_BeginCloseWin0Animation();
+         ItemMenu_StartFadeToExitCallback(taskId);
+     }
+diff --git a/src/overworld.c b/src/overworld.c
+index 339014da4..542510943 100644
+--- a/src/overworld.c
++++ b/src/overworld.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "bg_regs.h"
+ #include "cable_club.h"
+@@ -265,6 +266,8 @@ u32 ComputeWhiteOutMoneyLoss(void)
+     u32 money = GetMoney(&gSaveBlock1Ptr->money);
+     if (losings > money)
+         losings = money;
++    if (LT_Rules()->noLossPenalty) // Little Trainers: losing a battle never costs money
++        losings = 0;
+     return losings;
+ }
+ 

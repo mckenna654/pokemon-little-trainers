@@ -79,14 +79,34 @@ All rules flow through one module so engine edits stay small and reversible:
 - `src/little_trainers.c`: `LT_GetDifficulty()` and helpers.
 Engine files call a query (for example `LT_GuaranteedCatch()`) instead of hard-coding behaviour.
 
-| # | Change | Files touched | Switch |
+`LT_Rules()` returns the active preset's `struct LtRules`; `LT_BattleRulesActive()` is false in
+link, Battle Tower, Trainer Tower and e-Reader battles, so those are never altered.
+
+| Patch | Change | Engine hook (file → function) | Rule field |
 | --- | --- | --- | --- |
-| *(filled in per feature; see CHANGELOG.md)* | | | |
+| 0001 | Rules module, presets, move scoring | new `src/little_trainers.c`, `include/little_trainers.h`, `ld_script.ld` | — |
+| 0002 | Guaranteed / easier catching | `battle_script_commands.c` → `Cmd_handleballthrow` (after the odds are computed; trainer, ghost and tutorial branches untouched) | `guaranteedCatch`, `catchRatePercent` |
+| 0002 | Free Poké Balls | `battle_main.c` → `CB2_InitBattle` calls `LT_OnBattleStart()` (adds one ball if the bag has none, wild battles only); `item_use.c` → `BattleUseFunc_PokeBallEtc` does not remove the ball | `freeBalls` |
+| 0002 | Heal after battle | `battle_main.c` → `ReturnFromBattleToOverworld` (runs after experience, evolution and catching) | `healAfterBattle` |
+| 0002 | Boosted and party-wide experience | `battle_script_commands.c` → `Cmd_getexp` cases 1–2 (bench share reuses the Exp. Share path; bench message suppressed) | `expPercent`, `benchExpPercent` |
+| 0002 | No PP use | `battle_script_commands.c` → `Cmd_ppreduce` | `infinitePP` |
+| 0002 | Player attacks never miss | `battle_script_commands.c` → `Cmd_accuracycheck` (after Protect and semi-invulnerable checks) | `playerNeverMisses` |
+| 0002 | No enemy critical hits | `battle_script_commands.c` → `Cmd_critcalc` | `enemyNoCrits` |
+| 0002 | Damage scaling | `battle_script_commands.c` → `Cmd_damagecalc` via `LT_ScaleDamage()` (fixed-damage moves are not scaled) | `playerDamagePercent`, `enemyDamagePercent` |
+| 0002 | Automatic move replacement | `battle_script_commands.c` → `Cmd_handlelearnnewmove` via `LT_ChooseMoveSlotToReplace()` / `LT_MoveScore()` | `autoLearnMoves` |
+| 0002 | No money lost on defeat | `overworld.c` → `ComputeWhiteOutMoneyLoss` returns 0 | `noLossPenalty` |
+| 0003 | Gentle wording ("tired", "need a little rest") | `battle_message.c`, `strings.c`, `data/text/white_out.inc` | all presets |
+
+Preset values (Little / Junior / Classic) are the table at the top of `src/little_trainers.c`.
 
 ## 5. Save data
-Vanilla layout is unchanged so far. Custom state will be stored in script vars/flags that FireRed
-leaves unused (they live inside SaveBlock1 and are covered by the normal checksums). Each use is
-listed here before it ships. Vanilla FireRed saves are **not** supported input: use a fresh save.
+The save layout is unchanged. Custom state lives in script variables FireRed leaves unused (they
+are inside SaveBlock1 and covered by the normal checksums):
+
+| Variable | Name | Meaning | Default |
+| --- | --- | --- | --- |
+| `0x4029` | `VAR_LT_DIFFICULTY` | 0 Little Trainer, 1 Junior, 2 Classic; unknown values are treated as 0 | 0 (new game) |
+ Vanilla FireRed saves are **not** supported input: use a fresh save.
 
 ## 6. Testing architecture
 `tools/gbarun.c` wraps mGBA's core (no window or audio) behind a line protocol; `tests/emu/gba.py`

@@ -10,18 +10,23 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Patch-based private repo, setup/build/release scripts, BPS creation + independent verification
 - [x] Headless emulator test harness (mGBA core) with scripted play from power-on
 - [x] Graphical foundation decision (docs/GRAPHICS.md)
-- [ ] GitHub Actions run green on the private repo
+- [x] GitHub Actions run green on the private repo (baseline checksum + emulator tests on Linux)
 
 ## Milestone 1 — Simplified gameplay (v0.1.0)
-- [ ] Central difficulty configuration (`little_trainers.h/.c`): Little / Junior / Classic presets
-- [ ] Guaranteed catching of wild Pokémon; trainer Pokémon never catchable
-- [ ] Unlimited Poké Balls (catch works with an empty bag)
-- [ ] Automatic full heal after every battle
-- [ ] Experience ×2.5 and party-wide experience
-- [ ] Simplified player attacks: no PP limits, player moves do not miss
-- [ ] Gentler opponents (damage scaling, softened status effects, fewer critical hits)
-- [ ] Automatic move learning (no "forget a move?" prompts)
-- [ ] No loss penalties: no money lost, friendly "need a little rest" message
+- [x] Central difficulty configuration (`little_trainers.h/.c`): Little / Junior / Classic presets
+- [x] Guaranteed catching of wild Pokémon; trainer Pokémon never catchable
+- [x] Unlimited Poké Balls (catch works with an empty bag)
+- [x] Automatic full heal after every battle
+- [x] Experience ×2.5 and party-wide experience
+- [x] Simplified player attacks: no PP limits, player moves do not miss
+- [x] Gentler opponents: damage scaling (150% dealt / 60% taken), no enemy critical hits
+- [x] Automatic move learning in battle (no "forget a move?" prompts)
+- [x] No loss penalties: no money lost, friendly "need a little rest" message
+- [ ] Automatic move learning outside battle (evolution scene, Rare Candy)
+- [ ] Softer status conditions (sleep, paralysis, confusion, poison) and no recoil for the player
+- [ ] Lower wild encounter rate; trainer party trims for the early routes
+- [ ] Junior and Classic presets exercised by tests (needs a way to switch preset)
+- [ ] Manual play session by a person, then tag v0.1.0
 
 ## Milestone 2 — Child-friendly battle interface (v0.2.0)
 - [ ] Three big icons: Attack / Special Attack / Catch (wild) or Change (trainer); B to run

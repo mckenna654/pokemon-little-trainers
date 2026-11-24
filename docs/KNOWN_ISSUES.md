@@ -1,6 +1,12 @@
 # Known issues and limitations
 
 ## Open
+- **Move prompts outside battle:** learning a move during evolution or by Rare Candy with a full
+  move list still asks which move to forget (only in-battle level-ups are automatic so far).
+- **Preset cannot be changed in-game yet:** the game always runs as Little Trainer.
+- **Battle menus are still the original text menus** (Milestone 2 replaces them); catching goes
+  through BAG → POKé BALLS → USE.
+- **Trainers and gyms are not rebalanced yet** beyond the global damage scaling.
 - **Graphics research incomplete:** the four PokeCommunity threads in the specification could not
   be read (HTTP 403 to automated access). Asset reuse terms are unconfirmed, so no third-party art
   is included yet. See `docs/GRAPHICS.md`.

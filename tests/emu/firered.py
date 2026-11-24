@@ -14,6 +14,9 @@ ROM = os.path.join(ROOT, "builds", "Pokemon - Little Trainers.gba")
 SYM = os.path.join(ROOT, "builds", "Pokemon - Little Trainers.sym")
 BASELINE_ROM = os.path.join(ROOT, "builds", "baseline-firered-rev1.gba")
 BASELINE_SYM = os.path.join(ROOT, "builds", "baseline-firered-rev1.sym")
+if os.environ.get("LT_TEST_BASELINE") == "1":
+    # Run the same tests against unmodified FireRed, to prove they fail without our changes.
+    ROM, SYM = BASELINE_ROM, BASELINE_SYM
 SHOTS = os.path.join(ROOT, "builds", "screenshots")
 
 # (mapGroup, mapNum) from include/constants/map_groups.h
@@ -46,6 +49,28 @@ class Mon:
         self.status, self.level = struct.unpack_from("<IB", raw, 80)
         self.hp, self.max_hp = struct.unpack_from("<HH", raw, 86)
 
+    @staticmethod
+    def patch(raw, moves=None, exp=None, level=None, hp=None):
+        """Return a copy of a 100-byte struct Pokemon with some fields changed and the
+        checksum and encryption redone, exactly as the game stores it."""
+        raw = bytearray(raw)
+        personality, ot_id = struct.unpack_from("<II", raw, 0)
+        key = personality ^ ot_id
+        data = bytearray(struct.pack("<12I", *[w ^ key for w in struct.unpack_from("<12I", raw, 32)]))
+        order = SUBSTRUCT_ORDER[personality % 24]
+        growth, attacks = order.index("G") * 12, order.index("A") * 12
+        if exp is not None:
+            struct.pack_into("<I", data, growth + 4, exp)
+        if moves is not None:
+            struct.pack_into("<4H", data, attacks, *moves)
+        struct.pack_into("<H", raw, 28, sum(struct.unpack_from("<24H", data, 0)) & 0xFFFF)
+        struct.pack_into("<12I", raw, 32, *[w ^ key for w in struct.unpack_from("<12I", data, 0)])
+        if level is not None:
+            raw[84] = level
+        if hp is not None:
+            struct.pack_into("<H", raw, 86, hp)
+        return bytes(raw)
+
     def __repr__(self):
         return f"<Mon species={self.species} lv={self.level} hp={self.hp}/{self.max_hp} status={self.status} moves={self.moves} pp={self.pp}>"
 
@@ -53,8 +78,10 @@ class Mon:
 class FireRed(GBA):
     def __init__(self, rom=ROM, sym=SYM, save=None):
         super().__init__(rom, sym, save)
-        self._cb_names = {addr & ~1: name for name, addr in self.symbols.items()
+        self._cb_names = {addr & ~1: name for name, addrs in self.symbols.items() for addr in addrs
                           if name.startswith(("CB2_", "BattleMainCB2", "MainCB2"))}
+        self._choose_action = self.sym("HandleInputChooseAction", near="SetControllerToPlayer") & ~1
+        self._choose_move = self.sym("HandleInputChooseMove") & ~1
 
     # --- state ----------------------------------------------------------------------------
     def callback2(self):
@@ -116,6 +143,91 @@ class FireRed(GBA):
                 x, y = struct.unpack_from("<hh", raw, 0x10)
                 tiles.add((x - 7, y - 7))
         return tiles
+
+    def edit_party_mon(self, index, **changes):
+        """Test set-up only: rewrite a party Pokemon in RAM (moves, exp, level, hp)."""
+        addr = self.sym("gPlayerParty") + 100 * index
+        patched = Mon.patch(self.read(addr, 100), **changes)
+        for i in range(0, 100, 4):
+            self.w32(addr + i, struct.unpack_from("<I", patched, i)[0])
+
+    def ball_count(self):
+        """Quantity in the first slot of the Poke Balls pocket (0 if empty)."""
+        sb1 = self.r32(self.sym("gSaveBlock1Ptr"))
+        sb2 = self.r32(self.sym("gSaveBlock2Ptr"))
+        item = self.r16(sb1 + 0x430)
+        return (self.r16(sb1 + 0x432) ^ (self.r32(sb2 + 0xF20) & 0xFFFF)) if item else 0
+
+    # --- battle ---------------------------------------------------------------------------
+    def battle_mon(self, battler=0):
+        """Live in-battle values for a battler (0 = player's, 1 = opponent's)."""
+        raw = self.read(self.sym("gBattleMons") + 0x58 * battler, 0x58)
+        return {"species": struct.unpack_from("<H", raw, 0)[0], "moves": list(struct.unpack_from("<4H", raw, 0x0C)),
+                "pp": list(raw[0x24:0x28]), "hp": struct.unpack_from("<H", raw, 0x28)[0],
+                "level": raw[0x2A], "max_hp": struct.unpack_from("<H", raw, 0x2C)[0]}
+
+    def _controller(self):
+        return self.r32(self.sym("gBattlerControllerFuncs")) & ~1
+
+    def at_action_menu(self):
+        return self.in_battle() and self._controller() == self._choose_action
+
+    def at_move_menu(self):
+        return self.in_battle() and self._controller() == self._choose_move
+
+    def wait_action_menu(self, max_presses=400):
+        """Tap B through battle text until FIGHT/BAG/POKeMON/RUN is waiting for input.
+        Returns False if the battle ended first."""
+        for _ in range(max_presses):
+            if not self.in_battle():
+                return False
+            if self.at_action_menu():
+                self.frames(4)
+                return True
+            if self.callback2() == "CB2_NamingScreen":
+                self.press("START", wait=20)
+                self.press("A", wait=40)
+            else:
+                self.press("B", hold=3, wait=13)
+        raise EmulatorError(f"battle menu never appeared (callback {self.callback2()})")
+
+    def _move_cursor(self, addr, target):
+        for _ in range(4):
+            cur = self.r8(addr)
+            if cur == target:
+                return
+            if (cur ^ target) & 1:
+                self.press("RIGHT" if target & 1 else "LEFT", wait=8)
+            elif (cur ^ target) & 2:
+                self.press("DOWN" if target & 2 else "UP", wait=8)
+        raise EmulatorError("menu cursor did not move")
+
+    def choose_action(self, index):
+        """0 FIGHT, 1 BAG, 2 POKeMON, 3 RUN."""
+        self._move_cursor(self.sym("gActionSelectionCursor"), index)
+        self.press("A", wait=20)
+
+    def use_move(self, slot=0):
+        self.choose_action(0)
+        self.run_until(self.at_move_menu, max_frames=300, what="move menu")
+        self._move_cursor(self.sym("gMoveSelectionCursor"), slot)
+        self.press("A", wait=20)
+
+    def throw_ball(self):
+        """BAG -> Poke Balls pocket -> first ball -> USE."""
+        self.choose_action(1)
+        self.run_until(lambda: self.callback2() == "CB2_BagMenuRun", max_frames=600, what="bag to open")
+        self.frames(60)
+        pocket = self.sym("gBagMenuState") + 6
+        for _ in range(4):
+            if self.r16(pocket) == 2:
+                break
+            self.press("RIGHT", wait=45)
+        if self.r16(pocket) != 2:
+            raise EmulatorError("could not reach the Poke Balls pocket")
+        self.press("A", wait=30)     # pick the first item
+        self.press("A", wait=30)     # USE
+        self.run_until(lambda: self.callback2() != "CB2_BagMenuRun", max_frames=600, what="bag to close")
 
     def shot(self, name):
         self.screenshot(os.path.join(SHOTS, name + ".png"))

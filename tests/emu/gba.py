@@ -20,13 +20,13 @@ class EmulatorError(Exception):
 
 
 def load_symbols(path):
-    """Parse `arm-none-eabi-nm -n` output into {name: address}."""
+    """Parse `arm-none-eabi-nm -n` output into {name: [addresses]} (static names can repeat)."""
     table = {}
     with open(path, encoding="utf-8") as f:
         for line in f:
             parts = line.split()
             if len(parts) == 3:
-                table[parts[2]] = int(parts[0], 16)
+                table.setdefault(parts[2], []).append(int(parts[0], 16))
     return table
 
 
@@ -107,11 +107,17 @@ class GBA:
                 self.frames(step)
 
     # --- memory ---------------------------------------------------------------------------
-    def sym(self, name):
+    def sym(self, name, near=None):
+        """Address of a symbol. Static functions can share a name across files; pass `near`
+        (another symbol from the same file) to pick the right one."""
         try:
-            return self.symbols[name]
+            addrs = self.symbols[name]
         except KeyError:
             raise EmulatorError(f"symbol {name} not found (rebuild so builds/*.sym is current)") from None
+        if near is None or len(addrs) == 1:
+            return addrs[0]
+        anchor = self.sym(near)
+        return min(addrs, key=lambda a: abs(a - anchor))
 
     def r8(self, addr):
         return int(self.cmd(f"r8 {addr}"))
