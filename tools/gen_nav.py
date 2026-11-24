@@ -26,7 +26,7 @@ WATER = {0x10, 0x11, 0x12, 0x13, 0x15, 0x1A, 0x1B}   # surfable metatile behavio
 DIRS = {"up": (0, -1, 2), "down": (0, 1, 1), "left": (-1, 0, 3), "right": (1, 0, 4)}   # dx, dy, CONNECTION_*
 LEDGES = {0x38: (1, 0), 0x39: (-1, 0), 0x3A: (0, -1), 0x3B: (0, 1)}   # MB_JUMP_EAST/WEST/NORTH/SOUTH
 HOP_LEDGE = 0        # an edge inside one map (a ledge jump); not something the arrow aims for itself
-MAX_CANDIDATES = 2
+MAX_EXITS = 24          # exits listed per map: at least one for each separate area (caves have many)
 HOP_WARP = 0x10
 
 
@@ -163,13 +163,16 @@ class World:
         """Directed edges {(map, area): [((map2, area2), hop_code)]}."""
         out = {}
         self.lifts = getattr(self, "lifts", {})
+        self.edge_tiles = {}     # (a, b, code) -> positions along the map edge where area a meets area b
 
-        def add(a, b, code):
+        def add(a, b, code, along=None):
             if a[1] is None or b[1] is None or a[0] in avoid or b[0] in avoid:
                 return
             out.setdefault(a, [])
             if (b, code) not in out[a]:
                 out[a].append((b, code))
+            if along is not None:
+                self.edge_tiles.setdefault((a, b, code), set()).add(along)
 
         for m in self.order:
             for i, warp in enumerate(m.warps):
@@ -212,13 +215,13 @@ class World:
                     y_there = other.h - 1 if dy < 0 else 0
                     for x in range(m.w):
                         if m.walkable(x, y_here, water) and other.walkable(x - off, y_there, water):
-                            add((m.name, m.area_of(x, y_here, water)), (other.name, other.area_of(x - off, y_there, water)), code)
+                            add((m.name, m.area_of(x, y_here, water)), (other.name, other.area_of(x - off, y_there, water)), code, x)
                 else:
                     x_here = 0 if dx < 0 else m.w - 1
                     x_there = other.w - 1 if dx < 0 else 0
                     for y in range(m.h):
                         if m.walkable(x_here, y, water) and other.walkable(x_there, y - off, water):
-                            add((m.name, m.area_of(x_here, y, water)), (other.name, other.area_of(x_there, y - off, water)), code)
+                            add((m.name, m.area_of(x_here, y, water)), (other.name, other.area_of(x_there, y - off, water)), code, y)
         return out
 
 
@@ -307,32 +310,42 @@ def main():
             goals = [(m.name, area)] if area is not None else every_area
             dist = distances(goals)
             def hop_from(node, depth=0):
-                """The door or edge to aim for from an area (and where it leads): follow ledge
-                jumps to the next real exit."""
+                """The exit to aim for from an area: (code, area the exit is in, area it leads to).
+                Ledge jumps inside the map are followed to the next real exit."""
                 outs = edges.get(node, [])
                 if not outs or depth > 8:
-                    return None, None
+                    return None
                 nxt = min(outs, key=lambda e: dist.get(e[0], 10 ** 9))
                 if dist.get(nxt[0], 10 ** 9) >= dist[node]:
-                    return None, None
-                return hop_from(nxt[0], depth + 1) if nxt[1] == HOP_LEDGE else (nxt[1], nxt[0])
+                    return None
+                return hop_from(nxt[0], depth + 1) if nxt[1] == HOP_LEDGE else (nxt[1], node, nxt[0])
 
             table = []
             for mm in world.order:
-                best = {}
+                exits = {}       # (code, lo, hi) -> distance
                 for node in edges:
                     if node[0] != mm.name or node not in dist or dist[node] == 0:
                         continue
-                    code, leads_to = hop_from(node)
-                    if code:
-                        if dist[node] < best.get(code, (10 ** 9,))[0]:
-                            best[code] = (dist[node], leads_to)
-                hops = [code for code, _ in sorted(best.items(), key=lambda kv: kv[1][0])][:MAX_CANDIDATES]
-                table.append(hops + [0] * (MAX_CANDIDATES - len(hops)))
-                # A lift cabin: remember which floor this route wants, so the game can send it there.
-                if hops and (mm.name, hops[0], best[hops[0]][1]) in world.lifts:
-                    floor, door = world.lifts[(mm.name, hops[0], best[hops[0]][1])]
-                    lift_rows.append((len(routes), world.index[mm.name], floor, door))
+                    hop = hop_from(node)
+                    if not hop:
+                        continue
+                    code, start, leads_to = hop
+                    if code >= HOP_WARP:
+                        spans = [(0, 0)]
+                        if (mm.name, code, leads_to) in world.lifts and not any(r[0] == len(routes) and r[1] == world.index[mm.name] for r in lift_rows):
+                            floor, door = world.lifts[(mm.name, code, leads_to)]
+                            lift_rows.append((len(routes), world.index[mm.name], floor, door))
+                    else:
+                        # the stretch(es) of the map edge where this area meets the next one
+                        tiles = sorted(world.edge_tiles[(start, leads_to, code)])
+                        spans, lo = [], tiles[0]
+                        for prev, cur in zip(tiles, tiles[1:] + [None]):
+                            if cur != prev + 1:
+                                spans.append((lo, prev))
+                                lo = cur
+                    for lo, hi in spans:
+                        exits[(code, lo, hi)] = min(exits.get((code, lo, hi), 10 ** 9), dist[node])
+                table.append([e for e, _ in sorted(exits.items(), key=lambda kv: kv[1])][:MAX_EXITS])
             routes[key] = (len(routes), table, dist)
         route_id, _, dist = routes[key]
         if previous not in dist:
@@ -356,25 +369,45 @@ def main():
         print("note:", n)
     for p in problems:
         print("warning:", p)
-    print(f"{len(rows)} goals, {len(routes)} route tables, {len(world.order)} maps, "
-          f"{len(routes) * len(world.order) * MAX_CANDIDATES} bytes of route data")
+    print(f"{len(rows)} goals, {len(routes)} route tables, {len(world.order)} maps")
     if "--check" in sys.argv:
         return 1 if problems else 0
 
+    # Exit lists are pooled: most maps have one exit or none, and many routes share lists.
+    pool, pool_index = [0], {(): 0}                      # offset 0 = "no exits"
+    route_offsets = {}
+    for key, (route_id, table, _) in routes.items():
+        offsets = []
+        for exits in table:
+            t = tuple(exits)
+            if t not in pool_index:
+                pool_index[t] = len(pool)
+                pool.append(len(t))
+                for code, lo, hi in t:
+                    pool += [code, lo, hi]
+            offsets.append(pool_index[t])
+        route_offsets[route_id] = (key, offsets)
+    print(f"{len(pool)} bytes of exit lists")
+
     lines = ["// Generated by tools/gen_nav.py from tools/nav/objectives.json and the map data.",
              "// Do not edit by hand: change the goals file and run the generator again.", "",
-             f"#define LT_NAV_NUM_MAPS {len(world.order)}", f"#define LT_NAV_CANDIDATES {MAX_CANDIDATES}",
+             f"#define LT_NAV_NUM_MAPS {len(world.order)}",
              f"#define LT_NAV_HOP_WARP {HOP_WARP:#x}", "",
-             "static const u16 sLtNavGroupStart[] = {" + ", ".join(str(v) for v in world.group_start) + "};", ""]
-    for key, (route_id, table, _) in routes.items():
-        lines.append(f"// route {route_id}: to {key[0]}" + (" (may surf)" if key[1] else ""))
-        lines.append(f"static const u8 sLtNavRoute{route_id}[LT_NAV_NUM_MAPS][LT_NAV_CANDIDATES] = {{")
-        for i in range(0, len(table), 8):
-            lines.append("    " + " ".join("{" + ", ".join(f"{c:#04x}" for c in hops) + "}," for hops in table[i:i + 8]))
+             "static const u16 sLtNavGroupStart[] = {" + ", ".join(str(v) for v in world.group_start) + "};", "",
+             "// Exit lists: a count, then {exit, from, to} triples. An exit is a map edge (CONNECTION_*,",
+             "// with the stretch of tiles along that edge) or LT_NAV_HOP_WARP + a warp number.",
+             "static const u8 sLtNavExits[] = {"]
+    for i in range(0, len(pool), 24):
+        lines.append("    " + ", ".join(str(v) for v in pool[i:i + 24]) + ",")
+    lines += ["};", ""]
+    for route_id, (key, offsets) in sorted(route_offsets.items()):
+        lines.append(f"// route {route_id}: to {key[0]}: where each map's exit list starts in sLtNavExits")
+        lines.append(f"static const u16 sLtNavRoute{route_id}[LT_NAV_NUM_MAPS] = {{")
+        for i in range(0, len(offsets), 20):
+            lines.append("    " + ", ".join(str(v) for v in offsets[i:i + 20]) + ",")
         lines.append("};")
         lines.append("")
-    lines.append("static const u8 (*const sLtNavRoutes[])[LT_NAV_CANDIDATES] = {" +
-                 ", ".join(f"sLtNavRoute{i}" for i in range(len(routes))) + "};")
+    lines.append("static const u16 *const sLtNavRoutes[] = {" + ", ".join(f"sLtNavRoute{i}" for i in range(len(routes))) + "};")
     lines.append("")
     lines.append("// Lift cabins: for a route, the floor the lift should open onto.")
     lines.append("static const struct LtNavLift sLtNavLifts[] = {")

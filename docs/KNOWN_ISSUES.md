@@ -3,7 +3,8 @@
 ## Open
 - **Rare Candy still asks which move to forget** when the move list is full (battle level-ups and
   evolution are automatic).
-- **Preset cannot be changed in-game yet:** the game always runs as Little Trainer.
+- **MODE replaces BATTLE STYLE** in the OPTION menu; battle style stays on SHIFT. A child who
+  opens OPTION could change MODE: it is not locked.
 - **Six move types share the generic sparkle symbol** (fighting, poison, flying, dragon, dark,
   steel); Normal-type specials also use it.
 - **HP numbers still show under the player's hearts**, and the opponent's hearts are the same red

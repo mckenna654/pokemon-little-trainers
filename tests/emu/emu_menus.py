@@ -54,5 +54,54 @@ class StartMenu(unittest.TestCase):
         self.assertEqual(after, before)
 
 
+class DifficultyPresets(unittest.TestCase):
+    """The parent control: OPTION -> MODE switches between Little, Junior and Classic Trainer."""
+
+    VAR_LT_DIFFICULTY = 0x4029
+
+    def setUp(self):
+        self.g = game_at("route1")
+
+    def tearDown(self):
+        self.g.close()
+
+    def test_mode_is_changed_in_the_options_menu_and_kept(self):
+        g = self.g
+        self.assertEqual(g.var(self.VAR_LT_DIFFICULTY), 0, "a new game starts as Little Trainer")
+        g.press("START", wait=40)
+        for _ in range(3):                      # POKeMON, BAG, SAVE, OPTION
+            g.press("DOWN", wait=10)
+        g.press("A", wait=90)                   # open OPTION
+        g.press("DOWN", wait=10)
+        g.press("DOWN", wait=10)                # TEXT SPEED, BATTLE SCENE, MODE
+        g.press("RIGHT", wait=20)
+        g.shot("menu-options-mode")
+        g.press("B", wait=120)                  # close OPTION (settings are kept), back to the Start menu
+        g.press("B", wait=60)                   # close the Start menu
+        self.assertTrue(g.free_to_move())
+        self.assertEqual(g.var(self.VAR_LT_DIFFICULTY), 1, "now Junior Trainer")
+
+    def test_classic_mode_uses_the_original_battle_menu(self):
+        from . import story
+        g = self.g
+        g.set_var(self.VAR_LT_DIFFICULTY, 2)
+        story.find_wild_battle(g)
+        self.assertTrue(g.wait_action_menu())
+        g.press("A", wait=30)                   # FIGHT
+        g.run_until(g.at_move_menu, max_frames=300, what="the original move list")
+        g.shot("menu-classic-move-list")
+
+    def test_junior_mode_keeps_helpers_but_shows_all_moves(self):
+        from . import story
+        g = self.g
+        g.set_var(self.VAR_LT_DIFFICULTY, 1)
+        g.frames(30)
+        self.assertIsNotNone(g.nav_arrow(), "Junior still has the arrow")
+        story.find_wild_battle(g)
+        self.assertTrue(g.wait_action_menu())
+        g.press("A", wait=30)
+        g.run_until(g.at_move_menu, max_frames=300, what="the move list")
+
+
 if __name__ == "__main__":
     unittest.main()

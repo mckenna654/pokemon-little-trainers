@@ -242,8 +242,9 @@ class FireRed(GBA):
         return ("DOWN", "UP", "LEFT", "RIGHT")[self.r8(sprite + 0x2A) & 3]
 
     def follow_arrow(self, until, max_actions=4000, on_battle=None, what="goal"):
-        """Play using only what a child would see: walk where the arrow points, press A when it
-        is hidden or something is in the way, and press ATTACK in battles."""
+        """Play using only what a child would see: walk where the arrow points, and press A when
+        it is hidden, when something is in the way, and in battles (the battle cursor starts on
+        the recommended attack and stays where it is left)."""
         stuck = 0
         for _ in range(max_actions):
             if until():
@@ -253,7 +254,7 @@ class FireRed(GBA):
                     on_battle()
                 else:
                     while self.wait_action_menu():
-                        self.attack()
+                        self.press("A", wait=20)            # whichever button the cursor is on
                 continue
             if not self.free_to_move():
                 if self.callback2() == "CB2_NamingScreen":

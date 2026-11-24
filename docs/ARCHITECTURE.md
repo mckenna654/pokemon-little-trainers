@@ -117,6 +117,10 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0014–0015 | Navigation arrow | new `src/little_trainers_nav.c`, generated `src/data/little_trainers_nav.h`; hooks in `overworld.c` (`CB1_Overworld`) and `malloc.c` (`InitHeap`) | `navArrow` |
 | 0016 | Simple puzzles | `little_trainers.c` → `LT_OpenPuzzleGates()` (called before map transition scripts in `overworld.c`), `field_player_avatar.c` (spin tiles), `safari_zone.c` (step limit), `little_trainers_nav.c` (lifts) | `simplePuzzles` |
 
+| 0017 | MODE option (parent control) | `option_menu.c` (BATTLE STYLE row repurposed), strings | all presets |
+| 0017 | Respawn at the last town visited | `heal_location.c` → `LT_SetRespawnForCurrentMap()`, called from `LT_OnMapTransition()` | `autoRespawn` |
+| 0018 | Autosave when a story goal is completed | `start_menu.c` → `LT_AutoSave()` (reuses the save dialog from the "SAVING..." step), triggered in `little_trainers_nav.c` | `autoSave` |
+
 ### Navigation arrow
 - **Goals:** `tools/nav/objectives.json` lists the story goals in order; each has a "done"
   condition (flag set, variable reached, item owned) and a target (a person, a sign, a tile or
@@ -128,11 +132,19 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
   Flute, Cycling Road). For each goal it writes, per map, up to two exits to head for, and it
   fails loudly if a goal cannot be reached from the one before. Warp events on tiles that can
   never trigger are ignored.
-- **Path (in game):** `BuildField()` flood-fills outwards from the target or exit over the live
-  map (`VMap`), storing for each tile the direction to walk; ledges are followed one way; people
-  who stand still, uncuttable trees and so on are obstacles (taken from the map's object list,
-  since distant objects are not spawned). If the arrow would lead into a person, the path is
-  rebuilt around everyone. The field lives on the heap and is forgotten whenever the heap is reset.
+- **Path (in game):** `BuildField()` flood-fills outwards over the live map (`VMap`) from the
+  target and from the exit listed for each separate area of the map, storing for each tile the
+  direction to walk. Ledges are followed one way. Obstacles: people who stand still, trees and
+  boulders the player cannot clear yet (taken from the map's object list, because distant objects
+  are not spawned), and every door or ladder that is not being aimed for. Three passes are tried:
+  around standing people; around everyone (when the arrow ran into a walker); and, if there is no
+  way round, straight up to whoever or whatever blocks the way, so the player talks to it, fights
+  it or picks it up. People already dealt with are then routed around. The path is rebuilt after
+  every conversation, battle or menu. The field lives on the heap and is forgotten when the heap
+  is reset.
+- **Route data format:** `sLtNavExits` is a pool of exit lists (count, then exit/from/to triples;
+  an exit is a map edge with the stretch of tiles to use, or a warp number); each route has one
+  `u16` offset per map. About 1 KB of lists plus 850 bytes per route.
 - **Arrow:** a 16×16 sprite beside the player (above, below, left or right), drawn with the
   player's own palette. Hidden during conversations, cut-scenes and menus. On stairs and exit
   mats it shows which way to push.

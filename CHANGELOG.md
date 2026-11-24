@@ -28,6 +28,10 @@ Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 - **Navigation arrow:** a yellow arrow beside the player points along a walkable path to the next
   story goal, from leaving the bedroom to the Pokémon League (28 goals). It goes around people,
   knows about ledges, trees, water and lifts, and shows which way to push on stairs and door mats.
+- **Parent control:** OPTION → MODE switches between Little, Junior and Classic Trainer at any
+  time (it replaces the BATTLE STYLE row). The choice is stored in the save.
+- **Autosave:** the game saves by itself each time a story goal is completed (Little and Junior).
+- **Losing sends you to the last town visited**, not all the way back to the last Pokémon Centre used.
 - **No HM teaching:** Cut, Surf, Strength, Rock Smash and Waterfall work as soon as the HM is
   owned (the first Pokémon in the party does it); caves are never dark.
 - **Simple puzzles (Little Trainer):** spin tiles do not spin, Lt. Surge's gates are off, Cinnabar
