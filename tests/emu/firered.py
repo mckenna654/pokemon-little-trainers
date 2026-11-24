@@ -158,7 +158,15 @@ class FireRed(GBA):
     # presses to reach. Instead a few bytes of ordinary event script are placed in RAM and the
     # game's script engine is pointed at them, exactly as if an NPC had started that script.
     # Nothing is added to the ROM, and the behaviour being tested still comes from the game.
+    def settle(self):
+        """Let anything the game starts by itself (an autosave after a story goal) finish."""
+        self.frames(20)
+        if not self.free_to_move():
+            self.advance_text(self.free_to_move, max_presses=80, what="the game to settle")
+            self.frames(20)
+
     def run_script(self, bytecode, wait=True, max_frames=1800):
+        self.settle()
         if not self.free_to_move():
             raise EmulatorError("run_script needs the player standing free in the overworld")
         buf = self.sym("gStringVar4") + 0x200                 # scratch space in a text buffer
@@ -177,7 +185,7 @@ class FireRed(GBA):
         self.frames(4)
         if wait:
             self.run_until(self.free_to_move, max_frames=max_frames, what="script to finish")
-            self.frames(10)
+            self.settle()
 
     @staticmethod
     def _u16(v):

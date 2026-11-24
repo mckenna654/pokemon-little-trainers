@@ -67,6 +67,7 @@ class ArrowAtEveryGoal(unittest.TestCase):
                     g.run_script(script)
                     previous = GOALS[i - 1]["map"]
                     g.teleport(location_of(previous), *standing_tile(previous))
+                    g.run_script(script)        # again: arriving somewhere can reset a local flag (Bill's cottage does)
                     g.frames(90)
                     self.assertEqual(g.nav_goal(), i, "the game picked this goal")
                     self.assertIsNotNone(g.nav_arrow(), f"an arrow is showing in {previous}")

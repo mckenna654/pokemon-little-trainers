@@ -37,5 +37,15 @@ def game_at(name, rom=ROM, sym=SYM, starter="charmander"):
         story.to_route1(g)
     else:
         raise ValueError(name)
+    # Only keep a checkpoint where the player is standing free with nothing about to happen
+    # (a wild Pokemon may jump out on the very last step, or an autosave may be starting).
+    for _ in range(10):
+        g.frames(90)
+        if g.in_battle():
+            while g.wait_action_menu():
+                g.press("A", wait=20)
+        if g.free_to_move():
+            break
+        g.advance_text(g.free_to_move, max_presses=400, what="a quiet moment for the checkpoint")
     g.save_state(state)
     return g

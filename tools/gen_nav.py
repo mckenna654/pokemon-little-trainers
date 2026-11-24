@@ -226,27 +226,33 @@ class World:
 
 
 def resolve_target(world, obj):
+    """Returns ((x, y) or None, local id of the person/object to find at run time or 0)."""
     m = world.maps[obj["map"]]
     target = obj["target"]
     if "xy" in target:
-        return tuple(target["xy"])
-    if "object" in target:
-        for o in m.objects:
-            if target["object"].lower() in o["script"].lower():
-                return (o["x"], o["y"])
-        raise SystemExit(f'{obj["id"]}: no object matching {target["object"]!r} on {m.name}: '
-                         f'{[o["script"] for o in m.objects]}')
+        return tuple(target["xy"]), 0
+    if "object" in target or "object_flag" in target:
+        for index, o in enumerate(m.objects):
+            if "object_flag" in target:
+                found = o["flag"] == target["object_flag"]
+            else:
+                found = target["object"].lower() in o["script"].lower()
+            if found:
+                # People are moved about by scripts, so the game looks them up by number.
+                return (o["x"], o["y"]), index + 1
+        raise SystemExit(f'{obj["id"]}: no object matching {target} on {m.name}: '
+                         f'{[(o["script"], o["flag"]) for o in m.objects]}')
     if "bg" in target:
         for b in m.json.get("bg_events", []):
             if target["bg"].lower() in str(b.get("script", "")).lower():
-                return (b["x"], b["y"])
+                return (b["x"], b["y"]), 0
         raise SystemExit(f'{obj["id"]}: no sign or switch matching {target["bg"]!r} on {m.name}')
     if "warp_to" in target:
         for w in m.warps:
             if w["dest_map"] == target["warp_to"]:
-                return (w["x"], w["y"])
+                return (w["x"], w["y"]), 0
         raise SystemExit(f'{obj["id"]}: no warp to {target["warp_to"]} on {m.name}')
-    return None     # anywhere
+    return None, 0     # anywhere
 
 
 def main():
@@ -276,7 +282,7 @@ def main():
             cond = (1, variables[done["var"]], done["ge"], f'{done["var"]} >= {done["ge"]}')
 
         m = world.maps[obj["map"]]
-        xy = resolve_target(world, obj)
+        xy, local_id = resolve_target(world, obj)
         gkey = (water, tuple(sorted(avoid)))
         if gkey not in graphs:
             edges = world.edges(water, avoid)
@@ -363,7 +369,7 @@ def main():
         # Where the player stands when this goal is done: the reachable area closest to the target.
         inside = [g for g in ([(m.name, area)] if area is not None else every_area)]
         previous = next((g for g in inside if previous in distances([g])), inside[0])
-        rows.append((obj["id"], cond, m, xy, route_id))
+        rows.append((obj["id"], cond, m, xy, route_id, local_id))
 
     for n in notes:
         print("note:", n)
@@ -416,9 +422,9 @@ def main():
     lines.append("};")
     lines.append("")
     lines.append("static const struct LtNavGoal sLtNavGoals[] = {")
-    for name, cond, m, xy, route_id in rows:
+    for name, cond, m, xy, route_id, local_id in rows:
         x, y = (0xFF, 0xFF) if xy is None else xy
-        lines.append(f"    {{{cond[0]}, {cond[1]:#06x}, {cond[2]}, {m.group}, {m.num}, {x}, {y}, {route_id}}}, // {name}: until {cond[3]}")
+        lines.append(f"    {{{cond[0]}, {cond[1]:#06x}, {cond[2]}, {m.group}, {m.num}, {x}, {y}, {route_id}, {local_id}}}, // {name}: until {cond[3]}")
     lines.append("};")
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:

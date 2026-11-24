@@ -1,0 +1,372 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 20:22:51 +1100
+Subject: Autosave at story goals, brighter map colours, goals that follow
+ people
+
+- The game saves by itself whenever a story goal is completed.
+- Tileset palettes are made more saturated and slightly brighter on load.
+- Goals aimed at a person look the person up at run time (scripts move them);
+  Bill's cottage is split into its three steps.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index 5b5ff9531..c1a63a3ec 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -30,6 +30,7 @@ struct LtRules
+     // Recovery and losing
+     bool8 healAfterBattle;      // full party heal (HP, PP, status) when a battle ends
+     bool8 noLossPenalty;        // losing a battle never costs money
++    bool8 autoSave;             // the game saves by itself each time a story goal is completed
+     bool8 autoRespawn;          // after losing, return to the last town visited (no need to have used its Centre)
+ 
+     // Experience
+@@ -66,6 +67,9 @@ struct LtRules
+     u8 tradeEvoLevel;           // level at which trade evolutions happen by themselves (0 = trading only)
+     u8 friendshipEvoThreshold;  // friendship needed for friendship evolutions (220 = original)
+ 
++    // Look
++    bool8 vividColors;          // map colours are made brighter and more saturated when loaded
++
+     // Interface
+     bool8 simpleBattleMenu;     // ATTACK / SPECIAL / CATCH / RUN instead of the move list and bag
+     bool8 heartHealth;          // health is shown as six hearts instead of a bar
+@@ -137,6 +141,11 @@ void LT_OnMapTransition(void);
+ void LT_OpenPuzzleGates(void);
+ void LT_SetRespawnForCurrentMap(void);  // src/heal_location.c
+ 
++void LT_AutoSave(void);          // src/start_menu.c
++
++// Makes a run of loaded background palette entries more colourful (see vividColors).
++void LT_VividPalette(u16 offset, u16 count);
++
+ // The "where do I go?" arrow (src/little_trainers_nav.c).
+ void LT_Nav_Update(void);       // every frame on the field
+ void LT_Nav_OnHeapReset(void);
+diff --git a/src/data/little_trainers_nav.h b/src/data/little_trainers_nav.h
+index b175e94e2..6871a31ec 100644
+--- a/src/data/little_trainers_nav.h
++++ b/src/data/little_trainers_nav.h
+@@ -751,32 +751,34 @@ static const struct LtNavLift sLtNavLifts[] = {
+ };
+ 
+ static const struct LtNavGoal sLtNavGoals[] = {
+-    {1, 0x4050, 1, 3, 0, 12, 1, 0}, // leave_home: until VAR_MAP_SCENE_PALLET_TOWN_OAK >= 1
+-    {0, 0x0828, 0, 4, 3, 9, 4, 1}, // choose_starter: until FLAG_SYS_POKEMON_GET
+-    {1, 0x4055, 4, 4, 3, 6, 10, 1}, // first_battle: until VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB >= 4
+-    {1, 0x4057, 1, 5, 3, 255, 255, 2}, // get_parcel: until VAR_MAP_SCENE_VIRIDIAN_CITY_MART >= 1
+-    {0, 0x0829, 0, 4, 3, 6, 3, 1}, // deliver_parcel: until FLAG_SYS_POKEDEX_GET
+-    {0, 0x0820, 0, 6, 2, 6, 5, 3}, // brock: until FLAG_BADGE01_GET
+-    {0, 0x0821, 0, 7, 5, 8, 6, 4}, // misty: until FLAG_BADGE02_GET
+-    {0, 0x0234, 0, 30, 0, 7, 5, 5}, // bill: until FLAG_GOT_SS_TICKET
+-    {0, 0x0237, 0, 1, 11, 5, 4, 6}, // ss_anne: until FLAG_GOT_HM01
+-    {0, 0x0822, 0, 9, 6, 5, 2, 7}, // lt_surge: until FLAG_BADGE03_GET
+-    {0, 0x0823, 0, 10, 16, 6, 4, 8}, // erika: until FLAG_BADGE04_GET
+-    {0, 0x026d, 0, 10, 14, 11, 1, 9}, // hideout_door: until FLAG_OPENED_ROCKET_HIDEOUT
+-    {0, 0x02a5, 0, 1, 45, 3, 2, 10}, // lift_key: until FLAG_CAN_USE_ROCKET_HIDEOUT_LIFT
+-    {0, 0x005f, 0, 1, 45, 19, 4, 11}, // rocket_hideout: until FLAG_HIDE_CELADON_ROCKETS
+-    {2, 0x0167, 0, 1, 45, 20, 5, 11}, // silph_scope: until has ITEM_SILPH_SCOPE
+-    {0, 0x023c, 0, 1, 94, 11, 4, 12}, // pokemon_tower: until FLAG_RESCUED_MR_FUJI
+-    {0, 0x023d, 0, 8, 2, 3, 3, 13}, // poke_flute: until FLAG_GOT_POKE_FLUTE
+-    {0, 0x02a6, 0, 10, 7, 2, 9, 14}, // tea: until FLAG_GOT_TEA
+-    {0, 0x003e, 0, 1, 57, 9, 9, 15}, // silph_co: until FLAG_HIDE_SAFFRON_ROCKETS
+-    {0, 0x0825, 0, 14, 3, 14, 11, 16}, // sabrina: until FLAG_BADGE06_GET
+-    {0, 0x0824, 0, 11, 3, 7, 13, 17}, // koga: until FLAG_BADGE05_GET
+-    {0, 0x0239, 0, 1, 71, 255, 255, 18}, // safari_surf: until FLAG_GOT_HM03
+-    {0, 0x0189, 0, 1, 66, 28, 14, 19}, // gold_teeth: until FLAG_HIDE_SAFARI_ZONE_WEST_GOLD_TEETH
+-    {0, 0x023a, 0, 11, 7, 3, 5, 20}, // warden: until FLAG_GOT_HM04
+-    {0, 0x01a8, 0, 1, 59, 255, 255, 21}, // secret_key: until FLAG_HIDE_POKEMON_MANSION_B1F_SECRET_KEY
+-    {0, 0x0826, 0, 12, 0, 5, 4, 22}, // blaine: until FLAG_BADGE07_GET
+-    {0, 0x0827, 0, 5, 1, 2, 2, 23}, // giovanni: until FLAG_BADGE08_GET
+-    {0, 0x082c, 0, 13, 0, 255, 255, 24}, // league: until FLAG_SYS_GAME_CLEAR
++    {1, 0x4050, 1, 3, 0, 12, 1, 0, 0}, // leave_home: until VAR_MAP_SCENE_PALLET_TOWN_OAK >= 1
++    {0, 0x0828, 0, 4, 3, 9, 4, 1, 0}, // choose_starter: until FLAG_SYS_POKEMON_GET
++    {1, 0x4055, 4, 4, 3, 6, 10, 1, 0}, // first_battle: until VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB >= 4
++    {1, 0x4057, 1, 5, 3, 255, 255, 2, 0}, // get_parcel: until VAR_MAP_SCENE_VIRIDIAN_CITY_MART >= 1
++    {0, 0x0829, 0, 4, 3, 6, 3, 1, 4}, // deliver_parcel: until FLAG_SYS_POKEDEX_GET
++    {0, 0x0820, 0, 6, 2, 6, 5, 3, 1}, // brock: until FLAG_BADGE01_GET
++    {0, 0x0821, 0, 7, 5, 8, 6, 4, 3}, // misty: until FLAG_BADGE02_GET
++    {0, 0x0032, 0, 30, 0, 10, 6, 5, 2}, // bill_clefairy: until FLAG_HIDE_BILL_CLEFAIRY
++    {0, 0x0233, 0, 30, 0, 4, 5, 5, 0}, // bill_machine: until FLAG_HELPED_BILL_IN_SEA_COTTAGE
++    {0, 0x0234, 0, 30, 0, 7, 5, 5, 1}, // bill: until FLAG_GOT_SS_TICKET
++    {0, 0x0237, 0, 1, 11, 5, 4, 6, 1}, // ss_anne: until FLAG_GOT_HM01
++    {0, 0x0822, 0, 9, 6, 5, 2, 7, 1}, // lt_surge: until FLAG_BADGE03_GET
++    {0, 0x0823, 0, 10, 16, 6, 4, 8, 7}, // erika: until FLAG_BADGE04_GET
++    {0, 0x026d, 0, 10, 14, 11, 1, 9, 0}, // hideout_door: until FLAG_OPENED_ROCKET_HIDEOUT
++    {0, 0x02a5, 0, 1, 45, 3, 2, 10, 0}, // lift_key: until FLAG_CAN_USE_ROCKET_HIDEOUT_LIFT
++    {0, 0x005f, 0, 1, 45, 19, 4, 11, 1}, // rocket_hideout: until FLAG_HIDE_CELADON_ROCKETS
++    {2, 0x0167, 0, 1, 45, 20, 5, 11, 2}, // silph_scope: until has ITEM_SILPH_SCOPE
++    {0, 0x023c, 0, 1, 94, 11, 4, 12, 1}, // pokemon_tower: until FLAG_RESCUED_MR_FUJI
++    {0, 0x023d, 0, 8, 2, 3, 3, 13, 1}, // poke_flute: until FLAG_GOT_POKE_FLUTE
++    {0, 0x02a6, 0, 10, 7, 2, 9, 14, 4}, // tea: until FLAG_GOT_TEA
++    {0, 0x003e, 0, 1, 57, 9, 9, 15, 1}, // silph_co: until FLAG_HIDE_SAFFRON_ROCKETS
++    {0, 0x0825, 0, 14, 3, 14, 11, 16, 7}, // sabrina: until FLAG_BADGE06_GET
++    {0, 0x0824, 0, 11, 3, 7, 13, 17, 7}, // koga: until FLAG_BADGE05_GET
++    {0, 0x0239, 0, 1, 71, 255, 255, 18, 0}, // safari_surf: until FLAG_GOT_HM03
++    {0, 0x0189, 0, 1, 66, 28, 14, 19, 1}, // gold_teeth: until FLAG_HIDE_SAFARI_ZONE_WEST_GOLD_TEETH
++    {0, 0x023a, 0, 11, 7, 3, 5, 20, 1}, // warden: until FLAG_GOT_HM04
++    {0, 0x01a8, 0, 1, 59, 255, 255, 21, 0}, // secret_key: until FLAG_HIDE_POKEMON_MANSION_B1F_SECRET_KEY
++    {0, 0x0826, 0, 12, 0, 5, 4, 22, 8}, // blaine: until FLAG_BADGE07_GET
++    {0, 0x0827, 0, 5, 1, 2, 2, 23, 8}, // giovanni: until FLAG_BADGE08_GET
++    {0, 0x082c, 0, 13, 0, 255, 255, 24, 0}, // league: until FLAG_SYS_GAME_CLEAR
+ };
+diff --git a/src/fieldmap.c b/src/fieldmap.c
+index 415677722..43e2d10ef 100644
+--- a/src/fieldmap.c
++++ b/src/fieldmap.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "overworld.h"
+ #include "script.h"
+@@ -893,16 +894,19 @@ static void LoadTilesetPalette(struct Tileset const *tileset, u16 destOffset, u1
+             LoadPalette(&black, destOffset, PLTT_SIZEOF(1));
+             LoadPalette(tileset->palettes[0] + 1, destOffset + 1, size - PLTT_SIZEOF(1));
+             ApplyGlobalTintToPaletteEntries(destOffset + 1, (size - 2) >> 1);
++            LT_VividPalette(destOffset + 1, (size - 2) >> 1);
+         }
+         else if (tileset->isSecondary == TRUE)
+         {
+             LoadPalette(tileset->palettes[NUM_PALS_IN_PRIMARY], destOffset, size);
+             ApplyGlobalTintToPaletteEntries(destOffset, size >> 1);
++            LT_VividPalette(destOffset, size >> 1);
+         }
+         else
+         {
+             LoadCompressedPalette((const u32 *)tileset->palettes, destOffset, size);
+             ApplyGlobalTintToPaletteEntries(destOffset, size >> 1);
++            LT_VividPalette(destOffset, size >> 1);
+         }
+     }
+ }
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index d7df65c95..ec672acbf 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -8,6 +8,7 @@
+ #include "event_data.h"
+ #include "item.h"
+ #include "little_trainers.h"
++#include "palette.h"
+ #include "pokemon.h"
+ #include "constants/battle_move_effects.h"
+ #include "constants/flags.h"
+@@ -28,6 +29,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .healAfterBattle = TRUE,
+         .noLossPenalty = TRUE,
+         .autoRespawn = TRUE,
++        .autoSave = TRUE,
+         .expPercent = 250,
+         .benchExpPercent = 50,
+         .infinitePP = TRUE,
+@@ -49,6 +51,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .tradeEvoLevel = 36,
+         .friendshipEvoThreshold = 150,
+         .noEvolutionCancel = TRUE,
++        .vividColors = TRUE,
+         .simpleBattleMenu = TRUE,
+         .heartHealth = TRUE,
+         .menuIcons = TRUE,
+@@ -61,6 +64,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .healAfterBattle = TRUE,
+         .noLossPenalty = TRUE,
+         .autoRespawn = TRUE,
++        .autoSave = TRUE,
+         .expPercent = 150,
+         .benchExpPercent = 50,
+         .infinitePP = FALSE,
+@@ -82,6 +86,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .tradeEvoLevel = 36,
+         .friendshipEvoThreshold = 150,
+         .noEvolutionCancel = TRUE,
++        .vividColors = TRUE,
+         .simpleBattleMenu = FALSE,
+         .heartHealth = TRUE,
+         .menuIcons = TRUE,
+@@ -94,6 +99,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .healAfterBattle = FALSE,
+         .noLossPenalty = FALSE,
+         .autoRespawn = FALSE,
++        .autoSave = FALSE,
+         .expPercent = 100,
+         .benchExpPercent = 0,
+         .infinitePP = FALSE,
+@@ -115,6 +121,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .tradeEvoLevel = 0,
+         .friendshipEvoThreshold = 220,
+         .noEvolutionCancel = FALSE,
++        .vividColors = TRUE,
+         .simpleBattleMenu = FALSE,
+         .heartHealth = FALSE,
+         .menuIcons = FALSE,
+@@ -392,6 +399,46 @@ u8 LT_RecommendedAttack(u8 battler, u8 basicSlot, u8 specialSlot)
+     return LT_MENU_SPECIAL;
+ }
+ 
++// Part of the graphical refresh: the overworld's colours are pushed away from grey (more
++// saturated) and lifted a little (brighter) as each tileset palette is loaded. Tiles, collision
++// and palette layout are untouched, so nothing about how maps behave changes.
++#define LT_VIVID_SATURATION_PERCENT 30
++#define LT_VIVID_LIFT               1
++
++void LT_VividPalette(u16 offset, u16 count)
++{
++    u16 i;
++
++    if (!LT_Rules()->vividColors)
++        return;
++
++    for (i = 0; i < count; i++)
++    {
++        u16 color = gPlttBufferUnfaded[offset + i];
++        s32 channel[3];
++        s32 mean;
++        u8 c;
++
++        channel[0] = color & 31;
++        channel[1] = (color >> 5) & 31;
++        channel[2] = (color >> 10) & 31;
++        mean = (channel[0] + channel[1] + channel[2]) / 3;
++        for (c = 0; c < 3; c++)
++        {
++            channel[c] += (channel[c] - mean) * LT_VIVID_SATURATION_PERCENT / 100;
++            if (mean > 6) // leave outlines and shadows dark
++                channel[c] += LT_VIVID_LIFT;
++            if (channel[c] < 0)
++                channel[c] = 0;
++            if (channel[c] > 31)
++                channel[c] = 31;
++        }
++        color = channel[0] | (channel[1] << 5) | (channel[2] << 10);
++        gPlttBufferUnfaded[offset + i] = color;
++        gPlttBufferFaded[offset + i] = color;
++    }
++}
++
+ void LT_OnMapTransition(void)
+ {
+     LT_OpenPuzzleGates();
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 826f24fff..2086de30a 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -34,6 +34,7 @@ struct LtNavGoal
+     u8 x;           // 0xFF: anywhere on the map
+     u8 y;
+     u8 route;
++    u8 localId;     // if not 0: the person or object to walk up to (looked up live, because scripts move people)
+ };
+ 
+ struct LtNavLift
+@@ -80,7 +81,8 @@ static EWRAM_DATA bool8 sBuiltOnDoor = FALSE;
+ static EWRAM_DATA u8 sMetCount = 0;
+ static EWRAM_DATA u8 sMetX[MAX_MET] = {0};
+ static EWRAM_DATA u8 sMetY[MAX_MET] = {0};
+-static EWRAM_DATA u8 sShownDir = 0;         // where the arrow last pointed  // the path was made while standing on the door just arrived through
++static EWRAM_DATA u8 sShownDir = 0;         // where the arrow last pointed
++static EWRAM_DATA u8 sSavedGoalPlus1 = 0;   // the goal that was current at the last autosave check, +1 (0 = not known yet)  // the path was made while standing on the door just arrived through
+ static EWRAM_DATA bool8 sWasBusy = FALSE;   // a conversation, battle or menu has happened since the path was made
+ 
+ // How people and objects are treated when looking for a path
+@@ -276,7 +278,33 @@ static void SeedGoals(struct Fill *fill, const struct LtNavGoal *goal)
+     if (gSaveBlock1Ptr->location.mapGroup == goal->mapGroup
+      && gSaveBlock1Ptr->location.mapNum == goal->mapNum
+      && goal->x != 0xFF)
+-        FillPush(fill, goal->x + MAP_OFFSET, goal->y + MAP_OFFSET, FIELD_GOAL);
++    {
++        s32 x = goal->x + MAP_OFFSET;
++        s32 y = goal->y + MAP_OFFSET;
++
++        if (goal->localId != 0)
++        {
++            // Where that person is standing right now, or where the map will put them
++            const struct MapEvents *events = gMapHeader.events;
++
++            if (events != NULL && goal->localId <= events->objectEventCount && goal->localId <= OBJECT_EVENT_TEMPLATES_COUNT)
++            {
++                x = gSaveBlock1Ptr->objectEventTemplates[goal->localId - 1].x + MAP_OFFSET;
++                y = gSaveBlock1Ptr->objectEventTemplates[goal->localId - 1].y + MAP_OFFSET;
++            }
++            for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
++            {
++                if (gObjectEvents[i].active && !gObjectEvents[i].isPlayer && gObjectEvents[i].localId == goal->localId
++                 && gObjectEvents[i].mapGroup == goal->mapGroup && gObjectEvents[i].mapNum == goal->mapNum)
++                {
++                    x = gObjectEvents[i].currentCoords.x;
++                    y = gObjectEvents[i].currentCoords.y;
++                    break;
++                }
++            }
++        }
++        FillPush(fill, x, y, FIELD_GOAL);
++    }
+ 
+     if (gSaveBlock1Ptr->location.mapGroup >= ARRAY_COUNT(sLtNavGroupStart))
+         return;
+@@ -677,6 +705,23 @@ void LT_Nav_Update(void)
+     }
+ 
+     goal = CurrentGoal();
++
++    // A story goal has just been completed: a safe moment to save (standing free on the field,
++    // every script finished).
++    if (gPlayerAvatar.tileTransitionState != T_TILE_TRANSITION)
++    {
++        u8 goalPlus1 = (goal == NO_GOAL) ? ARRAY_COUNT(sLtNavGoals) + 1 : goal + 1;
++
++        if (sSavedGoalPlus1 != 0 && goalPlus1 > sSavedGoalPlus1 && LT_Rules()->autoSave)
++        {
++            sSavedGoalPlus1 = goalPlus1;
++            ShowArrow(0);
++            LT_AutoSave();
++            return;
++        }
++        sSavedGoalPlus1 = goalPlus1;
++    }
++
+     if (goal == NO_GOAL)
+     {
+         ShowArrow(0);
+diff --git a/src/start_menu.c b/src/start_menu.c
+index 82e8e2252..8d3df0e8d 100644
+--- a/src/start_menu.c
++++ b/src/start_menu.c
+@@ -667,6 +667,35 @@ static void task50_save_game(u8 taskId)
+     RestoreHelpContext();
+ }
+ 
++// Little Trainers: save without asking, at story milestones. The usual save box and "SAVING..."
++// and "saved the game" messages are shown, so it is clear what is happening.
++static void Task_LtAutoSave(u8 taskId)
++{
++    if (RunSaveDialogCB() == SAVECB_RETURN_CONTINUE)
++        return;
++    ClearDialogWindowAndFrameToTransparent(0, TRUE);
++    ClearPlayerHeldMovementAndUnfreezeObjectEvents();
++    UnlockPlayerFieldControls();
++    RestoreHelpContext();
++    DestroyTask(taskId);
++}
++
++void LT_AutoSave(void)
++{
++    if (FuncIsActiveTask(Task_LtAutoSave))
++        return;
++    BackupHelpContext();
++    SetHelpContext(HELPCONTEXT_SAVE);
++    LockPlayerFieldControls();
++    FreezeObjectEvents();
++    StopPlayerAvatar();
++    SaveMapView();
++    PrintSaveStats();
++    sSaveDialogCB = SaveDialogCB_PrintSavingDontTurnOffPower; // straight to saving: no question
++    sSaveDialogIsPrinting = FALSE;
++    CreateTask(Task_LtAutoSave, 80);
++}
++
+ static void CloseSaveMessageWindow(void)
+ {
+     ClearDialogWindowAndFrame(0, TRUE);
