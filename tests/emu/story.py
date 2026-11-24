@@ -29,6 +29,7 @@ def choose_starter(g, starter="charmander"):
     g.hold("UP"); g.frames(8); g.hold(); g.frames(10)      # face the ball
     g.advance_text(lambda: g.party_count() == 1, what="receiving the starter")
     g.advance_text(g.free_to_move, what="control after choosing")
+    g.settle()                                              # the autosave that follows a completed goal
     mon = g.party()[0]
     if mon.species != STARTER_SPECIES[starter]:
         raise EmulatorError(f"expected {starter}, got species {mon.species}")

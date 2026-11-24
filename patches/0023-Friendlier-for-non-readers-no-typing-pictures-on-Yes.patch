@@ -1,0 +1,853 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 21:46:03 +1100
+Subject: Friendlier for non-readers: no typing, pictures on Yes/No, more type
+ symbols, badge confetti, no forced island trip
+
+- No nickname questions; the name screens open filled in with the cursor on OK
+- New game skips the written instruction pages
+- Green tick / red cross on Yes/No boxes; nine more attack-type symbols
+- HP numbers hidden under the hearts
+- Rare Candy teaches new moves without asking which to forget
+- Trainer battles never ask 'will you switch?'
+- Confetti when a Gym Badge is earned
+- Cinnabar Gym quiz doors open; Bill's Sevii Islands trip is not started for the youngest preset
+- Navigation: surf only where the goal's route was planned with it
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/graphics/little_trainers/battle_icons.png b/graphics/little_trainers/battle_icons.png
+index 9349bcd402df306009921629c524daba0fe2251f..9346fbe4a2d2f1b6b6c2081e1c4a15d409bd1456 100644
+GIT binary patch
+delta 1827
+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
+R4NL$4002ovPDHLkV1m9xVov}7
+
+delta 1116
+zcmV-i1f%=j4xI^*77GD@1Oos706sr`osl6ve*`E=L_t(|+TEBxiyJ!-z|-W5%*E!`
+z-XO5R@OY#NoBm<4b-)Ko-WSLRxFW1uKM1GRrLS|kxO43)sqae&QtzA5O4^a+KX>H8
+z!>5C@^|MBr8O@F~`{KnT+RHk$zij_Q8`>`-FI(0KeBj_$07fL>`j!Ly837G);QAJt
+ze+Fof2hE~s?wTGL>@Mya!GYEhxLY7t1YoWgT1tI)D;&5+2?Pz!dIV%5t<kofS~gWI
+zQ#~^-Ge2|CAr~?yXWNi%RJN7>N&B7n5Q!~jauPsmt|aupXmKT_6dYtD;yE%<=w+mb
+zK_Gf38z}yfe=H%4D6~ePN$Lp5M6yZ!f3j_&*zW>#&@+mU)HpLwfr@?F4%PfLFiKgO
+z2+SEU1Qgr3;ZQXk(C>|vabT#_r{>F9&_tlYMzgwr!6~(7fJP9Qvt=p6M0$ME`b(s#
+z(mJ+9{rxqz7KU>;nouq+KC)amTAcxAy^aHBv|g`H0+i@vJQxvJod8zC$^>v9e}mC_
+z>tuTH{plc`<30wY$Nl$6j|Akl7&1S8JOIQcpD%GPL~B6s;4k<4{f=2neGY8D?18~w
+z=`VniK-mLB@;f$1NyEz&00dyV8TNa@z;4d~Nq34e08mDt>?8u%b(RFM^8-8pH)Vfl
+zQJ*~?G+@UcG4R1~sppGL7(70Te`OLMIst_iakkV6aHsfj;3W9DuL1Zoms}-tP*9&K
+z76wEhS{6W`)5E0qk0QNH6w73@3vmXRW%|sCi@kq<zfO54Z$TK?vV6MTZpPaf2*bg+
+z1DoRjC&W4Wiy}tocr)J6X9w{6m;~_C0yEwKeESn%yy-5z`0I8nCH>zVe+HRIHfg?W
+zrr2X_NzFgtpu~l-lP~{#$qHVGZ(H!HddKsJsj8};F)$!dGmq64%p&lvrXdat-V>;*
+zaC+45D}aiF8PqcbZygxaGo0~N4-A3&JebuPK+O`+D^?GX47lnR@ZBc>$#nysRegIp
+zK2iXQ`S5^^Imq@cabCxcf0X#od;RspPwdJ!4?kSGupJA91NdFOCd$ABXc`6}1wSH@
+zWYTO|QtYRsLE@O|xpBGqPjumh#YeW;RCw|ON2$0J9d;npgl<4zH4fFy)D1Zdf&|J0
+zFb5dMK*}CiHKnx59tK8AIgzq|4`Ts94CI9R{!NYjZfSc27!N`Oe_i<j!9jjN??UPy
+z4XJ04Khnp;u-cSzCjhJGMqMSk_RpNFOl>WifYmv$5^VQz6<$WRr7&ymb=V8Tt7xof
+zIx(-Qtwn4-66%*Tz@(rB*XOmET|}^IExoWp`<&j7J^6fj%n8H*MwI#ZnN<aNC4i5g
+z=P__^)Ory$o%V4GMg(qdRJcl3ByuCCYAzU1QyH?972#Q`O@Zl_r8e=vXOM{(NkGUK
+i>}@ebVfjCtFaHAWXS@_5ZDrX20000<MNUMnLSTXl+X!s{
+
+diff --git a/graphics/little_trainers/confetti.png b/graphics/little_trainers/confetti.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1a8982518eb93b30a6533f8d0476442a167ca637
+GIT binary patch
+literal 203
+zcmeAS@N?(olHy`uVBq!ia0vp^3P8-k!VDy{RzH{nqznRlLR_1xm#nFF{C{-Hy(z`j
+zjzDnL(z3dE$<ZuL&3EtqZ`pG7f0ox#OUwWFqV~?Q1ZrY@B4iDu!aQ9ZLn>~Cp54fM
+zK!L~Q;{7F@t>KG57L=@9`C{hLBv$<dO$`^X9k0Hq{C1dQYp76qV)Jz_p~J!R7o3Vb
+z<vOF6^KHOc{*IZO8|1gVcX8WeTxokWReCSuhe(Z>+(KOipbZS3u6{1-oD!M<lR;1#
+
+literal 0
+HcmV?d00001
+
+diff --git a/graphics/little_trainers/yes_no_icons.png b/graphics/little_trainers/yes_no_icons.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..e204a0ec6ae9c902f6d1d471e1eb9f52d6970312
+GIT binary patch
+literal 209
+zcmeAS@N?(olHy`uVBq!ia0vp^0zj<5!VDx|E`RzTNErn9gt!);UGo3`|D>d(t5?rH
+z<KXzew^(5g$CPhV41>-tIr<H#3Ju7MUOomCit%)D45_#^x9>FX0Rs+aT{XwRBMO3(
+zpB(t7EF$D|B|0>I!@Qr2dQM&y;hTOM@oenKP!qU)KzfbOxs*pM9=2QjU&#37#+9j_
+t?gFy!HeO(AG~4ma<!a6G^M|ZHI`SW@5>#&}*|Q8}wWq6}%Q~loCIG{UPL==w
+
+literal 0
+HcmV?d00001
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index ec1ac44d2..9455f0b4b 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -44,6 +44,11 @@ struct LtRules
+     u8 playerDamagePercent;     // damage dealt by the player's Pokemon (100 = original)
+     u8 enemyDamagePercent;      // damage dealt by opposing Pokemon (100 = original)
+     bool8 alwaysRunAway;        // running from a wild Pokemon never fails
++    bool8 noSwitchPrompt;       // trainer battles never stop to ask "Will you switch POKeMON?"
++    bool8 noTyping;             // no nickname questions; name screens start filled in with the cursor on OK
++    bool8 shortIntro;           // a new game skips the pages of written instructions before the Professor
++    bool8 badgeCelebration;     // confetti falls when a Gym Badge is earned
++    bool8 noSideTrips;          // Bill does not take the player away to the Sevii Islands after Cinnabar Gym
+     bool8 noPlayerRecoil;       // the player's Pokemon take no recoil damage from their own moves
+     bool8 playerStatusShield;   // the player's side is always protected from sleep, poison, burn,
+                                 // freeze, paralysis and confusion (a permanent Safeguard)
+@@ -169,4 +174,7 @@ u8 LT_TrainerPartyCap(u16 trainerNum);
+ // Scales damage for the attacker's side according to the active preset.
+ s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker);
+ 
++void LT_DrawYesNoIcons(u8 windowId, u8 top, u8 rowHeight);
++bool32 LT_AnswersNoWithoutAsking(const u8 *text);
++
+ #endif // GUARD_LITTLE_TRAINERS_H
+diff --git a/include/menu.h b/include/menu.h
+index e176b6244..c7acc9861 100644
+--- a/include/menu.h
++++ b/include/menu.h
+@@ -45,6 +45,7 @@ s8 Menu_ProcessInputGridLayout(void);
+ u8 MultichoiceGrid_InitCursor(u8 windowId, u8 fontId, u8 left, u8 top, u8 optionWidth, u8 cols, u8 rows, u8 cursorPos);
+ void MultichoiceGrid_PrintItems(u8 windowId, u8 fontId, u8 itemWidth, u8 itemHeight, u8 cols, u8 rows, const struct MenuAction *strs);
+ void DestroyYesNoMenu(void);
++u8 GetYesNoMenuWindowId(void);
+ s8 Menu_ProcessInputNoWrapClearOnChoose(void);
+ void CreateYesNoMenu(const struct WindowTemplate *window, u8 fontId, u8 left, u8 top, u16 baseTileNum, u8 paletteNum, u8 initialCursorPos);
+ void AddItemMenuActionTextPrinters(u8 windowId, u8 fontId, u8 left, u8 top, u8 letterSpacing, u8 lineHeight, u8 itemCount, const struct MenuAction *strs, const u8 *orderArray);
+diff --git a/src/battle_interface.c b/src/battle_interface.c
+index c9ef04a20..1369811d5 100644
+--- a/src/battle_interface.c
++++ b/src/battle_interface.c
+@@ -793,6 +793,10 @@ void UpdateHpTextInHealthbox(u8 healthboxSpriteId, s16 value, u8 maxOrCurrent)
+     u32 windowId, spriteTileNum;
+     u8 *windowTileData;
+ 
++    // Little Trainers: hearts show health; the numbers underneath mean nothing to a non-reader
++    if (LT_BattleRulesActive() && LT_Rules()->heartHealth)
++        return;
++
+     if (GetBattlerSide(gSprites[healthboxSpriteId].sBattlerId) == B_SIDE_PLAYER && !IsDoubleBattle())
+     {
+         // Only in the Japanese release can HP be displayed as text outside of double battles
+diff --git a/src/battle_main.c b/src/battle_main.c
+index 61da14768..d2b9b12e2 100644
+--- a/src/battle_main.c
++++ b/src/battle_main.c
+@@ -2279,6 +2279,10 @@ static void BattleStartClearSetData(void)
+         gHitMarker |= HITMARKER_NO_ANIMATIONS;
+ 
+     gBattleScripting.battleStyle = gSaveBlock2Ptr->optionsBattleStyle;
++    // Little Trainers: never ask "Will you switch POKeMON?" after an opponent's Pokemon is beaten.
++    // (A child pressing A would be taken into the party screen in the middle of every trainer battle.)
++    if (LT_Rules()->noSwitchPrompt)
++        gBattleScripting.battleStyle = OPTIONS_BATTLE_STYLE_SET;
+ 
+     gMultiHitCounter = 0;
+     gBattleOutcome = 0;
+diff --git a/src/battle_script_commands.c b/src/battle_script_commands.c
+index 465039048..544f7e666 100644
+--- a/src/battle_script_commands.c
++++ b/src/battle_script_commands.c
+@@ -2040,6 +2040,11 @@ static void Cmd_printstring(void)
+     if (gBattleControllerExecFlags == 0)
+     {
+         u16 var = T2_READ_16(gBattlescriptCurrInstr + 1);
++        if (var == STRINGID_GIVENICKNAMECAPTURED && LT_Rules()->noTyping)
++        {
++            gBattlescriptCurrInstr += 3; // Little Trainers: the nickname question is not asked
++            return;
++        }
+         PrepareStringBattle(var, gBattlerAttacker);
+         gBattlescriptCurrInstr += 3;
+         gBattleCommunication[MSG_DISPLAY] = 1;
+@@ -9881,6 +9886,11 @@ static void Cmd_trygivecaughtmonnick(void)
+     switch (gBattleCommunication[MULTIUSE_STATE])
+     {
+     case 0:
++        if (LT_Rules()->noTyping)
++        {
++            gBattleCommunication[MULTIUSE_STATE] = 4; // Little Trainers: no nickname question
++            break;
++        }
+         HandleBattleWindow(23, 8, 29, 13, 0);
+         BattlePutTextOnWindow(gText_BattleYesNoChoice, B_WIN_YESNO);
+         gBattleCommunication[MULTIUSE_STATE]++;
+diff --git a/src/data/little_trainers_nav.h b/src/data/little_trainers_nav.h
+index 36f97440c..564c8f5a3 100644
+--- a/src/data/little_trainers_nav.h
++++ b/src/data/little_trainers_nav.h
+@@ -750,34 +750,34 @@ static const struct LtNavLift sLtNavLifts[] = {
+ };
+ 
+ static const struct LtNavGoal sLtNavGoals[] = {
+-    {1, 0x4050, 1, 3, 0, 12, 1, 0, 0}, // leave_home: until VAR_MAP_SCENE_PALLET_TOWN_OAK >= 1
+-    {0, 0x0828, 0, 4, 3, 9, 4, 1, 0}, // choose_starter: until FLAG_SYS_POKEMON_GET
+-    {1, 0x4055, 4, 4, 3, 6, 10, 1, 0}, // first_battle: until VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB >= 4
+-    {1, 0x4057, 1, 5, 3, 255, 255, 2, 0}, // get_parcel: until VAR_MAP_SCENE_VIRIDIAN_CITY_MART >= 1
+-    {0, 0x0829, 0, 4, 3, 6, 3, 1, 4}, // deliver_parcel: until FLAG_SYS_POKEDEX_GET
+-    {0, 0x0820, 0, 6, 2, 6, 5, 3, 1}, // brock: until FLAG_BADGE01_GET
+-    {0, 0x0821, 0, 7, 5, 8, 6, 4, 3}, // misty: until FLAG_BADGE02_GET
+-    {0, 0x0032, 0, 30, 0, 10, 6, 5, 2}, // bill_clefairy: until FLAG_HIDE_BILL_CLEFAIRY
+-    {0, 0x0233, 0, 30, 0, 4, 5, 5, 0}, // bill_machine: until FLAG_HELPED_BILL_IN_SEA_COTTAGE
+-    {0, 0x0234, 0, 30, 0, 7, 5, 5, 1}, // bill: until FLAG_GOT_SS_TICKET
+-    {0, 0x0237, 0, 1, 11, 5, 4, 6, 1}, // ss_anne: until FLAG_GOT_HM01
+-    {0, 0x0822, 0, 9, 6, 5, 2, 7, 1}, // lt_surge: until FLAG_BADGE03_GET
+-    {0, 0x0823, 0, 10, 16, 6, 4, 8, 7}, // erika: until FLAG_BADGE04_GET
+-    {0, 0x026d, 0, 10, 14, 11, 1, 9, 0}, // hideout_door: until FLAG_OPENED_ROCKET_HIDEOUT
+-    {0, 0x02a5, 0, 1, 45, 3, 2, 10, 0}, // lift_key: until FLAG_CAN_USE_ROCKET_HIDEOUT_LIFT
+-    {0, 0x005f, 0, 1, 45, 19, 4, 11, 1}, // rocket_hideout: until FLAG_HIDE_CELADON_ROCKETS
+-    {2, 0x0167, 0, 1, 45, 20, 5, 11, 2}, // silph_scope: until has ITEM_SILPH_SCOPE
+-    {0, 0x023c, 0, 1, 94, 11, 4, 12, 1}, // pokemon_tower: until FLAG_RESCUED_MR_FUJI
+-    {0, 0x023d, 0, 8, 2, 3, 3, 13, 1}, // poke_flute: until FLAG_GOT_POKE_FLUTE
+-    {0, 0x02a6, 0, 10, 7, 2, 9, 14, 4}, // tea: until FLAG_GOT_TEA
+-    {0, 0x003e, 0, 1, 57, 9, 9, 15, 1}, // silph_co: until FLAG_HIDE_SAFFRON_ROCKETS
+-    {0, 0x0825, 0, 14, 3, 14, 11, 16, 7}, // sabrina: until FLAG_BADGE06_GET
+-    {0, 0x0824, 0, 11, 3, 7, 13, 17, 7}, // koga: until FLAG_BADGE05_GET
+-    {0, 0x0239, 0, 1, 71, 255, 255, 18, 0}, // safari_surf: until FLAG_GOT_HM03
+-    {0, 0x0189, 0, 1, 66, 28, 14, 19, 1}, // gold_teeth: until FLAG_HIDE_SAFARI_ZONE_WEST_GOLD_TEETH
+-    {0, 0x023a, 0, 11, 7, 3, 5, 20, 1}, // warden: until FLAG_GOT_HM04
+-    {0, 0x01a8, 0, 1, 59, 255, 255, 21, 0}, // secret_key: until FLAG_HIDE_POKEMON_MANSION_B1F_SECRET_KEY
+-    {0, 0x0826, 0, 12, 0, 5, 4, 22, 8}, // blaine: until FLAG_BADGE07_GET
+-    {0, 0x0827, 0, 5, 1, 2, 2, 23, 8}, // giovanni: until FLAG_BADGE08_GET
+-    {0, 0x082c, 0, 13, 0, 255, 255, 24, 0}, // league: until FLAG_SYS_GAME_CLEAR
++    {1, 0x4050, 1, 3, 0, 12, 1, 0, 0, 0}, // leave_home: until VAR_MAP_SCENE_PALLET_TOWN_OAK >= 1
++    {0, 0x0828, 0, 4, 3, 9, 4, 1, 0, 0}, // choose_starter: until FLAG_SYS_POKEMON_GET
++    {1, 0x4055, 4, 4, 3, 6, 10, 1, 0, 0}, // first_battle: until VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB >= 4
++    {1, 0x4057, 1, 5, 3, 255, 255, 2, 0, 0}, // get_parcel: until VAR_MAP_SCENE_VIRIDIAN_CITY_MART >= 1
++    {0, 0x0829, 0, 4, 3, 6, 3, 1, 4, 0}, // deliver_parcel: until FLAG_SYS_POKEDEX_GET
++    {0, 0x0820, 0, 6, 2, 6, 5, 3, 1, 0}, // brock: until FLAG_BADGE01_GET
++    {0, 0x0821, 0, 7, 5, 8, 6, 4, 3, 0}, // misty: until FLAG_BADGE02_GET
++    {0, 0x0032, 0, 30, 0, 10, 6, 5, 2, 0}, // bill_clefairy: until FLAG_HIDE_BILL_CLEFAIRY
++    {0, 0x0233, 0, 30, 0, 4, 5, 5, 0, 0}, // bill_machine: until FLAG_HELPED_BILL_IN_SEA_COTTAGE
++    {0, 0x0234, 0, 30, 0, 7, 5, 5, 1, 0}, // bill: until FLAG_GOT_SS_TICKET
++    {0, 0x0237, 0, 1, 11, 5, 4, 6, 1, 0}, // ss_anne: until FLAG_GOT_HM01
++    {0, 0x0822, 0, 9, 6, 5, 2, 7, 1, 0}, // lt_surge: until FLAG_BADGE03_GET
++    {0, 0x0823, 0, 10, 16, 6, 4, 8, 7, 0}, // erika: until FLAG_BADGE04_GET
++    {0, 0x026d, 0, 10, 14, 11, 1, 9, 0, 0}, // hideout_door: until FLAG_OPENED_ROCKET_HIDEOUT
++    {0, 0x02a5, 0, 1, 45, 3, 2, 10, 0, 0}, // lift_key: until FLAG_CAN_USE_ROCKET_HIDEOUT_LIFT
++    {0, 0x005f, 0, 1, 45, 19, 4, 11, 1, 0}, // rocket_hideout: until FLAG_HIDE_CELADON_ROCKETS
++    {2, 0x0167, 0, 1, 45, 20, 5, 11, 2, 0}, // silph_scope: until has ITEM_SILPH_SCOPE
++    {0, 0x023c, 0, 1, 94, 11, 4, 12, 1, 0}, // pokemon_tower: until FLAG_RESCUED_MR_FUJI
++    {0, 0x023d, 0, 8, 2, 3, 3, 13, 1, 0}, // poke_flute: until FLAG_GOT_POKE_FLUTE
++    {0, 0x02a6, 0, 10, 7, 2, 9, 14, 4, 0}, // tea: until FLAG_GOT_TEA
++    {0, 0x003e, 0, 1, 57, 9, 9, 15, 1, 0}, // silph_co: until FLAG_HIDE_SAFFRON_ROCKETS
++    {0, 0x0825, 0, 14, 3, 14, 11, 16, 7, 0}, // sabrina: until FLAG_BADGE06_GET
++    {0, 0x0824, 0, 11, 3, 7, 13, 17, 7, 0}, // koga: until FLAG_BADGE05_GET
++    {0, 0x0239, 0, 1, 71, 255, 255, 18, 0, 0}, // safari_surf: until FLAG_GOT_HM03
++    {0, 0x0189, 0, 1, 66, 28, 14, 19, 1, 0}, // gold_teeth: until FLAG_HIDE_SAFARI_ZONE_WEST_GOLD_TEETH
++    {0, 0x023a, 0, 11, 7, 3, 5, 20, 1, 0}, // warden: until FLAG_GOT_HM04
++    {0, 0x01a8, 0, 1, 59, 255, 255, 21, 0, 1}, // secret_key: until FLAG_HIDE_POKEMON_MANSION_B1F_SECRET_KEY
++    {0, 0x0826, 0, 12, 0, 5, 4, 22, 8, 1}, // blaine: until FLAG_BADGE07_GET
++    {0, 0x0827, 0, 5, 1, 2, 2, 23, 8, 1}, // giovanni: until FLAG_BADGE08_GET
++    {0, 0x082c, 0, 13, 0, 255, 255, 24, 0, 1}, // league: until FLAG_SYS_GAME_CLEAR
+ };
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index a9f801980..2ba670fce 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -47,6 +47,11 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .hmFree = TRUE,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
++        .noSwitchPrompt = TRUE,
++        .noTyping = TRUE,
++        .shortIntro = TRUE,
++        .badgeCelebration = TRUE,
++        .noSideTrips = TRUE,
+         .trainerPartyCap = 2,
+         .leaderPartyCap = 2,
+         .bossPartyCap = 4,
+@@ -83,6 +88,11 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .hmFree = TRUE,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
++        .noSwitchPrompt = TRUE,
++        .noTyping = FALSE,
++        .shortIntro = TRUE,
++        .badgeCelebration = TRUE,
++        .noSideTrips = FALSE,
+         .trainerPartyCap = 3,
+         .leaderPartyCap = 3,
+         .bossPartyCap = 5,
+@@ -119,6 +129,11 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .hmFree = FALSE,
+         .noPlayerRecoil = FALSE,
+         .alwaysRunAway = FALSE,
++        .noSwitchPrompt = FALSE,
++        .noTyping = FALSE,
++        .shortIntro = FALSE,
++        .badgeCelebration = FALSE,
++        .noSideTrips = FALSE,
+         .trainerPartyCap = PARTY_SIZE,
+         .leaderPartyCap = PARTY_SIZE,
+         .bossPartyCap = PARTY_SIZE,
+@@ -447,6 +462,15 @@ void LT_VividPalette(u16 offset, u16 count)
+ void LT_OnMapTransition(void)
+ {
+     LT_OpenPuzzleGates();
++    // After Cinnabar Gym, Bill normally walks up and (if the player presses A) takes them to the
++    // Sevii Islands, where the only way back is to finish a quest that needs reading. For the
++    // youngest players he waits in the Pokemon Centre instead, as if the invitation had been declined.
++    if (LT_Rules()->noSideTrips && VarGet(VAR_MAP_SCENE_CINNABAR_ISLAND) == 1)
++    {
++        VarSet(VAR_MAP_SCENE_CINNABAR_ISLAND, 2);
++        FlagSet(FLAG_HIDE_CINNABAR_BILL);
++        FlagClear(FLAG_HIDE_CINNABAR_POKECENTER_BILL);
++    }
+     if (LT_Rules()->autoRespawn)
+         LT_SetRespawnForCurrentMap();
+ }
+@@ -467,6 +491,13 @@ void LT_OpenPuzzleGates(void)
+     VarSet(VAR_MAP_SCENE_VICTORY_ROAD_2F_BOULDER1, 100);
+     VarSet(VAR_MAP_SCENE_VICTORY_ROAD_2F_BOULDER2, 100);
+     VarSet(VAR_MAP_SCENE_VICTORY_ROAD_3F, 100);
++    // Cinnabar Gym: the quiz doors are open (normally: read and answer six questions)
++    FlagSet(FLAG_CINNABAR_GYM_QUIZ_1);
++    FlagSet(FLAG_CINNABAR_GYM_QUIZ_2);
++    FlagSet(FLAG_CINNABAR_GYM_QUIZ_3);
++    FlagSet(FLAG_CINNABAR_GYM_QUIZ_4);
++    FlagSet(FLAG_CINNABAR_GYM_QUIZ_5);
++    FlagSet(FLAG_CINNABAR_GYM_QUIZ_6);
+     // Silph Co.: every Card Key door is open
+     for (flag = FLAG_SILPH_2F_DOOR_1; flag <= FLAG_SILPH_11F_DOOR; flag++)
+         FlagSet(flag);
+@@ -585,3 +616,20 @@ s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker)
+         damage = 1;
+     return damage;
+ }
++
++// Questions asked by scripts that are answered "no" without being shown:
++// - "give it a nickname?" after a gift Pokemon (no typing)
++// - Bill's "ready to sail to One Island?" in Cinnabar's Pokemon Centre (no side trips; switch MODE
++//   to Junior or Classic in the options to take the trip)
++extern const u8 Text_GiveNicknameToThisMon[];
++extern const u8 Text_GiveNicknameToReceivedMon[];
++extern const u8 CinnabarIsland_PokemonCenter_1F_Text_ReadyToSailToOneIsland[];
++
++bool32 LT_AnswersNoWithoutAsking(const u8 *text)
++{
++    if (LT_Rules()->noTyping && (text == Text_GiveNicknameToThisMon || text == Text_GiveNicknameToReceivedMon))
++        return TRUE;
++    if (LT_Rules()->noSideTrips && text == CinnabarIsland_PokemonCenter_1F_Text_ReadyToSailToOneIsland)
++        return TRUE;
++    return FALSE;
++}
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 743b312e0..4c6dd3f61 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -25,6 +25,7 @@ static const u8 sMarkerGfx[] = INCBIN_U8("graphics/little_trainers/battle_marker
+ static const u16 sIconsPal[] = INCBIN_U16("graphics/little_trainers/battle_icons.gbapal");
+ static const u8 sHeartsGfx[] = INCBIN_U8("graphics/little_trainers/hearts.4bpp");
+ static const u8 sStartMenuIconsGfx[] = INCBIN_U8("graphics/little_trainers/start_menu_icons.4bpp");
++static const u8 sYesNoIconsGfx[] = INCBIN_U8("graphics/little_trainers/yes_no_icons.4bpp");
+ 
+ // Order of the buttons in battle_icons.png
+ enum
+@@ -41,6 +42,15 @@ enum
+     ICON_CATCH,
+     ICON_CHANGE,
+     ICON_RUN,
++    ICON_FIGHTING,
++    ICON_POISON,
++    ICON_FLYING,
++    ICON_GROUND,
++    ICON_BUG,
++    ICON_GHOST,
++    ICON_DRAGON,
++    ICON_DARK,
++    ICON_STEEL,
+ };
+ 
+ #define MENU_WINDOW     B_WIN_OAK_OLD_MAN   // 208x32 pixels over the message box
+@@ -77,6 +87,17 @@ void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y)
+     BlitBitmapToWindow(windowId, &sStartMenuIconsGfx[startMenuItem * (16 * 16 / 2)], 9, y, 16, 16);
+ }
+ 
++// A green tick beside YES and a red cross beside NO (same shared colours as the Start menu icons).
++// rowHeight is the distance between the two lines of text.
++void LT_DrawYesNoIcons(u8 windowId, u8 top, u8 rowHeight)
++{
++    if (!LT_Rules()->menuIcons || GetWindowAttribute(windowId, WINDOW_WIDTH) < 6)
++        return;
++    BlitBitmapToWindow(windowId, &sYesNoIconsGfx[0], 33, top + 1, 16, 16);
++    BlitBitmapToWindow(windowId, &sYesNoIconsGfx[16 * 16 / 2], 33, top + rowHeight + 1, 16, 16);
++    CopyWindowToVram(windowId, COPYWIN_GFX);
++}
++
+ // The "LITTLE TRAINERS" banner on the title screen: four 32x32 sprites side by side.
+ #define TAG_LT_TITLE_BANNER 0x1E20
+ 
+@@ -158,18 +179,33 @@ static u8 SpecialIcon(u16 move)
+     case TYPE_WATER:
+         return ICON_WATER;
+     case TYPE_GRASS:
+-    case TYPE_BUG:
+         return ICON_GRASS;
++    case TYPE_BUG:
++        return ICON_BUG;
+     case TYPE_ELECTRIC:
+         return ICON_ELECTRIC;
+     case TYPE_ICE:
+         return ICON_ICE;
+     case TYPE_ROCK:
+-    case TYPE_GROUND:
+         return ICON_ROCK;
++    case TYPE_GROUND:
++        return ICON_GROUND;
+     case TYPE_PSYCHIC:
+-    case TYPE_GHOST:
+         return ICON_PSYCHIC;
++    case TYPE_GHOST:
++        return ICON_GHOST;
++    case TYPE_FIGHTING:
++        return ICON_FIGHTING;
++    case TYPE_POISON:
++        return ICON_POISON;
++    case TYPE_FLYING:
++        return ICON_FLYING;
++    case TYPE_DRAGON:
++        return ICON_DRAGON;
++    case TYPE_DARK:
++        return ICON_DARK;
++    case TYPE_STEEL:
++        return ICON_STEEL;
+     default:
+         return ICON_SPARKLE;
+     }
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index a75b93582..586e4b943 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -9,7 +9,9 @@
+ #include "metatile_behavior.h"
+ #include "overworld.h"
+ #include "quest_log.h"
++#include "random.h"
+ #include "script.h"
++#include "trig.h"
+ #include "constants/event_object_movement.h"
+ #include "constants/event_objects.h"
+ #include "constants/flags.h"
+@@ -35,6 +37,7 @@ struct LtNavGoal
+     u8 y;
+     u8 route;
+     u8 localId;     // if not 0: the person or object to walk up to (looked up live, because scripts move people)
++    u8 canSurf;     // the route for this goal was worked out with surfing allowed
+ };
+ 
+ struct LtNavLift
+@@ -89,8 +92,8 @@ static EWRAM_DATA u8 sNoPathTimer = 0;
+ #define MAX_SOMEONE 6
+ static EWRAM_DATA u8 sSomeoneCount = 0;
+ static EWRAM_DATA u8 sSomeoneX[MAX_SOMEONE] = {0};
+-static EWRAM_DATA u8 sSomeoneY[MAX_SOMEONE] = {0};      // frames spent standing somewhere the path does not cover
+-static EWRAM_DATA u8 sSavedGoalPlus1 = 0;   // the goal that was current at the last autosave check, +1 (0 = not known yet)  // the path was made while standing on the door just arrived through
++static EWRAM_DATA u8 sSomeoneY[MAX_SOMEONE] = {0};
++static EWRAM_DATA u8 sSavedGoalPlus1 = 0;   // the goal that was current at the last autosave check, +1 (0 = not known yet)
+ static EWRAM_DATA bool8 sWasBusy = FALSE;   // a conversation, battle or menu has happened since the path was made
+ 
+ // How people and objects are treated when looking for a path
+@@ -137,10 +140,15 @@ static u8 CurrentGoal(void)
+ // way to step to get one tile closer. One-way ledges are followed in the direction they allow.
+ // ---------------------------------------------------------------------------------------------
+ 
+-static bool32 CanSurfNow(void)
++// Paths cross water only for goals whose route was worked out with surfing (data/little_trainers_nav.h).
++// Otherwise the areas of a map would differ from the ones the route table was made for, and the
++// arrow could lead round in circles (it did, in the Safari Zone).
++static bool32 CanSurfNow(u8 goalId)
+ {
+     if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_SURFING))
+         return TRUE;
++    if (goalId >= ARRAY_COUNT(sLtNavGoals) || !sLtNavGoals[goalId].canSurf)
++        return FALSE;
+     return FlagGet(FLAG_BADGE05_GET) && PartyHasMonWithSurf();
+ }
+ 
+@@ -720,7 +728,7 @@ static u8 StepOffDirection(void)
+         s32 x = gSaveBlock1Ptr->pos.x + MAP_OFFSET + sDirDelta[dir][0];
+         s32 y = gSaveBlock1Ptr->pos.y + MAP_OFFSET + sDirDelta[dir][1];
+ 
+-        if (TileWalkable(x, y, CanSurfNow()) && !MetatileBehavior_IsLadder(MapGridGetMetatileBehaviorAt(x, y)))
++        if (TileWalkable(x, y, sBuiltCanSurf) && !MetatileBehavior_IsLadder(MapGridGetMetatileBehaviorAt(x, y)))
+             return dir;
+     }
+     return 0;
+@@ -759,7 +767,7 @@ static void BuildFieldInMode(u8 goalId)
+     sBuiltGoal = goalId;
+     sBuiltMapGroup = gSaveBlock1Ptr->location.mapGroup;
+     sBuiltMapNum = gSaveBlock1Ptr->location.mapNum;
+-    sBuiltCanSurf = CanSurfNow();
++    sBuiltCanSurf = CanSurfNow(goalId);
+     SendLiftToGoalFloor(goal);
+ 
+     fill.queue = Alloc(QUEUE_SIZE * sizeof(u16));
+@@ -890,6 +898,106 @@ static void ShowArrow(u8 dir)
+     arrow->invisible = FALSE;
+ }
+ 
++// ---------------------------------------------------------------------------------------------
++// Badge celebration: confetti falls for a few seconds when a Gym Badge is earned. The pieces use
++// the player character's palette, like the arrow.
++// ---------------------------------------------------------------------------------------------
++
++#define TAG_LT_CONFETTI     0x1E11
++#define CONFETTI_FRAMES     150     // how long new pieces keep appearing
++
++static EWRAM_DATA u8 sBadgesPlus1 = 0;      // badges held when last looked, +1 (0 = not known yet)
++static EWRAM_DATA u8 sConfettiTimer = 0;
++
++static const u32 sConfettiGfx[] = INCBIN_U32("graphics/little_trainers/confetti.4bpp");
++static const struct SpriteSheet sConfettiSheet = {(const u8 *)sConfettiGfx, sizeof(sConfettiGfx), TAG_LT_CONFETTI};
++
++static const struct OamData sConfettiOam =
++{
++    .shape = SPRITE_SHAPE(8x8),
++    .size = SPRITE_SIZE(8x8),
++    .priority = 0, // in front of everything, the text box included
++};
++
++static const union AnimCmd sConfettiAnim0[] = {ANIMCMD_FRAME(0, 1), ANIMCMD_END};
++static const union AnimCmd sConfettiAnim1[] = {ANIMCMD_FRAME(1, 1), ANIMCMD_END};
++static const union AnimCmd sConfettiAnim2[] = {ANIMCMD_FRAME(2, 1), ANIMCMD_END};
++static const union AnimCmd sConfettiAnim3[] = {ANIMCMD_FRAME(3, 1), ANIMCMD_END};
++static const union AnimCmd *const sConfettiAnims[] = {sConfettiAnim0, sConfettiAnim1, sConfettiAnim2, sConfettiAnim3};
++
++#define sFallSpeed  data[0]     // pixels per frame, in 1/16ths
++#define sFallFrac   data[1]
++#define sSwayPhase  data[2]
++#define sStartX     data[3]
++
++static void SpriteCB_Confetti(struct Sprite *sprite)
++{
++    sprite->sFallFrac += sprite->sFallSpeed;
++    sprite->y += sprite->sFallFrac >> 4;
++    sprite->sFallFrac &= 0xF;
++    sprite->sSwayPhase = (sprite->sSwayPhase + 5) & 0xFF;
++    sprite->x = sprite->sStartX + (gSineTable[sprite->sSwayPhase] >> 5);
++    if (sprite->y > DISPLAY_HEIGHT + 8)
++        DestroySprite(sprite);
++}
++
++static const struct SpriteTemplate sConfettiTemplate =
++{
++    .tileTag = TAG_LT_CONFETTI,
++    .paletteTag = TAG_NONE,
++    .oam = &sConfettiOam,
++    .anims = sConfettiAnims,
++    .images = NULL,
++    .affineAnims = gDummySpriteAffineAnimTable,
++    .callback = SpriteCB_Confetti,
++};
++
++static u8 CountBadges(void)
++{
++    u8 count = 0;
++    u16 flag;
++
++    for (flag = FLAG_BADGE01_GET; flag < FLAG_BADGE01_GET + NUM_BADGES; flag++)
++    {
++        if (FlagGet(flag))
++            count++;
++    }
++    return count;
++}
++
++static void UpdateBadgeCelebration(void)
++{
++    u8 badgesPlus1 = CountBadges() + 1;
++
++    // (fewer badges than last time means another game was started or loaded: just take note)
++    if (sBadgesPlus1 != 0 && badgesPlus1 > sBadgesPlus1 && LT_Rules()->badgeCelebration)
++        sConfettiTimer = CONFETTI_FRAMES;
++    sBadgesPlus1 = badgesPlus1;
++
++    if (sConfettiTimer == 0)
++        return;
++    sConfettiTimer--;
++    if (sConfettiTimer % 3 == 0)
++    {
++        u8 spriteId;
++        u16 random = Random();
++
++        if (GetSpriteTileStartByTag(TAG_LT_CONFETTI) == 0xFFFF)
++            LoadSpriteSheet(&sConfettiSheet);
++        spriteId = CreateSprite(&sConfettiTemplate, 8 + random % (DISPLAY_WIDTH - 16), -8, 0);
++        if (spriteId < MAX_SPRITES)
++        {
++            struct Sprite *sprite = &gSprites[spriteId];
++
++            sprite->oam.paletteNum = gSprites[gPlayerAvatar.spriteId].oam.paletteNum;
++            sprite->sStartX = sprite->x;
++            sprite->sFallSpeed = 20 + ((random >> 8) & 0x1F);
++            sprite->sSwayPhase = random >> 4;
++            StartSpriteAnim(sprite, (random >> 13) & 3);
++        }
++    }
++}
++
+ // ---------------------------------------------------------------------------------------------
+ // Called every frame while the player is on the field.
+ // ---------------------------------------------------------------------------------------------
+@@ -898,6 +1006,9 @@ void LT_Nav_Update(void)
+ {
+     u8 goal, dir;
+ 
++    if (gQuestLogState != QL_STATE_PLAYBACK)
++        UpdateBadgeCelebration();
++
+     if (!LT_Rules()->navArrow || gQuestLogState == QL_STATE_PLAYBACK)
+         return; // (the game records its "quest log" during normal play; only a replay switches the arrow off)
+ 
+@@ -941,7 +1052,7 @@ void LT_Nav_Update(void)
+      || goal != sBuiltGoal
+      || gSaveBlock1Ptr->location.mapGroup != sBuiltMapGroup
+      || gSaveBlock1Ptr->location.mapNum != sBuiltMapNum
+-     || CanSurfNow() != sBuiltCanSurf)
++     || CanSurfNow(goal) != sBuiltCanSurf)
+     {
+         // Only start while standing still, so the short pause is never felt mid-step
+         if (gPlayerAvatar.tileTransitionState == T_TILE_TRANSITION)
+diff --git a/src/menu.c b/src/menu.c
+index 9ee9968cb..a418675d2 100644
+--- a/src/menu.c
++++ b/src/menu.c
+@@ -551,6 +551,11 @@ void CreateYesNoMenu(const struct WindowTemplate *window, u8 fontId, u8 left, u8
+     Menu_InitCursor(sYesNoWindowId, fontId, left, top, GetFontAttribute(fontId, FONTATTR_MAX_LETTER_HEIGHT) + textSubPrinter.lineSpacing, 2, initialCursorPos);
+ }
+ 
++u8 GetYesNoMenuWindowId(void)
++{
++    return sYesNoWindowId;
++}
++
+ // not used
+ static void CreateYesNoMenu2(const struct WindowTemplate *window, u8 fontId, u16 baseTileNum, u8 initialCursorPos)
+ {
+diff --git a/src/naming_screen.c b/src/naming_screen.c
+index deef7054a..7a2cdbf77 100644
+--- a/src/naming_screen.c
++++ b/src/naming_screen.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "data.h"
+ #include "keyboard_text.h"
+@@ -478,6 +479,16 @@ static void CB2_LoadNamingScreen(void)
+     }
+ }
+ 
++// Little Trainers: the screens for the player's and the rival's name open with a name already
++// filled in and the cursor on OK, so pressing A is enough. A grown-up can press B to rub it out
++// and type another.
++static bool32 LtNameIsFilledIn(void)
++{
++    return LT_Rules()->noTyping
++        && (sNamingScreen->templateNum == NAMING_SCREEN_PLAYER || sNamingScreen->templateNum == NAMING_SCREEN_RIVAL)
++        && sNamingScreen->destBuffer[0] != EOS;
++}
++
+ static void NamingScreen_Init(void)
+ {
+     sNamingScreen->state = STATE_FADE_IN;
+@@ -492,7 +503,7 @@ static void NamingScreen_Init(void)
+     sNamingScreen->inputCharBaseXPos = (DISPLAY_WIDTH - sNamingScreen->template->maxChars * 8) / 2 + 6;
+     sNamingScreen->keyRepeatStartDelayCopy = gKeyRepeatStartDelay;
+     memset(sNamingScreen->textBuffer, EOS, sizeof(sNamingScreen->textBuffer));
+-    if (sNamingScreen->template->copyExistingString)
++    if (sNamingScreen->template->copyExistingString || LtNameIsFilledIn())
+         StringCopy(sNamingScreen->textBuffer, sNamingScreen->destBuffer);
+     gKeyRepeatStartDelay = 16;
+ }
+@@ -1142,6 +1153,8 @@ static void CreateCursorSprite(void)
+     gSprites[sNamingScreen->cursorSpriteId].sColorIncr = 1; // ? immediately overwritten
+     gSprites[sNamingScreen->cursorSpriteId].sColorIncr = 2;
+     SetCursorPos(0, 0);
++    if (LtNameIsFilledIn())
++        MoveCursorToOKButton();
+ }
+ 
+ static void SetCursorPos(s16 x, s16 y)
+diff --git a/src/new_menu_helpers.c b/src/new_menu_helpers.c
+index 38b09497c..4938e956d 100644
+--- a/src/new_menu_helpers.c
++++ b/src/new_menu_helpers.c
+@@ -649,11 +649,13 @@ void DisplayItemMessageOnField(u8 taskId, u8 fontId, const u8 *string, TaskFunc
+ void DisplayYesNoMenuDefaultYes(void)
+ {
+     CreateYesNoMenu(&sYesNo_WindowTemplate, FONT_NORMAL, 0, 2, STD_WINDOW_BASE_TILE_NUM, STD_WINDOW_PALETTE_NUM, 0);
++    LT_DrawYesNoIcons(GetYesNoMenuWindowId(), 2, GetFontAttribute(FONT_NORMAL, FONTATTR_MAX_LETTER_HEIGHT) + GetFontAttribute(FONT_NORMAL, FONTATTR_LINE_SPACING));
+ }
+ 
+ void DisplayYesNoMenuDefaultNo(void)
+ {
+     CreateYesNoMenu(&sYesNo_WindowTemplate, FONT_NORMAL, 0, 2, STD_WINDOW_BASE_TILE_NUM, STD_WINDOW_PALETTE_NUM, 1);
++    LT_DrawYesNoIcons(GetYesNoMenuWindowId(), 2, GetFontAttribute(FONT_NORMAL, FONTATTR_MAX_LETTER_HEIGHT) + GetFontAttribute(FONT_NORMAL, FONTATTR_LINE_SPACING));
+ }
+ 
+ u8 GetTextSpeedSetting(void)
+diff --git a/src/oak_speech.c b/src/oak_speech.c
+index 77dd3db45..e7741bafb 100644
+--- a/src/oak_speech.c
++++ b/src/oak_speech.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "decompress.h"
+ #include "task.h"
+@@ -770,6 +771,23 @@ static void Task_NewGameScene(u8 taskId)
+         CopyBgTilemapBufferToVram(1);
+         break;
+     case 7:
++        if (LT_Rules()->shortIntro)
++        {
++            // Little Trainers: skip the six pages of written instructions; go straight to the Professor
++            u16 black = RGB_BLACK;
++
++            LoadPalette(&black, BG_PLTT_ID(0), PLTT_SIZEOF(1));
++            gPaletteFade.bufferTransferDisabled = FALSE;
++            BlendPalettes(PALETTES_ALL, 16, RGB_BLACK);
++            SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_MODE_0 | DISPCNT_OBJ_1D_MAP | DISPCNT_OBJ_ON);
++            ShowBg(0);
++            ShowBg(1);
++            SetVBlankCallback(VBlankCB_NewGameScene);
++            gTasks[taskId].tTimer = 20;
++            gTasks[taskId].func = Task_OakSpeech_Init;
++            gMain.state = 0;
++            return;
++        }
+         CreateTopBarWindowLoadPalette(0, 30, 0, 13, 0x1C4);
+         FillBgTilemapBufferRect_Palette0(1, 0xD00F, 0,  0, 30, 2);
+         FillBgTilemapBufferRect_Palette0(1, 0xD002, 0,  2, 30, 1);
+diff --git a/src/party_menu.c b/src/party_menu.c
+index 7f3a881e6..3776fc48a 100644
+--- a/src/party_menu.c
++++ b/src/party_menu.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "battle.h"
+ #include "battle_anim.h"
+@@ -5116,6 +5117,30 @@ static void DisplayLevelUpStatsPg2(u8 taskId)
+     ScheduleBgCopyTilemapToVram(2);
+ }
+ 
++// Little Trainers: after a Rare Candy, a Pokemon with a full move list swaps the new move in for
++// its weakest one (or skips it) without asking which move to forget, as it does in battle.
++static bool32 LtAutoLearnMove(u8 taskId)
++{
++    struct Pokemon *mon = &gPlayerParty[gPartyMenu.slotId];
++    u8 slot;
++
++    if (!LT_Rules()->autoLearnMoves)
++        return FALSE;
++
++    slot = LT_ChooseMoveSlotToReplace(mon, gMoveToLearn);
++    if (slot == MAX_MON_MOVES)
++    {
++        gTasks[taskId].func = Task_TryLearningNextMove; // not worth learning: look for another
++    }
++    else
++    {
++        RemoveMonPPBonus(mon, slot);
++        SetMonMoveSlot(mon, gMoveToLearn, slot);
++        DisplayMonLearnedMove(taskId, gMoveToLearn);
++    }
++    return TRUE;
++}
++
+ static void Task_TryLearnNewMoves(u8 taskId)
+ {
+     u16 learnMove;
+@@ -5131,7 +5156,8 @@ static void Task_TryLearnNewMoves(u8 taskId)
+             PartyMenuTryEvolution(taskId);
+             break;
+         case MON_HAS_MAX_MOVES:
+-            DisplayMonNeedsToReplaceMove(taskId);
++            if (!LtAutoLearnMove(taskId))
++                DisplayMonNeedsToReplaceMove(taskId);
+             break;
+         case MON_ALREADY_KNOWS_MOVE:
+             gTasks[taskId].func = Task_TryLearningNextMove;
+@@ -5153,7 +5179,8 @@ static void Task_TryLearningNextMove(u8 taskId)
+         PartyMenuTryEvolution(taskId);
+         break;
+     case MON_HAS_MAX_MOVES:
+-        DisplayMonNeedsToReplaceMove(taskId);
++        if (!LtAutoLearnMove(taskId))
++            DisplayMonNeedsToReplaceMove(taskId);
+         break;
+     case MON_ALREADY_KNOWS_MOVE:
+         return;
+diff --git a/src/scrcmd.c b/src/scrcmd.c
+index e3c27510d..acd6d498d 100644
+--- a/src/scrcmd.c
++++ b/src/scrcmd.c
+@@ -74,6 +74,8 @@ static const u8 sScriptConditionTable[6][3] =
+     1, 0, 1, // !=
+ };
+ 
++static EWRAM_DATA bool8 sLtSkipNextYesNo = FALSE;
++
+ bool8 ScrCmd_nop(struct ScriptContext * ctx)
+ {
+     return FALSE;
+@@ -1268,6 +1270,12 @@ bool8 ScrCmd_message(struct ScriptContext * ctx)
+ 
+     if (msg == NULL)
+         msg = (const u8 *)ctx->data[0];
++    // Little Trainers: some questions are not asked (the answer to the yes/no box that follows is "no")
++    if (LT_AnswersNoWithoutAsking(msg))
++    {
++        sLtSkipNextYesNo = TRUE;
++        return FALSE;
++    }
+     ShowFieldMessage(msg);
+     return FALSE;
+ }
+@@ -1414,6 +1422,12 @@ bool8 ScrCmd_yesnobox(struct ScriptContext * ctx)
+     u8 left = ScriptReadByte(ctx);
+     u8 top = ScriptReadByte(ctx);
+ 
++    if (sLtSkipNextYesNo)
++    {
++        sLtSkipNextYesNo = FALSE;
++        gSpecialVar_Result = 0; // NO
++        return FALSE;
++    }
+     if (ScriptMenu_YesNo(left, top) == TRUE)
+     {
+         ScriptContext_Stop();

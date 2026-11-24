@@ -215,9 +215,66 @@ def icon_run():         # running shoe with speed lines
 
 
 # Order matters: src/battle_controller_player.c indexes the strip with the LT_ICON_* enum.
+def icon_fighting():    # fist
+    return render([(rounded(5, 6.5, 20, 19.5, 3.5), ORANGE), (rounded(3.5, 12, 13.5, 18, 2.6), YELLOW),
+                   (line(9, 7, 9, 11, 1), DARK), (line(12.7, 7, 12.7, 11, 1), DARK), (line(16.4, 7, 16.4, 11, 1), DARK),
+                   (line(5.5, 11.5, 19.5, 11.5, 1), DARK)])
+
+
+def icon_poison():      # purple bubbles
+    return render([(ellipse(9.5, 14, 7), PURPLE), (ellipse(18, 7, 3.8), PURPLE), (ellipse(19, 17.5, 2.4), PURPLE),
+                   (ellipse(7, 11.5, 1.8, 2.4), WHITE), (ellipse(17, 6, 1), WHITE)])
+
+
+def icon_flying():      # wing
+    wing = poly([(2.5, 9), (11, 3), (21.5, 4.5), (17.5, 8.5), (21, 10), (16, 13), (19, 15), (12.5, 17.5), (6, 21), (3.5, 15)])
+    return render([(wing, LBLUE), (line(6, 15, 17, 8.5, 1.1), WHITE), (line(7.5, 18, 16, 13.2, 1.1), WHITE),
+                   (line(5, 11.5, 15, 5.5, 1.1), WHITE)])
+
+
+def icon_ground():      # hills
+    return render([(poly([(1.5, 20.5), (9, 6.5), (13.5, 14), (16.5, 10), (22.5, 20.5)]), ORANGE),
+                   (poly([(9, 6.5), (11.4, 10.5), (9, 12.5), (6.8, 10.6)]), YELLOW),
+                   (poly([(16.5, 10), (18.3, 13.2), (16.5, 14.6), (15, 12)]), YELLOW)])
+
+
+def icon_bug():         # ladybird
+    body = ellipse(12, 13.5, 8, 7.5)
+    return render([(ellipse(12, 6, 4, 3), DARK), (body, RED), (line(12, 6.5, 12, 21, 1.1), DARK),
+                   (ellipse(8.2, 11.5, 1.6), DARK), (ellipse(15.8, 11.5, 1.6), DARK), (ellipse(8.8, 16.8, 1.4), DARK),
+                   (ellipse(15.2, 16.8, 1.4), DARK), (line(10, 4, 7.5, 1.8, 1), DARK), (line(14, 4, 16.5, 1.8, 1), DARK),
+                   (ellipse(10.6, 5.6, 0.8), WHITE), (ellipse(13.4, 5.6, 0.8), WHITE)])
+
+
+def icon_ghost():       # friendly ghost
+    body = either(ellipse(12, 10.5, 7.8), poly([(4.2, 10.5), (19.8, 10.5), (19.8, 21), (4.2, 21)]))
+    body = minus(minus(body, ellipse(8, 21.5, 1.9)), ellipse(16, 21.5, 1.9))
+    return render([(body, PURPLE), (ellipse(9, 10, 2.1, 2.6), WHITE), (ellipse(15, 10, 2.1, 2.6), WHITE),
+                   (ellipse(9.4, 10.6, 1), DARK), (ellipse(15.4, 10.6, 1), DARK), (ellipse(12, 15.5, 1.6, 1.1), DARK)])
+
+
+def icon_dragon():      # blue flame
+    flame = poly([(12.5, 1.5), (15.5, 6), (19, 10.5), (19.5, 15.5), (17, 20), (12, 22), (7, 20), (4.5, 15.5),
+                  (5, 11.5), (7.5, 8.5), (9, 11), (10.5, 6)])
+    inner = poly([(12.5, 8), (15.5, 12.5), (16, 17), (14, 20), (12, 20.8), (10, 20), (8, 17), (8.5, 13.5), (10.5, 14)])
+    return render([(flame, BLUE), (inner, LBLUE), (ellipse(12, 17.5, 2.4, 3), WHITE)])
+
+
+def icon_dark():        # crescent moon and star
+    return render([(minus(ellipse(11, 12.5, 9.3), ellipse(15.5, 9.5, 8)), GREY), (star(18, 8, 3.8, 1.5, 4), YELLOW)])
+
+
+def icon_steel():       # cog
+    return render([(star(12, 12, 10.8, 7.6, 8), LGREY), (ellipse(12, 12, 7.8), LGREY), (ellipse(12, 12, 5.2), GREY),
+                   (ellipse(12, 12, 2.6), DARK)])
+
+
+# New icons go at the end: the game refers to them by position.
 ICONS = [("attack", icon_attack), ("sparkle", icon_sparkle), ("fire", icon_fire), ("water", icon_water),
          ("grass", icon_grass), ("electric", icon_electric), ("ice", icon_ice), ("rock", icon_rock),
-         ("psychic", icon_psychic), ("catch", icon_catch), ("change", icon_change), ("run", icon_run)]
+         ("psychic", icon_psychic), ("catch", icon_catch), ("change", icon_change), ("run", icon_run),
+         ("fighting", icon_fighting), ("poison", icon_poison), ("flying", icon_flying), ("ground", icon_ground),
+         ("bug", icon_bug), ("ghost", icon_ghost), ("dragon", icon_dragon), ("dark", icon_dark), ("steel", icon_steel)]
 
 
 def rounded(x0, y0, x1, y1, r):
@@ -312,6 +369,16 @@ def start_menu_icons():
     return [pokedex, pokemon, bag, card, save, option, close, retire, card]
 
 
+def yes_no_icons():
+    """A green tick and a red cross, 12x12 in 16x16 cells, for Yes/No boxes."""
+    def cell(layers):
+        icon = render(layers, size=12)
+        return [row + [T] * 4 for row in icon] + [[T] * 16 for _ in range(4)]
+    tick = cell([(line(2.2, 6.5, 4.8, 9.3, 2.3), M_GREEN), (line(4.8, 9.3, 9.8, 2.6, 2.3), M_GREEN)])
+    cross = cell([(line(2.6, 2.6, 9.4, 9.4, 2.3), M_RED), (line(9.4, 2.6, 2.6, 9.4, 2.3), M_RED)])
+    return [tick, cross]
+
+
 # --- navigation arrow ----------------------------------------------------------------------------
 # Drawn with the player character's own sprite palette (graphics/object_events/palettes/player.pal),
 # which is always loaded in the overworld: yellow 13, dark yellow 14, black 15.
@@ -329,6 +396,15 @@ def nav_arrow_sheet():
         shade = poly([(x + 0.9, y + 0.9) for x, y in pts])
         frames.append(render([(shade, 14), (poly(pts), 13)], size=16, outline_colour=15))
     return [frames[0][y] + frames[1][y] for y in range(16)]
+
+
+def confetti_sheet():
+    """32x8: four 8x8 pieces of confetti in the player palette's yellow, red, blue and white."""
+    pieces = [render([(star(4, 4, 3.6, 1.6, 5), 13)], size=8, outline_colour=15),
+              render([(poly([(1, 2), (6, 1), (7, 5), (2, 6)]), 11)], size=8, outline=False),
+              render([(poly([(2, 1), (7, 3), (5, 7), (1, 5)]), 5)], size=8, outline=False),
+              render([(ellipse(4, 4, 2.4), 9)], size=8, outline_colour=10)]
+    return [[px for piece in pieces for px in piece[y]] for y in range(8)]
 
 
 # --- title screen banner -------------------------------------------------------------------------
@@ -420,11 +496,13 @@ def main():
                       render([(star(4, 4, 3.4, 1.5, 4), YELLOW), (ellipse(4, 4, 0.9), WHITE)], size=8))
     write_indexed_png(os.path.join(OUT, "hearts.png"), hearts_strip(), HEALTHBOX_PALETTE)
     write_indexed_png(os.path.join(OUT, "nav_arrow.png"), nav_arrow_sheet(), PLAYER_PALETTE)
+    write_indexed_png(os.path.join(OUT, "confetti.png"), confetti_sheet(), PLAYER_PALETTE)
     write_indexed_png(os.path.join(OUT, "title_banner.png"), title_banner(), BANNER_PALETTE)
     with open(os.path.join(OUT, "title_banner.pal"), "w", newline="\r\n") as f:
         f.write("JASC-PAL\n0100\n16\n" + "".join(f"{r} {g} {b}\n" for r, g, b in BANNER_PALETTE))
     menu_cells = start_menu_icons()
     write_indexed_png(os.path.join(OUT, "start_menu_icons.png"), [row for cell in menu_cells for row in cell], MENU_PALETTE)
+    write_indexed_png(os.path.join(OUT, "yes_no_icons.png"), [row for cell in yes_no_icons() for row in cell], MENU_PALETTE)
     if "--menu-preview" in sys.argv:
         big = []
         for y in range(16):

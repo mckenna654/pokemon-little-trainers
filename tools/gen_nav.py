@@ -381,7 +381,7 @@ def main():
         # Where the player stands when this goal is done: the reachable area closest to the target.
         inside = [g for g in ([(m.name, area)] if area is not None else every_area)]
         previous = next((g for g in inside if previous in distances([g])), inside[0])
-        rows.append((obj["id"], cond, m, xy, route_id, local_id))
+        rows.append((obj["id"], cond, m, xy, route_id, local_id, int(bool(obj.get("surf", False)))))
 
     for n in notes:
         print("note:", n)
@@ -434,9 +434,9 @@ def main():
     lines.append("};")
     lines.append("")
     lines.append("static const struct LtNavGoal sLtNavGoals[] = {")
-    for name, cond, m, xy, route_id, local_id in rows:
+    for name, cond, m, xy, route_id, local_id, surf in rows:
         x, y = (0xFF, 0xFF) if xy is None else xy
-        lines.append(f"    {{{cond[0]}, {cond[1]:#06x}, {cond[2]}, {m.group}, {m.num}, {x}, {y}, {route_id}, {local_id}}}, // {name}: until {cond[3]}")
+        lines.append(f"    {{{cond[0]}, {cond[1]:#06x}, {cond[2]}, {m.group}, {m.num}, {x}, {y}, {route_id}, {local_id}, {surf}}}, // {name}: until {cond[3]}")
     lines.append("};")
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
