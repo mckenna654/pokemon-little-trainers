@@ -24,7 +24,10 @@ class WorldTestCase(unittest.TestCase):
         g = self.g
         while g.wait_action_menu():
             g.set_battle_hp(1, 1)            # set-up: these tests are not about the fight itself,
-            g.set_battle_hp(0, g.battle_mon(0)["max_hp"])    # so the Route 1 starter must not lose it
+            g.set_battle_hp(0, g.battle_mon(0)["max_hp"])    # so the Route 1 starter must not lose it:
+            mine = g.sym("gBattleMons")
+            for stat in (0x04, 0x06, 0x0A):                  # defence, speed, special defence
+                g.w16(mine + stat, 999)
             g.attack()
         g.advance_text(g.free_to_move, max_presses=900, what="control after battle")
         return g.battle_outcome()
@@ -151,6 +154,34 @@ class PuzzlesMadeSimple(WorldTestCase):
         g.frames(60)
         g.follow_arrow(lambda: g.in_battle() and g.r16(g.sym("gTrainerBattleOpponent_A")) == LEADER_LT_SURGE,
                        max_actions=600, on_battle=self.win, what="the battle with Lt. Surge")
+
+    def test_arrow_leads_through_the_elite_four_to_the_hall_of_fame(self):
+        """Each room's way out is shut until its trainer is beaten: the arrow must lead to the
+        trainer first, then to the door, five times over."""
+        g = self.g
+        self.story_state("league")
+        g.teleport(location_of("IndigoPlateau_PokemonCenter_1F"), 4, 4)
+        g.frames(60)
+        rooms = []
+
+        def in_hall_of_fame():
+            if g.in_overworld() and (not rooms or rooms[-1] != g.location()):
+                rooms.append(g.location())                # (the Champion speaks as soon as his room is entered)
+            return g.flag(0x82C)                          # FLAG_SYS_GAME_CLEAR
+
+        def win():
+            while g.wait_action_menu():
+                g.set_battle_hp(1, 1)                     # as in WorldTestCase.win
+                g.set_battle_hp(0, g.battle_mon(0)["max_hp"])
+                for stat in (0x04, 0x06, 0x0A):
+                    g.w16(g.sym("gBattleMons") + stat, 999)
+                g.attack()
+            # (after the Champion, the story runs on into the Hall of Fame and the credits by itself)
+            g.advance_text(lambda: in_hall_of_fame() or g.free_to_move(), max_presses=2500, what="control after battle")
+
+        g.follow_arrow(in_hall_of_fame, max_actions=6000, on_battle=win, what="the Hall of Fame")
+        names = ["Loreleis", "Brunos", "Agathas", "Lances", "Champions"]
+        self.assertEqual(rooms[1:6], [location_of(f"PokemonLeague_{n}Room") for n in names])
 
     def test_victory_road_barrier_is_down(self):
         g = self.g

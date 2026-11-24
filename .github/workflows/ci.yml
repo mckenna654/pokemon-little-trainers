@@ -59,5 +59,10 @@ jobs:
         run: scripts/build.sh
       - name: Unit + emulator tests on the compiled ROM
         run: scripts/test.sh
+      # The whole game, new game to Hall of Fame, played by following the arrow (several minutes).
+      # Only for main, which must stay releasable.
+      - name: Whole-game play-through
+        if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+        run: LT_FULL_RUN=1 python3 -m unittest tests.emu.emu_full_game -v
       - name: Nothing ROM-like became tracked
         run: scripts/check-forbidden.sh

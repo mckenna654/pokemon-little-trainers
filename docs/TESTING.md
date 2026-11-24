@@ -7,8 +7,9 @@ Compiling is not testing. Each result below says **how** it was verified:
 
 ## How to run
 ```bash
-scripts/test.sh          # everything
+scripts/test.sh          # everything except the whole-game run
 scripts/test.sh quick    # hygiene + unit tests (no ROM needed)
+scripts/test.sh full     # everything, plus the whole game played by following the arrow (several minutes)
 python3 -m unittest tests.emu.emu_story -v     # one emulator test file
 ```
 Screenshots from emulator tests land in `builds/screenshots/` (local only).
@@ -133,12 +134,15 @@ GitHub Actions (Ubuntu): baseline checksum match, patch build and the opening pl
 on the foundation commit.
 
 ## Not yet tested (be honest about it)
-- Junior and Classic presets (source review only; nothing can switch preset in-game yet).
-- Trainer-battle variants of the rules beyond the scripted rival fight; double battles; Safari Zone.
-- Move learning during evolution or from Rare Candy still shows the original prompts.
-- No manual play by a person yet. No testing on Delta, RetroArch, Pizza Boy, Steam Deck or real
-  hardware. Only the mGBA 0.10.5 core has run the ROM.
-- Save/load across emulator restarts, long sessions, and everything past Route 1.
+- **No manual play by a person yet.** Everything above is automated. How the game *feels* to a
+  child (pace, clarity of the pictures, whether the arrow is noticed) is untested.
+- **No device testing.** Only the mGBA 0.10.5 core has run the ROM: not Delta, RetroArch, Pizza
+  Boy, a Steam Deck or real hardware.
+- Double battles, link features, the Trainer Tower and the Sevii Islands under the new rules.
+- Junior preset beyond its menu and move-list checks (its puzzles are not simplified, so the arrow
+  can stop at gym barriers).
+- Storage filling up (party and all PC boxes full).
+- Loading a save made by an older Little Trainers build after an update.
 
 ## Parent playtest checklist (first-gym demo; to be used at Milestone 3)
 Sit beside the child, do not help unless they ask, and note:

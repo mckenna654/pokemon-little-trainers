@@ -1,0 +1,100 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 22:08:59 +1100
+Subject: Arrow treats shut story doors as closed; blank the old HP number area
+ under the hearts
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/src/battle_interface.c b/src/battle_interface.c
+index 1369811d5..976f6c4e1 100644
+--- a/src/battle_interface.c
++++ b/src/battle_interface.c
+@@ -793,15 +793,37 @@ void UpdateHpTextInHealthbox(u8 healthboxSpriteId, s16 value, u8 maxOrCurrent)
+     u32 windowId, spriteTileNum;
+     u8 *windowTileData;
+ 
+-    // Little Trainers: hearts show health; the numbers underneath mean nothing to a non-reader
+-    if (LT_BattleRulesActive() && LT_Rules()->heartHealth)
++    // Little Trainers: hearts show health; the numbers underneath mean nothing to a non-reader.
++    // In single battles blanks are drawn where the numbers and the "/" were.
++    bool32 hideNumbers = LT_BattleRulesActive() && LT_Rules()->heartHealth;
++
++    if (hideNumbers && (IsDoubleBattle() || GetBattlerSide(gSprites[healthboxSpriteId].sBattlerId) != B_SIDE_PLAYER))
+         return;
+ 
+     if (GetBattlerSide(gSprites[healthboxSpriteId].sBattlerId) == B_SIDE_PLAYER && !IsDoubleBattle())
+     {
+         // Only in the Japanese release can HP be displayed as text outside of double battles
+         u8 text[8];
+-        if (maxOrCurrent != HP_CURRENT) // singles, max
++        if (hideNumbers)
++        {
++            static const u8 sBlank[] = _("    ");
++
++            if (maxOrCurrent != HP_CURRENT)
++            {
++                windowTileData = AddTextPrinterAndCreateWindowOnHealthbox(sBlank, 0, 5, &windowId);
++                spriteTileNum = gSprites[healthboxSpriteId].oam.tileNum;
++                TextIntoHealthboxObject((void *)(OBJ_VRAM0) + spriteTileNum * TILE_SIZE_4BPP + 0xA40, windowTileData, 2);
++            }
++            else
++            {
++                windowTileData = AddTextPrinterAndCreateWindowOnHealthbox(sBlank, 4, 5, &windowId);
++                spriteTileNum = gSprites[healthboxSpriteId].oam.tileNum;
++                TextIntoHealthboxObject((void *)(OBJ_VRAM0) + spriteTileNum * TILE_SIZE_4BPP + 0x2E0, windowTileData, 1);
++                TextIntoHealthboxObject((void *)(OBJ_VRAM0) + spriteTileNum * TILE_SIZE_4BPP + 0xA00, windowTileData + 0x20, 2);
++            }
++            RemoveWindowOnHealthbox(windowId);
++        }
++        else if (maxOrCurrent != HP_CURRENT) // singles, max
+         {
+             ConvertIntToDecimalStringN(text, value, STR_CONV_MODE_RIGHT_ALIGN, 3);
+             windowTileData = AddTextPrinterAndCreateWindowOnHealthbox(text, 0, 5, &windowId);
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 7ec5f4ddd..0b87ce76b 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -13,6 +13,7 @@
+ #include "script.h"
+ #include "trig.h"
+ #include "constants/event_object_movement.h"
++#include "constants/metatile_behaviors.h"
+ #include "constants/event_objects.h"
+ #include "constants/flags.h"
+ #include "constants/items.h"
+@@ -265,6 +266,16 @@ static void FillRun(struct Fill *fill)
+ 
+ // Seeds the fill with one exit from the route table: a door, or the stretch of a map edge
+ // (tiles `from` to `to` along it) from which the next map can be walked onto.
++// A door that the story has not opened yet (an Elite Four room before its trainer is beaten) is
++// a solid wall tile with no door behaviour. It is not a way out until it opens.
++static bool32 WarpIsShut(const struct WarpEvent *warp)
++{
++    s32 x = warp->x + MAP_OFFSET;
++    s32 y = warp->y + MAP_OFFSET;
++
++    return MapGridGetCollisionAt(x, y) != 0 && MapGridGetMetatileBehaviorAt(x, y) == MB_NORMAL;
++}
++
+ static void SeedExit(struct Fill *fill, u8 exit, u8 from, u8 to)
+ {
+     s32 i;
+@@ -274,7 +285,7 @@ static void SeedExit(struct Fill *fill, u8 exit, u8 from, u8 to)
+         const struct MapEvents *events = gMapHeader.events;
+ 
+         exit -= LT_NAV_HOP_WARP;
+-        if (events != NULL && exit < events->warpCount)
++        if (events != NULL && exit < events->warpCount && !WarpIsShut(&events->warps[exit]))
+             FillPush(fill, events->warps[exit].x + MAP_OFFSET, events->warps[exit].y + MAP_OFFSET, FIELD_GOAL);
+     }
+     else if (exit == CONNECTION_NORTH || exit == CONNECTION_SOUTH)
+@@ -354,7 +365,7 @@ static bool32 ExitInPlayerArea(struct Fill *fill, u8 exit, u8 from, u8 to)
+         const struct MapEvents *events = gMapHeader.events;
+ 
+         exit -= LT_NAV_HOP_WARP;
+-        return events != NULL && exit < events->warpCount
++        return events != NULL && exit < events->warpCount && !WarpIsShut(&events->warps[exit])
+             && NearPlayerArea(fill, events->warps[exit].x + MAP_OFFSET, events->warps[exit].y + MAP_OFFSET);
+     }
+     for (i = from + MAP_OFFSET; i <= to + MAP_OFFSET; i++)
