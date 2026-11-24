@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 18:17:53 +1100
+Subject: Default new games to fast text speed
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/src/new_game.c b/src/new_game.c
+index 3768b3ccb..97323fd92 100644
+--- a/src/new_game.c
++++ b/src/new_game.c
+@@ -59,7 +59,7 @@ static void InitPlayerTrainerId(void)
+ 
+ static void SetDefaultOptions(void)
+ {
+-    gSaveBlock2Ptr->optionsTextSpeed = OPTIONS_TEXT_SPEED_MID;
++    gSaveBlock2Ptr->optionsTextSpeed = OPTIONS_TEXT_SPEED_FAST; // Little Trainers: less waiting for text
+     gSaveBlock2Ptr->optionsWindowFrameType = 0;
+     gSaveBlock2Ptr->optionsSound = OPTIONS_SOUND_MONO;
+     gSaveBlock2Ptr->optionsBattleStyle = OPTIONS_BATTLE_STYLE_SHIFT;

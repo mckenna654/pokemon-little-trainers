@@ -19,6 +19,8 @@ class OpeningTests(unittest.TestCase):
         self.g.start_new_game()
         self.assertEqual(self.g.location(), PLAYERS_HOUSE_2F)
         self.assertEqual(self.g.party_count(), 0)
+        sb2 = self.g.r32(self.g.sym("gSaveBlock2Ptr"))
+        self.assertEqual(self.g.r8(sb2 + 0x14) & 7, 2, "text speed defaults to FAST")
         self.g.shot("01-bedroom")
 
     def test_2_leave_house(self):

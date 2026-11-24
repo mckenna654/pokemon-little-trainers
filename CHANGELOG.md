@@ -22,6 +22,7 @@ Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
   against Ghosts, for that battle only.
 - No recoil damage for the player; the player's Pokémon cannot be put to sleep, paralysed,
   poisoned, burned, frozen or confused; running from wild Pokémon always works.
+- New games start with fast text speed.
 - Wild Pokémon appear half as often. Evolution never asks which move to forget and cannot be
   cancelled with B.
 - **Start menu pictures:** an icon beside each entry (Poké Ball, bag, save book, gear, exit cross,
