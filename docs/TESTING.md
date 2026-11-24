@@ -55,6 +55,24 @@ Control run: the same nine tests were run against unmodified FireRed
 Also checked by eye from emulator screenshots: the new "is tired!" / "need a little rest!" text
 fits its boxes.
 
+### 2026-11-24 — Simple battle menu (patch 0004)
+All **Emulator (automated)**, `tests/emu/emu_milestone2.py`. The Milestone 1 tests were rewritten
+to play through the new menu and still pass.
+
+| Check | Result |
+| --- | --- |
+| ATTACK is one press, never opens the move list, uses the basic move (Scratch) | Pass |
+| SPECIAL uses the Pokémon's own-type move (Ember) | Pass |
+| With one attack only, both buttons use it | Pass |
+| A Pokémon with only Growl and Leer borrows Tackle; its real moves are unchanged afterwards | Pass |
+| CATCH is one press with an empty bag, at full health, twice in a row; the bag never opens | Pass |
+| RUN works three times in a row with speed forced to 1 | Pass |
+| Pressing B ten times in the menu does nothing | Pass |
+| Menu shows ATTACK / CATCH / SPECIAL / RUN (screenshot checked by eye) | Pass |
+
+Not covered yet: the trainer-battle layout (ATTACK / CHANGE / SPECIAL) has only been reviewed in
+source, because the first trainer after the tutorial rival fight is in Viridian Forest.
+
 GitHub Actions (Ubuntu): baseline checksum match, patch build and the opening play-through passed
 on the foundation commit.
 

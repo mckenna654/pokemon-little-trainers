@@ -5,10 +5,12 @@ _Last updated: 2026-11-24 (session 1)_
 ## Where things stand
 - **Milestone 0 (environment and baseline): complete.** CI green.
 - **Milestone 1 (simplified gameplay): core rules done and emulator-tested** (patches 0001–0003).
-  Remaining M1 items are listed in `ROADMAP.md` (move prompts outside battle, softer status
-  conditions, encounter rate, trainer trims, preset switching, a manual play session).
-- **Milestones 2+: not started.** Battle menus are still the original ones.
+- **Milestone 2 (battle interface): mechanics done and emulator-tested** (patch 0004): one-press
+  ATTACK / CATCH / SPECIAL / RUN with automatic move choice. Still text labels; icons, hearts and
+  the recommended-action highlight are not started.
+- **Milestone 3+ : not started.**
 - Graphics: strategy decided (source-level, incremental; `docs/GRAPHICS.md`); no art changed yet.
+- Remaining items for each milestone are the unchecked boxes in `ROADMAP.md`.
 
 ## Verified
 `docs/TESTING.md` has the full tables. In short: byte-exact baseline; BPS round trip with two
@@ -22,14 +24,19 @@ of the Little Trainer rules, each proven to fail on unmodified FireRed.
   Chrome extension, or paste the first post of each thread).
 
 ## Next actions (in order)
-1. Finish Milestone 1: auto-learn in `src/evolution_scene.c` and the Rare Candy path
-   (`src/party_menu.c`); softer status conditions; halve wild encounter rate
-   (`src/wild_encounter.c`); emulator tests for each.
-2. Milestone 2, battle interface: Attack / Special / Catch icons replacing the action menu in
-   `src/battle_controller_player.c` (`HandleInputChooseAction`, `PlayerHandleChooseAction`);
-   `LT_MoveScore()` already ranks moves for choosing the two attacks; Catch should set
-   `gLastUsedItem = ITEM_POKE_BALL` and skip the bag; hearts in `src/battle_interface.c`.
-3. Milestone 3: the Pallet → Brock slice (intro trim, objective arrow, Brock tuning, autosave).
+1. Milestone 3 groundwork, because it unlocks testing of everything else: extend
+   `tests/emu/story.py` from Route 1 to Viridian City, the parcel errand, Viridian Forest and
+   Brock, so trainer battles (and the ATTACK / CHANGE / SPECIAL layout) run under automation.
+2. Use the simple menu in the first rival battle (`src/battle_controllers.c` assigns
+   `SetControllerToOakOrOldMan` for `BATTLE_TYPE_FIRST_BATTLE`; check what the Oak controller
+   prints at the end of that battle before bypassing it).
+3. Finish Milestone 1 leftovers: auto-learn in `src/evolution_scene.c` and the Rare Candy path
+   (`src/party_menu.c`); softer status conditions; lower wild encounter rate
+   (`src/wild_encounter.c`).
+4. Milestone 2 art: draw our own icons (attack star, type symbols, Poké Ball, arrows, shoe) and
+   hearts in `assets/`, then swap the text labels in `PlayerHandleChooseAction` for tiles and add
+   hearts in `src/battle_interface.c`.
+5. Navigation arrow and intro trim for the Pallet → Brock slice.
 
 ## How to resume
 ```bash

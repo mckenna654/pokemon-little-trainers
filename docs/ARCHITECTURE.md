@@ -96,6 +96,12 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0002 | Automatic move replacement | `battle_script_commands.c` → `Cmd_handlelearnnewmove` via `LT_ChooseMoveSlotToReplace()` / `LT_MoveScore()` | `autoLearnMoves` |
 | 0002 | No money lost on defeat | `overworld.c` → `ComputeWhiteOutMoneyLoss` returns 0 | `noLossPenalty` |
 | 0003 | Gentle wording ("tired", "need a little rest") | `battle_message.c`, `strings.c`, `data/text/white_out.inc` | all presets |
+| 0004 | Simple battle menu: ATTACK / CATCH or CHANGE / SPECIAL / RUN | `battle_controller_player.c` → `LtHandleInputSimpleMenu` (called from `HandleInputChooseAction`), `PlayerHandleChooseAction` (labels), `PlayerHandleChooseMove` (answers with the chosen slot, no move list), `PlayerHandleChooseItem` (answers `ITEM_POKE_BALL`, no bag); labels in `battle_message.c` | `simpleBattleMenu` |
+| 0004 | Attack selection and Tackle fallback | `little_trainers.c` → `LT_ChooseAttackSlots()`; the borrowed move is flagged in `gDisableStructs[].mimickedMoves` so it is never written to the party | `simpleBattleMenu` |
+| 0004 | Running always succeeds | `battle_main.c` → `TryRunFromBattle` | `alwaysRunAway` |
+
+The simple menu is off in the tutorial-style battles that use other controllers (first rival
+battle, old man, Poké Dude) and in the Safari Zone.
 
 Preset values (Little / Junior / Classic) are the table at the top of `src/little_trainers.c`.
 

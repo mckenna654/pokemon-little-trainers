@@ -207,6 +207,26 @@ class FireRed(GBA):
         self._move_cursor(self.sym("gActionSelectionCursor"), index)
         self.press("A", wait=20)
 
+    # Little Trainer simple menu: one press per action
+    def attack(self):
+        self.choose_action(0)
+
+    def catch(self):
+        self.choose_action(1)
+
+    def special(self):
+        self.choose_action(2)
+
+    def run_away(self):
+        self.choose_action(3)
+
+    def set_battle_hp(self, battler, hp):
+        """Test set-up only: overwrite a battler's current HP in RAM."""
+        self.w16(self.sym("gBattleMons") + 0x58 * battler + 0x28, hp)
+
+    def last_move(self, battler=0):
+        return self.r16(self.sym("gLastMoves") + 2 * battler)
+
     def use_move(self, slot=0):
         self.choose_action(0)
         self.run_until(self.at_move_menu, max_frames=300, what="move menu")

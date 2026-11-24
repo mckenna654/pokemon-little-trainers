@@ -29,11 +29,15 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [ ] Manual play session by a person, then tag v0.1.0
 
 ## Milestone 2 — Child-friendly battle interface (v0.2.0)
-- [ ] Three big icons: Attack / Special Attack / Catch (wild) or Change (trainer); B to run
-- [ ] Automatic choice of basic and special attack per Pokémon, with safe fallbacks
-- [ ] Recommended action highlight
+- [x] One-press ATTACK / SPECIAL / CATCH (wild) or CHANGE (trainer) / RUN menu, text labels
+- [x] Automatic choice of basic and special attack per Pokémon, with a Tackle fallback
+- [x] Direct catch with no bag; B does nothing; running always works
+- [ ] Large pixel-art icons in place of the text labels (needs our own UI art)
+- [ ] Recommended action highlight (type effectiveness)
 - [ ] Five-heart health display
-- [ ] Simplified switching and fleeing
+- [ ] Simple menu in the first rival battle (currently Oak's tutorial menu) and a trainer-battle test
+- [ ] Friendly handling when party and storage are both full (currently just an error sound)
+- [ ] Type-immunity safety net (a Pokémon whose attacks cannot affect the opponent)
 
 ## Milestone 3 — First gym vertical slice (v0.3.0) — most important early milestone
 - [ ] Shortened intro, safe default names, fast text
