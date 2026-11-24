@@ -153,6 +153,141 @@ class FireRed(GBA):
         for i in range(0, 100, 4):
             self.w32(addr + i, struct.unpack_from("<I", patched, i)[0])
 
+    # --- test set-up through the game's own script engine -------------------------------------
+    # Late-game situations (a gym leader, a cuttable tree, a badge) would take hours of button
+    # presses to reach. Instead a few bytes of ordinary event script are placed in RAM and the
+    # game's script engine is pointed at them, exactly as if an NPC had started that script.
+    # Nothing is added to the ROM, and the behaviour being tested still comes from the game.
+    def run_script(self, bytecode, wait=True, max_frames=1800):
+        if not self.free_to_move():
+            raise EmulatorError("run_script needs the player standing free in the overworld")
+        buf = self.sym("gStringVar4") + 0x200                 # scratch space in a text buffer
+        data = bytes(bytecode) + bytes([0x6B, 0x02])          # releaseall, end
+        for i, b in enumerate(data):
+            self.w8(buf + i, b)
+        ctx = self.sym("sGlobalScriptContext")
+        self.w8(ctx + 0, 0)                                   # stackDepth
+        self.w8(ctx + 1, 1)                                   # mode: bytecode
+        self.w32(ctx + 4, 0)                                  # nativePtr
+        self.w32(ctx + 8, buf)                                # scriptPtr
+        self.w32(ctx + 92, self.sym("gScriptCmdTable"))
+        self.w32(ctx + 96, self.sym("gScriptCmdTableEnd"))
+        self.w8(self.sym("sLockFieldControls"), 1)
+        self.w8(self.sym("sGlobalScriptContextStatus"), 0)    # running
+        self.frames(4)
+        if wait:
+            self.run_until(self.free_to_move, max_frames=max_frames, what="script to finish")
+            self.frames(10)
+
+    @staticmethod
+    def _u16(v):
+        return [v & 0xFF, (v >> 8) & 0xFF]
+
+    def set_flag(self, flag_id):
+        self.run_script([0x29] + self._u16(flag_id))
+
+    def set_var(self, var_id, value):
+        self.run_script([0x16] + self._u16(var_id) + self._u16(value))
+
+    def give_item(self, item_id, quantity=1):
+        self.run_script([0x44] + self._u16(item_id) + self._u16(quantity))
+
+    def give_badges(self, count):
+        script = []
+        for i in range(count):
+            script += [0x29] + self._u16(0x820 + i)           # FLAG_BADGE01_GET + i
+        self.run_script(script)
+
+    def teleport(self, location, x, y):
+        """Warp to a map tile, like walking through a door that leads there."""
+        group, num = location
+        self.run_script([0x39, group, num, 0xFF] + self._u16(x) + self._u16(y) + [0x27], max_frames=2400)
+        if self.location() != tuple(location):
+            raise EmulatorError(f"teleport to {location} ended on {self.location()}")
+
+    def start_trainer_battle(self, trainer_id):
+        """Start a battle against a trainer by ID (no walking into their line of sight)."""
+        buf = self.sym("gStringVar4") + 0x2F0
+        self.w8(buf, 0xFF)                                    # empty defeat text
+        ptr = [buf & 0xFF, (buf >> 8) & 0xFF, (buf >> 16) & 0xFF, (buf >> 24) & 0xFF]
+        self.run_script([0x5C, 0x03] + self._u16(trainer_id) + [0, 0] + ptr, wait=False)
+        self.run_until(self.in_battle, max_frames=900, what="trainer battle to start")
+
+    # --- navigation arrow -------------------------------------------------------------------
+    NAV_DIRS = {1: "DOWN", 2: "UP", 3: "LEFT", 4: "RIGHT"}
+
+    def nav_goal(self):
+        """Index of the story goal the arrow is currently built for (255 = none)."""
+        return self.r8(self.sym("sBuiltGoal"))
+
+    def nav_value(self):
+        """Raw path-field value under the player: 1-4 a direction, 5 at the goal, 0 no path."""
+        field = self.r32(self.sym("sField"))
+        if field == 0:
+            return 0
+        width = self.r32(self.sym("VMap"))
+        x, y = self.position()
+        return self.r8(field + (y + 7) * width + (x + 7))
+
+    def nav_arrow(self):
+        """The direction the on-screen arrow is pointing right now, or None if it is hidden.
+        Read from the arrow sprite itself, so this is exactly what the player sees."""
+        sprite_id = self.r8(self.sym("sArrowSpriteId"))
+        if sprite_id >= 64:
+            return None
+        sprite = self.sym("gSprites") + 0x44 * sprite_id
+        flags = self.r8(sprite + 0x3E)
+        if not flags & 1 or flags & 4:                      # not in use, or invisible
+            return None
+        return ("DOWN", "UP", "LEFT", "RIGHT")[self.r8(sprite + 0x2A) & 3]
+
+    def follow_arrow(self, until, max_actions=4000, on_battle=None, what="goal"):
+        """Play using only what a child would see: walk where the arrow points, press A when it
+        is hidden or something is in the way, and press ATTACK in battles."""
+        stuck = 0
+        for _ in range(max_actions):
+            if until():
+                return
+            if self.in_battle():
+                if on_battle:
+                    on_battle()
+                else:
+                    while self.wait_action_menu():
+                        self.attack()
+                continue
+            if not self.free_to_move():
+                if self.callback2() == "CB2_NamingScreen":
+                    self.press("START", wait=20)
+                    self.press("A", wait=40)
+                else:
+                    self.press("A", hold=3, wait=17)
+                continue
+            self.frames(3)                                  # let the arrow settle after a step
+            arrow = self.nav_arrow()
+            if arrow and self.step(arrow):
+                stuck = 0
+            else:
+                self.press("A", hold=3, wait=17)            # no arrow, or a person/sign/door in the way
+                stuck += 1
+            if stuck > 80:
+                raise EmulatorError(f"following the arrow got stuck at {self.position()} on map {self.location()} "
+                                    f"(goal {self.nav_goal()}, arrow {self.nav_arrow()}, field {self.nav_value()})")
+        raise EmulatorError(f"did not reach {what} by following the arrow; at {self.position()} on map {self.location()}")
+
+    def is_surfing(self):
+        return bool(self.r8(self.sym("gPlayerAvatar")) & 0x08)        # PLAYER_AVATAR_FLAG_SURFING
+
+    def face(self, direction):
+        """Turn on the spot (a short tap turns without stepping)."""
+        self.hold(direction)
+        self.frames(4)
+        self.hold()
+        self.frames(16)
+
+    def enemy_party(self):
+        mons = [Mon(self.read(self.sym("gEnemyParty") + 100 * i, 100)) for i in range(6)]
+        return [m for m in mons if m.species != 0]
+
     def ball_count(self):
         """Quantity in the first slot of the Poke Balls pocket (0 if empty)."""
         sb1 = self.r32(self.sym("gSaveBlock1Ptr"))

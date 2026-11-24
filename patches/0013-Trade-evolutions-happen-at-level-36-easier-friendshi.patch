@@ -1,0 +1,78 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 19:11:46 +1100
+Subject: Trade evolutions happen at level 36; easier friendship evolutions
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index 69e9a85cd..61e21717d 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -59,6 +59,8 @@ struct LtRules
+     // Moves and evolution
+     bool8 autoLearnMoves;       // new moves replace the weakest one automatically, no prompts
+     bool8 noEvolutionCancel;    // pressing B during an evolution does not stop it
++    u8 tradeEvoLevel;           // level at which trade evolutions happen by themselves (0 = trading only)
++    u8 friendshipEvoThreshold;  // friendship needed for friendship evolutions (220 = original)
+ 
+     // Interface
+     bool8 simpleBattleMenu;     // ATTACK / SPECIAL / CATCH / RUN instead of the move list and bag
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 984ac445a..ee5d98170 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -42,6 +42,8 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .leaderPartyCap = 2,
+         .bossPartyCap = 4,
+         .autoLearnMoves = TRUE,
++        .tradeEvoLevel = 36,
++        .friendshipEvoThreshold = 150,
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = TRUE,
+         .heartHealth = TRUE,
+@@ -70,6 +72,8 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .leaderPartyCap = 3,
+         .bossPartyCap = 5,
+         .autoLearnMoves = FALSE,
++        .tradeEvoLevel = 36,
++        .friendshipEvoThreshold = 150,
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = FALSE,
+         .heartHealth = TRUE,
+@@ -98,6 +102,8 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .leaderPartyCap = PARTY_SIZE,
+         .bossPartyCap = PARTY_SIZE,
+         .autoLearnMoves = FALSE,
++        .tradeEvoLevel = 0,
++        .friendshipEvoThreshold = 220,
+         .noEvolutionCancel = FALSE,
+         .simpleBattleMenu = FALSE,
+         .heartHealth = FALSE,
+diff --git a/src/pokemon.c b/src/pokemon.c
+index 66a5c3d23..b4f740354 100644
+--- a/src/pokemon.c
++++ b/src/pokemon.c
+@@ -1,6 +1,7 @@
+ #define IS_POKEMON_C
+ 
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "random.h"
+ #include "text.h"
+@@ -5055,7 +5056,13 @@ u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 type, u16 evolutionItem)
+             switch (gEvolutionTable[species][i].method)
+             {
+             case EVO_FRIENDSHIP:
+-                if (friendship >= 220)
++                if (friendship >= LT_Rules()->friendshipEvoThreshold)
++                    targetSpecies = gEvolutionTable[species][i].targetSpecies;
++                break;
++            case EVO_TRADE:
++                // Little Trainers: Pokemon that normally evolve by trading (Kadabra, Machoke,
++                // Graveler, Haunter) evolve at a level instead, so nothing needs a second player.
++                if (LT_Rules()->tradeEvoLevel != 0 && level >= LT_Rules()->tradeEvoLevel)
+                     targetSpecies = gEvolutionTable[species][i].targetSpecies;
+                 break;
+             // FR/LG removed the time of day evolutions due to having no RTC.

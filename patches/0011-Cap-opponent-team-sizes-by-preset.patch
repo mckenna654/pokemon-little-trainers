@@ -1,0 +1,155 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 19:08:32 +1100
+Subject: Cap opponent team sizes by preset
+
+Ordinary trainers bring at most 2 Pokemon on the Little Trainer preset, gym
+leaders 2 growing to 4 with the player's badges, and the rival, Elite Four
+and Champion 4. The last Pokemon of each team (the strongest) is kept.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index ed8267441..d02e138b6 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -49,6 +49,11 @@ struct LtRules
+     // Exploring
+     u8 encounterRatePercent;    // how often wild Pokemon appear (100 = original)
+ 
++    // Opponent trainers: the most Pokemon a team may bring (6 = original teams)
++    u8 trainerPartyCap;         // ordinary trainers
++    u8 leaderPartyCap;          // gym leaders before any badge; grows by one every three badges
++    u8 bossPartyCap;            // rival, Elite Four and Champion
++
+     // Moves and evolution
+     bool8 autoLearnMoves;       // new moves replace the weakest one automatically, no prompts
+     bool8 noEvolutionCancel;    // pressing B during an evolution does not stop it
+@@ -118,6 +123,9 @@ void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y);
+ // 8x8 heart tile for one slice of the HP bar with 0-8 of its pixels filled.
+ const u8 *LT_HeartTile(u8 filledPixels);
+ 
++// How many Pokemon the given trainer brings under the active preset.
++u8 LT_TrainerPartyCap(u16 trainerNum);
++
+ // Scales damage for the attacker's side according to the active preset.
+ s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker);
+ 
+diff --git a/src/battle_main.c b/src/battle_main.c
+index 2848f25a2..61da14768 100644
+--- a/src/battle_main.c
++++ b/src/battle_main.c
+@@ -1635,6 +1635,22 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum)
+         }
+ 
+         gBattleTypeFlags |= gTrainers[trainerNum].doubleBattle;
++
++        // Little Trainers: shorter trainer battles. Keep the last Pokemon of the team (a
++        // leader's signature Pokemon comes last) and drop the ones before them.
++        {
++            u8 count = gTrainers[trainerNum].partySize;
++            u8 cap = LT_TrainerPartyCap(trainerNum);
++
++            if (cap < count)
++            {
++                for (i = 0; i < cap; i++)
++                    party[i] = party[count - cap + i];
++                for (; i < count; i++)
++                    ZeroMonData(&party[i]);
++                return cap;
++            }
++        }
+     }
+ 
+     return gTrainers[trainerNum].partySize;
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 4a2a044b0..7b2613590 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -3,12 +3,15 @@
+ #include "battle_anim.h"
+ #include "battle_script_commands.h"
+ #include "battle_util.h"
++#include "data.h"
+ #include "util.h"
+ #include "event_data.h"
+ #include "item.h"
+ #include "little_trainers.h"
+ #include "pokemon.h"
+ #include "constants/battle_move_effects.h"
++#include "constants/flags.h"
++#include "constants/trainers.h"
+ #include "constants/items.h"
+ #include "constants/moves.h"
+ 
+@@ -34,6 +37,9 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .encounterRatePercent = 50,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
++        .trainerPartyCap = 2,
++        .leaderPartyCap = 2,
++        .bossPartyCap = 4,
+         .autoLearnMoves = TRUE,
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = TRUE,
+@@ -58,6 +64,9 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .encounterRatePercent = 75,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
++        .trainerPartyCap = 3,
++        .leaderPartyCap = 3,
++        .bossPartyCap = 5,
+         .autoLearnMoves = FALSE,
+         .noEvolutionCancel = TRUE,
+         .simpleBattleMenu = FALSE,
+@@ -82,6 +91,9 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .encounterRatePercent = 100,
+         .noPlayerRecoil = FALSE,
+         .alwaysRunAway = FALSE,
++        .trainerPartyCap = PARTY_SIZE,
++        .leaderPartyCap = PARTY_SIZE,
++        .bossPartyCap = PARTY_SIZE,
+         .autoLearnMoves = FALSE,
+         .noEvolutionCancel = FALSE,
+         .simpleBattleMenu = FALSE,
+@@ -361,6 +373,40 @@ u8 LT_RecommendedAttack(u8 battler, u8 basicSlot, u8 specialSlot)
+     return LT_MENU_SPECIAL;
+ }
+ 
++u8 LT_TrainerPartyCap(u16 trainerNum)
++{
++    const struct LtRules *rules = LT_Rules();
++    u8 cap, i, badges;
++
++    switch (gTrainers[trainerNum].trainerClass)
++    {
++    case TRAINER_CLASS_LEADER:
++        // 2 Pokemon for the first three gyms, 3 for the next three, 4 for the last two
++        // (on the Little Trainer preset).
++        badges = 0;
++        for (i = 0; i < NUM_BADGES; i++)
++        {
++            if (FlagGet(FLAG_BADGE01_GET + i))
++                badges++;
++        }
++        cap = rules->leaderPartyCap + badges / 3;
++        break;
++    case TRAINER_CLASS_RIVAL_EARLY:
++    case TRAINER_CLASS_RIVAL_LATE:
++    case TRAINER_CLASS_ELITE_FOUR:
++    case TRAINER_CLASS_CHAMPION:
++        cap = rules->bossPartyCap;
++        break;
++    default:
++        cap = rules->trainerPartyCap;
++        break;
++    }
++
++    if (cap > PARTY_SIZE)
++        cap = PARTY_SIZE;
++    return cap;
++}
++
+ s32 LT_ScaleDamage(s32 damage, u8 battlerAttacker)
+ {
+     u8 percent;

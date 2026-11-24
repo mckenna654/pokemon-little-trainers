@@ -6,6 +6,7 @@ collision, path-finding tests fail.
 """
 import json
 import os
+import re
 import struct
 from collections import deque
 from functools import lru_cache
@@ -51,6 +52,8 @@ class MapInfo:
         with open(os.path.join(ROOT, "game", layout["blockdata_filepath"]), "rb") as f:
             raw = f.read()
         self.blocks = struct.unpack(f"<{self.width * self.height}H", raw[:2 * self.width * self.height])
+        self._behaviors = None
+        self._layout = layout
         self.warps = [(w["x"], w["y"], w["dest_map"]) for w in self.json.get("warp_events", [])]
         self.objects = [(o["x"], o["y"]) for o in self.json.get("object_events", [])]
 
@@ -58,6 +61,36 @@ class MapInfo:
         if not (0 <= x < self.width and 0 <= y < self.height):
             return False
         return (self.blocks[y * self.width + x] >> 10) & 3 == 0
+
+    def _tileset_attributes(self, kind, symbol):
+        wanted = symbol.replace("gTileset_", "").replace("_", "").lower()
+        base = os.path.join(DATA, "tilesets", kind)
+        folder = next(f for f in os.listdir(base) if f.replace("_", "").lower() == wanted)
+        with open(os.path.join(base, folder, "metatile_attributes.bin"), "rb") as f:
+            raw = f.read()
+        return struct.unpack(f"<{len(raw) // 4}I", raw)
+
+    def behavior(self, x, y):
+        """Metatile behaviour (MB_* in include/constants/metatile_behaviors.h) of a tile."""
+        if self._behaviors is None:
+            self._behaviors = (self._tileset_attributes("primary", self._layout["primary_tileset"]),
+                               self._tileset_attributes("secondary", self._layout["secondary_tileset"]))
+        if not (0 <= x < self.width and 0 <= y < self.height):
+            return None
+        metatile = self.blocks[y * self.width + x] & 0x3FF
+        attrs = self._behaviors[0][metatile] if metatile < 640 else self._behaviors[1][metatile - 640]
+        return attrs & 0x1FF
+
+    def find_beside(self, behaviors):
+        """A walkable tile next to a tile with one of the given behaviours: ((x, y), direction)."""
+        for y in range(self.height):
+            for x in range(self.width):
+                if not self.passable(x, y) or self.behavior(x, y) in behaviors or (x, y) in self.objects:
+                    continue
+                for direction, (dx, dy) in DIRS.items():
+                    if self.behavior(x + dx, y + dy) in behaviors:
+                        return (x, y), direction
+        return None
 
     def path(self, start, goal, avoid=(), static_objects=True):
         """Breadth-first route of directions from start to goal, or None. NPC start tiles and

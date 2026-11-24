@@ -1,0 +1,170 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 19:10:04 +1100
+Subject: Field moves without teaching HMs; caves are never dark
+
+On the Little and Junior presets Cut, Surf, Strength, Rock Smash and
+Waterfall work as soon as the player owns the HM (badge checks unchanged):
+the first Pokemon in the party performs the move. Flash is not needed.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index d02e138b6..69e9a85cd 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -48,6 +48,8 @@ struct LtRules
+ 
+     // Exploring
+     u8 encounterRatePercent;    // how often wild Pokemon appear (100 = original)
++    bool8 hmFree;               // Cut, Surf, Strength, Rock Smash and Waterfall work as soon as the
++                                // player owns the HM (no need to teach it); caves are never dark
+ 
+     // Opponent trainers: the most Pokemon a team may bring (6 = original teams)
+     u8 trainerPartyCap;         // ordinary trainers
+@@ -123,6 +125,9 @@ void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y);
+ // 8x8 heart tile for one slice of the HP bar with 0-8 of its pixels filled.
+ const u8 *LT_HeartTile(u8 filledPixels);
+ 
++// True if the player may use this HM move in the field without a Pokemon knowing it.
++bool32 LT_CanUseFieldMove(u16 move);
++
+ // How many Pokemon the given trainer brings under the active preset.
+ u8 LT_TrainerPartyCap(u16 trainerNum);
+ 
+diff --git a/src/field_player_avatar.c b/src/field_player_avatar.c
+index ef086dda3..972ed9dc5 100644
+--- a/src/field_player_avatar.c
++++ b/src/field_player_avatar.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "bike.h"
+ #include "event_data.h"
+@@ -1194,6 +1195,9 @@ bool8 PartyHasMonWithSurf(void)
+             if (MonKnowsMove(&gPlayerParty[i], MOVE_SURF))
+                 return TRUE;
+         }
++        // Little Trainers: owning the Surf HM is enough
++        if (LT_CanUseFieldMove(MOVE_SURF) && GetMonData(&gPlayerParty[0], MON_DATA_SPECIES) != SPECIES_NONE)
++            return TRUE;
+     }
+     return FALSE;
+ }
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 7b2613590..984ac445a 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -35,6 +35,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .enemyDamagePercent = 60,
+         .playerStatusShield = TRUE,
+         .encounterRatePercent = 50,
++        .hmFree = TRUE,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
+         .trainerPartyCap = 2,
+@@ -62,6 +63,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .enemyDamagePercent = 80,
+         .playerStatusShield = TRUE,
+         .encounterRatePercent = 75,
++        .hmFree = TRUE,
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
+         .trainerPartyCap = 3,
+@@ -89,6 +91,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .enemyDamagePercent = 100,
+         .playerStatusShield = FALSE,
+         .encounterRatePercent = 100,
++        .hmFree = FALSE,
+         .noPlayerRecoil = FALSE,
+         .alwaysRunAway = FALSE,
+         .trainerPartyCap = PARTY_SIZE,
+@@ -373,6 +376,36 @@ u8 LT_RecommendedAttack(u8 battler, u8 basicSlot, u8 specialSlot)
+     return LT_MENU_SPECIAL;
+ }
+ 
++bool32 LT_CanUseFieldMove(u16 move)
++{
++    u16 hm;
++
++    if (!LT_Rules()->hmFree)
++        return FALSE;
++
++    switch (move)
++    {
++    case MOVE_CUT:
++        hm = ITEM_HM01_CUT;
++        break;
++    case MOVE_SURF:
++        hm = ITEM_HM03_SURF;
++        break;
++    case MOVE_STRENGTH:
++        hm = ITEM_HM04_STRENGTH;
++        break;
++    case MOVE_ROCK_SMASH:
++        hm = ITEM_HM06_ROCK_SMASH;
++        break;
++    case MOVE_WATERFALL:
++        hm = ITEM_HM07_WATERFALL;
++        break;
++    default:
++        return FALSE;
++    }
++    return CheckBagHasItem(hm, 1);
++}
++
+ u8 LT_TrainerPartyCap(u16 trainerNum)
+ {
+     const struct LtRules *rules = LT_Rules();
+diff --git a/src/overworld.c b/src/overworld.c
+index 542510943..5330d61f4 100644
+--- a/src/overworld.c
++++ b/src/overworld.c
+@@ -958,6 +958,11 @@ bool32 Overworld_IsBikingAllowed(void)
+ 
+ static void SetDefaultFlashLevel(void)
+ {
++    if (LT_Rules()->hmFree)
++    {
++        gSaveBlock1Ptr->flashLevel = 0; // Little Trainers: caves are never dark, no Flash needed
++        return;
++    }
+     if (!gMapHeader.cave)
+         gSaveBlock1Ptr->flashLevel = 0;
+     else if (FlagGet(FLAG_SYS_FLASH_ACTIVE))
+diff --git a/src/scrcmd.c b/src/scrcmd.c
+index 97b695ee2..e3c27510d 100644
+--- a/src/scrcmd.c
++++ b/src/scrcmd.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "script.h"
+ #include "mystery_event_script.h"
+@@ -1792,6 +1793,24 @@ bool8 ScrCmd_checkpartymove(struct ScriptContext * ctx)
+             break;
+         }
+     }
++
++    // Little Trainers: field moves work once the player owns the HM, without teaching it.
++    // The first Pokemon in the party performs the move. Badge checks stay in the scripts.
++    if (gSpecialVar_Result == PARTY_SIZE && LT_CanUseFieldMove(moveId))
++    {
++        for (i = 0; i < PARTY_SIZE; i++)
++        {
++            u16 species = GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL);
++            if (!species)
++                break;
++            if (!GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
++            {
++                gSpecialVar_Result = i;
++                gSpecialVar_0x8004 = species;
++                break;
++            }
++        }
++    }
+     return FALSE;
+ }
+ 

@@ -196,6 +196,18 @@ class Milestone1(BattleTestCase):
         self.assertEqual(evolved.species, METAPOD, "pressing B did not stop the evolution")
         self.assertEqual(evolved.moves, moves, "Harden was skipped without asking; attacks kept")
 
+    def test_trade_evolution_happens_by_level(self):
+        g = self.g
+        story.find_wild_battle(g)
+        self.assertTrue(g.wait_action_menu())
+        g.catch()
+        g.advance_text(g.free_to_move, what="control after catching")
+        # set-up: the caught Pokemon becomes a Kadabra one point short of level 36 (medium-slow growth)
+        g.edit_party_mon(1, species=64, moves=[TACKLE, GROWL, 0, 0], exp=exp_for(36) - 1, level=35)
+        story.find_wild_battle(g)
+        self.assertEqual(self.fight(), WON)
+        self.assertEqual(g.party()[1].species, 65, "Kadabra became Alakazam without a trade")
+
     # --- status conditions ----------------------------------------------------------------
     def test_player_pokemon_cannot_be_paralysed(self):
         g = self.g

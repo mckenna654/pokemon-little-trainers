@@ -97,7 +97,7 @@ def minus(a, b):
     return lambda x, y: a(x, y) and not b(x, y)
 
 
-def render(layers, size=24, outline=True):
+def render(layers, size=24, outline=True, outline_colour=None):
     """layers: list of (shape, colour). Returns size x size grid of palette indices (T = empty)."""
     grid = []
     for py in range(size):
@@ -125,8 +125,9 @@ def render(layers, size=24, outline=True):
                     continue
                 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                     nx, ny = x + dx, y + dy
-                    if 0 <= nx < size and 0 <= ny < size and src[ny][nx] not in (T, DARK):
-                        grid[y][x] = DARK
+                    ink = DARK if outline_colour is None else outline_colour
+                    if 0 <= nx < size and 0 <= ny < size and src[ny][nx] not in (T, ink):
+                        grid[y][x] = ink
                         break
     return grid
 
@@ -310,6 +311,25 @@ def start_menu_icons():
     return [pokedex, pokemon, bag, card, save, option, close, retire, card]
 
 
+# --- navigation arrow ----------------------------------------------------------------------------
+# Drawn with the player character's own sprite palette (graphics/object_events/palettes/player.pal),
+# which is always loaded in the overworld: yellow 13, dark yellow 14, black 15.
+PLAYER_PALETTE = [(131, 123, 164), (172, 123, 65), (255, 197, 148), (222, 148, 115), (123, 65, 65), (65, 65, 213),
+                  (57, 57, 123), (115, 164, 197), (106, 41, 41), (238, 238, 255), (180, 180, 213), (255, 106, 74),
+                  (197, 57, 57), (255, 222, 90), (189, 156, 57), (0, 0, 0)]
+
+
+def nav_arrow_sheet():
+    """32x16: an arrow pointing up, then one pointing right (the game flips them for down/left)."""
+    up = [(7.5, 1.5), (13.5, 8.5), (10, 8.5), (10, 14.5), (5, 14.5), (5, 8.5), (1.5, 8.5)]
+    right = [(15 - y, x) for x, y in up]
+    frames = []
+    for pts in (up, right):
+        shade = poly([(x + 0.9, y + 0.9) for x, y in pts])
+        frames.append(render([(shade, 14), (poly(pts), 13)], size=16, outline_colour=15))
+    return [frames[0][y] + frames[1][y] for y in range(16)]
+
+
 # --- file writers ----------------------------------------------------------------------------------
 def chunk(tag, body):
     return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", zlib.crc32(tag + body))
@@ -355,6 +375,7 @@ def main():
     write_indexed_png(os.path.join(OUT, "battle_marker.png"),
                       render([(star(4, 4, 3.4, 1.5, 4), YELLOW), (ellipse(4, 4, 0.9), WHITE)], size=8))
     write_indexed_png(os.path.join(OUT, "hearts.png"), hearts_strip(), HEALTHBOX_PALETTE)
+    write_indexed_png(os.path.join(OUT, "nav_arrow.png"), nav_arrow_sheet(), PLAYER_PALETTE)
     menu_cells = start_menu_icons()
     write_indexed_png(os.path.join(OUT, "start_menu_icons.png"), [row for cell in menu_cells for row in cell], MENU_PALETTE)
     if "--menu-preview" in sys.argv:
