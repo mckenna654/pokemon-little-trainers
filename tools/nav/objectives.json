@@ -20,7 +20,8 @@
   "blocks": {
     "saffron_gates": ["SaffronCity", "Route5_SouthEntrance", "Route6_NorthEntrance", "Route7_EastEntrance", "Route8_WestEntrance"],
     "snorlax": ["Route12", "Route16"],
-    "cycling_road": ["Route17", "Route18"]
+    "cycling_road": ["Route17", "Route18"],
+    "seafoam": ["SeafoamIslands_1F", "SeafoamIslands_B1F", "SeafoamIslands_B2F", "SeafoamIslands_B3F", "SeafoamIslands_B4F"]
   },
   "objectives": [
     { "id": "leave_home",     "done": {"var": "VAR_MAP_SCENE_PALLET_TOWN_OAK", "ge": 1}, "map": "PalletTown", "target": {"xy": [12, 1]},
@@ -77,12 +78,12 @@
       "avoid": ["cycling_road"], "cut": true },
     { "id": "secret_key",     "skipped_by_simple_puzzles": true,
       "done": {"flag": "FLAG_HIDE_POKEMON_MANSION_B1F_SECRET_KEY"}, "map": "PokemonMansion_1F", "target": {"anywhere": true},
-      "avoid": ["cycling_road"], "strength": true, "cut": true, "surf": true },
+      "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true },
     { "id": "blaine",         "done": {"flag": "FLAG_BADGE07_GET"}, "map": "CinnabarIsland_Gym", "target": {"object": "Blaine"},
-      "avoid": ["cycling_road"], "strength": true, "cut": true, "surf": true },
+      "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true },
     { "id": "giovanni",       "done": {"flag": "FLAG_BADGE08_GET"}, "map": "ViridianCity_Gym", "target": {"object": "Giovanni"},
-      "avoid": ["cycling_road"], "strength": true, "cut": true, "surf": true },
+      "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true },
     { "id": "league",         "done": {"flag": "FLAG_SYS_GAME_CLEAR"}, "map": "IndigoPlateau_PokemonCenter_1F", "target": {"anywhere": true},
-      "avoid": ["cycling_road"], "strength": true, "cut": true, "surf": true }
+      "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true }
   ]
 }

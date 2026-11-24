@@ -1,0 +1,304 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Tue, 24 Nov 2026 20:30:26 +1100
+Subject: Title banner, aligned sprite art, Cinnabar via Pallet, never block
+ the player's tile
+
+- 'LITTLE TRAINERS' banner on the title screen (four sprites, our own font).
+- Sprite sheets are word-aligned (the arrow was losing every other byte).
+- Routes to Cinnabar avoid the Seafoam caves.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+diff --git a/graphics/little_trainers/title_banner.pal b/graphics/little_trainers/title_banner.pal
+new file mode 100644
+index 000000000..4fc8a540e
+--- /dev/null
++++ b/graphics/little_trainers/title_banner.pal
+@@ -0,0 +1,19 @@
++JASC-PAL
++0100
++16
++255 0 255
++40 40 56
++255 222 90
++255 255 255
++232 120 32
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
++0 0 0
+diff --git a/graphics/little_trainers/title_banner.png b/graphics/little_trainers/title_banner.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..9397fee40a66fb51113ce7296f7f35b248da3619
+GIT binary patch
+literal 488
+zcmeAS@N?(olHy`uVBq!ia0vp^3P9Yz!VDy5c$8@ZDT4r?5ZC_<|1~r${@;uG|NsAs
+z3XmH7U~|c=`3ww<#hxyXAr-f-hIZ$+81Q`MViPlvR#0;|_0QO}&;G`_uNOi?m%1G)
+zw|VG4Z@zHD7J<*!Yup*de(gUH*Rb~B_S^2U=ECXm$E(^3Y6CgCb_m!nZJW>VTiIbh
+zPtJ6kPVT#QZBut7%-)e8y+dI3FTqLwEETLLOkxx0mUGB{drK-hRXMNbjm!Vi)gKll
+zq^_>{l3~jk&3jhURq`A=^GZ(E9kF|Y_@6VVEU4!@>DnN%<@TIy^-B6-5>c}EPQ4XM
+zmC$ZD=aAqy%cd?=y8Y#mEso13o2Z|2e|aZ*!LEV}-w&imHWj4)@KHBYKU?ysSm=kw
+z=R-bgj@ugEnl4cCFf7Ppcfn>&kz@M$jD8AwI{kuvDF^5KGThVCW97DD++m^6+Q@t@
+zpk)Q`-03#PpL>h0NvEn;>}Z*H{fT4$f#;sj4lTQM`|FdWKNbqh-4k5>`fcYWTxw#O
+zvicpXfUSv!s@*ZkP%iGm4fhtAFjmbwwxya&>(-71ajXCRWA&PpD1MmzSPm$HJYD@<
+J);T3K0RYN#z&ro|
+
+literal 0
+HcmV?d00001
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index c1a63a3ec..b581d3170 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -132,6 +132,9 @@ u8 LT_BattleMenu_ButtonCount(void);
+ bool32 LT_StartMenuIconsActive(u8 numItems);
+ void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y);
+ 
++// Adds the "LITTLE TRAINERS" banner to the title screen.
++void LT_ShowTitleBanner(void);
++
+ // 8x8 heart tile for one slice of the HP bar with 0-8 of its pixels filled.
+ const u8 *LT_HeartTile(u8 filledPixels);
+ 
+diff --git a/src/data/little_trainers_nav.h b/src/data/little_trainers_nav.h
+index 6871a31ec..f8a6fe1de 100644
+--- a/src/data/little_trainers_nav.h
++++ b/src/data/little_trainers_nav.h
+@@ -39,14 +39,12 @@ static const u8 sLtNavExits[] = {
+     14, 15, 17, 0, 0, 4, 3, 5, 5, 3, 7, 7, 3, 9, 9, 3, 11, 11, 1, 3, 50, 54, 2, 3,
+     10, 12, 17, 0, 0, 3, 22, 0, 0, 19, 0, 0, 25, 0, 0, 2, 16, 0, 0, 24, 0, 0, 2, 17,
+     0, 0, 24, 0, 0, 3, 19, 0, 0, 16, 0, 0, 18, 0, 0, 2, 16, 0, 0, 23, 0, 0, 5, 16,
+-    0, 0, 17, 0, 0, 18, 0, 0, 19, 0, 0, 20, 0, 0, 2, 20, 0, 0, 17, 0, 0, 4, 18, 0,
+-    0, 24, 0, 0, 16, 0, 0, 21, 0, 0, 2, 22, 0, 0, 16, 0, 0, 1, 1, 7, 10, 5, 3, 13,
+-    14, 1, 15, 18, 1, 29, 32, 24, 0, 0, 1, 20, 27, 1, 4, 18, 23, 2, 1, 19, 28, 24, 0, 0,
+-    1, 27, 0, 0, 2, 1, 7, 11, 22, 0, 0, 4, 1, 8, 15, 17, 0, 0, 4, 6, 8, 4, 10, 12,
+-    2, 1, 14, 19, 17, 0, 0, 1, 3, 43, 57, 2, 3, 7, 17, 16, 0, 0, 3, 1, 2, 3, 1, 6,
+-    17, 1, 20, 21, 2, 1, 2, 4, 1, 12, 16, 2, 1, 4, 8, 1, 14, 16, 2, 2, 2, 4, 2, 12,
+-    16, 2, 3, 69, 71, 17, 0, 0, 1, 2, 62, 67, 1, 2, 7, 10, 3, 2, 2, 3, 2, 6, 17, 2,
+-    20, 21, 2, 22, 0, 0, 17, 0, 0, 1, 3, 16, 19, 2, 2, 10, 12, 16, 0, 0,
++    0, 0, 17, 0, 0, 18, 0, 0, 19, 0, 0, 20, 0, 0, 1, 1, 7, 10, 5, 3, 13, 14, 1, 15,
++    18, 1, 29, 32, 24, 0, 0, 1, 20, 27, 1, 4, 18, 23, 1, 27, 0, 0, 2, 1, 7, 11, 22, 0,
++    0, 4, 1, 8, 15, 17, 0, 0, 4, 6, 8, 4, 10, 12, 2, 3, 69, 71, 17, 0, 0, 1, 2, 62,
++    67, 2, 3, 7, 17, 4, 3, 17, 3, 1, 2, 3, 1, 6, 17, 1, 20, 21, 2, 1, 2, 4, 1, 12,
++    16, 2, 1, 4, 8, 1, 14, 16, 2, 2, 2, 4, 2, 12, 16, 1, 2, 7, 10, 3, 2, 2, 3, 2,
++    6, 17, 2, 20, 21, 2, 22, 0, 0, 17, 0, 0, 1, 3, 16, 19, 2, 2, 10, 12, 16, 0, 0,
+ };
+ 
+ // route 0: to PalletTown: where each map's exit list starts in sLtNavExits
+@@ -601,21 +599,21 @@ static const u16 sLtNavRoute21[LT_NAV_NUM_MAPS] = {
+     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 71, 71, 71, 1,
+     71, 71, 1, 71, 71, 345, 1, 22, 71, 1, 268, 71, 71, 5, 1, 393, 393, 71, 489, 67,
+     86, 433, 496, 1, 0, 496, 701, 1, 1, 5, 305, 393, 71, 71, 71, 71, 71, 711, 718, 1,
+-    0, 0, 0, 0, 0, 0, 359, 369, 734, 741, 754, 496, 1, 71, 71, 1, 71, 1, 71, 1,
++    0, 0, 0, 0, 0, 0, 359, 369, 0, 0, 0, 0, 0, 71, 71, 1, 71, 1, 71, 1,
+     71, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-    0, 0, 0, 0, 0, 0, 0, 0, 761, 29, 33, 765, 606, 781, 309, 785, 1, 251, 792, 0,
+-    0, 0, 0, 0, 0, 0, 0, 41, 796, 52, 803, 1, 251, 71, 71, 174, 454, 22, 816, 653,
+-    666, 670, 554, 0, 0, 823, 827, 834, 844, 63, 496, 851, 192, 0, 0, 0, 0, 0, 0, 0,
++    0, 0, 0, 0, 0, 0, 0, 0, 734, 29, 33, 738, 606, 754, 309, 513, 1, 251, 758, 0,
++    0, 0, 0, 0, 0, 0, 0, 41, 762, 52, 769, 1, 251, 71, 71, 174, 454, 22, 782, 789,
++    531, 544, 554, 0, 0, 564, 793, 800, 810, 63, 496, 817, 192, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 1, 1, 1, 71, 71,
+     71, 71, 71, 1, 75, 1, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 1, 71, 71, 71,
+     1, 1, 71, 1, 71, 71, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 71, 71, 1, 1,
+     1, 1, 1, 338, 345, 345, 352, 71, 71, 1, 1, 71, 71, 71, 71, 71, 67, 71, 71, 71,
+     71, 71, 1, 71, 71, 1, 71, 71, 1, 1, 1, 1, 1, 71, 1, 1, 71, 1, 71, 461,
+     71, 71, 71, 1, 71, 1, 71, 71, 71, 71, 71, 1, 71, 67, 67, 0, 67, 71, 71, 1,
+-    1, 1, 67, 1, 71, 1, 1, 71, 75, 1, 0, 0, 0, 67, 0, 71, 0, 0, 0, 0,
++    1, 1, 67, 1, 71, 67, 1, 71, 75, 1, 0, 0, 0, 67, 0, 71, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0,
+@@ -627,21 +625,21 @@ static const u16 sLtNavRoute22[LT_NAV_NUM_MAPS] = {
+     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 71, 71, 71, 1,
+     71, 71, 1, 71, 71, 345, 1, 22, 71, 1, 268, 71, 71, 5, 1, 393, 393, 71, 489, 67,
+     86, 433, 496, 1, 338, 67, 22, 0, 1, 5, 305, 393, 71, 71, 71, 71, 71, 711, 718, 1,
+-    0, 0, 0, 0, 0, 0, 359, 369, 734, 741, 754, 496, 1, 71, 71, 1, 71, 1, 71, 1,
++    0, 0, 0, 0, 0, 0, 359, 369, 0, 0, 0, 0, 0, 71, 71, 1, 71, 1, 71, 1,
+     71, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-    0, 0, 0, 0, 0, 0, 0, 0, 761, 29, 33, 765, 606, 781, 309, 785, 71, 251, 792, 0,
+-    0, 0, 0, 0, 0, 0, 0, 41, 796, 52, 803, 1, 251, 71, 71, 174, 454, 22, 816, 653,
+-    666, 670, 554, 0, 0, 823, 827, 834, 844, 63, 496, 851, 192, 0, 0, 0, 0, 0, 0, 0,
++    0, 0, 0, 0, 0, 0, 0, 0, 734, 29, 33, 738, 606, 754, 309, 513, 71, 251, 758, 0,
++    0, 0, 0, 0, 0, 0, 0, 41, 762, 52, 769, 1, 251, 71, 71, 174, 454, 22, 782, 789,
++    531, 544, 554, 0, 0, 564, 793, 800, 810, 63, 496, 817, 192, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 1, 1, 1, 71, 71,
+     71, 71, 71, 1, 75, 1, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 1, 71, 71, 71,
+     1, 1, 71, 1, 71, 71, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 71, 71, 1, 1,
+     1, 1, 1, 338, 345, 345, 352, 71, 71, 1, 1, 71, 71, 71, 71, 71, 67, 71, 71, 71,
+     71, 71, 1, 71, 71, 1, 0, 71, 1, 1, 1, 1, 1, 71, 1, 1, 71, 1, 71, 461,
+     71, 71, 71, 1, 71, 1, 71, 71, 71, 71, 71, 1, 71, 67, 67, 0, 67, 71, 71, 1,
+-    1, 1, 67, 1, 71, 1, 1, 71, 75, 1, 0, 0, 0, 67, 0, 71, 0, 0, 0, 0,
++    1, 1, 67, 1, 71, 67, 1, 71, 75, 1, 0, 0, 0, 67, 0, 71, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0,
+@@ -653,14 +651,14 @@ static const u16 sLtNavRoute23[LT_NAV_NUM_MAPS] = {
+     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 71, 71, 71, 1,
+     71, 71, 1, 71, 71, 345, 1, 22, 71, 1, 268, 71, 71, 5, 1, 393, 393, 71, 489, 67,
+     86, 433, 496, 1, 338, 67, 22, 0, 1, 5, 305, 393, 71, 71, 71, 71, 71, 711, 718, 1,
+-    0, 0, 0, 0, 0, 0, 359, 369, 734, 741, 754, 496, 1, 71, 71, 1, 71, 1, 71, 1,
++    0, 0, 0, 0, 0, 0, 359, 369, 0, 0, 0, 0, 0, 71, 71, 1, 71, 1, 71, 1,
+     71, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-    0, 0, 0, 0, 0, 0, 0, 0, 82, 67, 33, 765, 606, 781, 309, 785, 858, 251, 792, 0,
+-    0, 0, 0, 0, 0, 0, 0, 90, 796, 52, 803, 1, 251, 71, 71, 174, 454, 22, 865, 872,
+-    531, 544, 554, 0, 0, 823, 827, 876, 880, 63, 496, 851, 192, 0, 0, 0, 0, 0, 0, 0,
++    0, 0, 0, 0, 0, 0, 0, 0, 82, 67, 33, 738, 606, 754, 309, 513, 824, 251, 758, 0,
++    0, 0, 0, 0, 0, 0, 0, 90, 762, 52, 769, 1, 251, 71, 71, 174, 454, 22, 782, 789,
++    531, 544, 554, 0, 0, 564, 793, 831, 835, 63, 496, 817, 192, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 1, 1, 1, 71, 0,
+     71, 71, 71, 1, 75, 1, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 1, 71, 71, 71,
+     1, 1, 71, 1, 71, 71, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 71, 71, 1, 1,
+@@ -677,16 +675,16 @@ static const u16 sLtNavRoute23[LT_NAV_NUM_MAPS] = {
+ static const u16 sLtNavRoute24[LT_NAV_NUM_MAPS] = {
+     0, 0, 0, 0, 0, 1, 5, 9, 22, 71, 67, 1, 71, 1, 1, 1, 1, 1, 1, 1,
+     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 71, 71, 71, 1,
+-    71, 71, 1, 71, 1, 890, 67, 22, 71, 1, 268, 71, 71, 5, 1, 393, 393, 71, 489, 67,
++    71, 71, 1, 71, 1, 845, 67, 22, 71, 1, 268, 71, 71, 5, 1, 393, 393, 71, 489, 67,
+     86, 433, 496, 1, 338, 67, 22, 0, 1, 5, 305, 393, 71, 71, 71, 71, 71, 711, 718, 1,
+-    0, 0, 0, 0, 0, 0, 359, 369, 734, 741, 754, 496, 1, 71, 71, 1, 71, 1, 71, 1,
++    0, 0, 0, 0, 0, 0, 359, 369, 0, 0, 0, 0, 0, 71, 71, 1, 71, 1, 71, 1,
+     71, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+-    0, 0, 0, 0, 0, 0, 0, 0, 82, 897, 33, 765, 606, 781, 309, 785, 858, 1, 792, 0,
+-    0, 0, 0, 0, 0, 0, 0, 90, 796, 52, 803, 1, 251, 71, 71, 174, 454, 22, 865, 872,
+-    531, 544, 554, 0, 0, 823, 827, 876, 880, 1, 901, 851, 192, 0, 0, 0, 0, 0, 0, 0,
++    0, 0, 0, 0, 0, 0, 0, 0, 82, 852, 33, 738, 606, 754, 309, 513, 824, 1, 758, 0,
++    0, 0, 0, 0, 0, 0, 0, 90, 762, 52, 769, 1, 251, 71, 71, 174, 454, 22, 782, 789,
++    531, 544, 554, 0, 0, 564, 793, 831, 835, 1, 856, 817, 192, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 1, 1, 1, 71, 71,
+     71, 71, 71, 1, 75, 1, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 1, 71, 71, 71,
+     1, 1, 71, 1, 71, 71, 71, 71, 71, 71, 1, 71, 71, 71, 71, 71, 71, 71, 1, 1,
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 3c09a9eef..743b312e0 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -77,6 +77,59 @@ void LT_DrawStartMenuIcon(u8 windowId, u8 startMenuItem, u8 y)
+     BlitBitmapToWindow(windowId, &sStartMenuIconsGfx[startMenuItem * (16 * 16 / 2)], 9, y, 16, 16);
+ }
+ 
++// The "LITTLE TRAINERS" banner on the title screen: four 32x32 sprites side by side.
++#define TAG_LT_TITLE_BANNER 0x1E20
++
++// (u32 so the data is word-aligned: sprite sheets are copied to VRAM 16 bits at a time)
++static const u32 sTitleBannerGfx[] = INCBIN_U32("graphics/little_trainers/title_banner.4bpp");
++static const u16 sTitleBannerPal[] = INCBIN_U16("graphics/little_trainers/title_banner.gbapal");
++
++static const struct SpriteSheet sTitleBannerSheet = {(const u8 *)sTitleBannerGfx, sizeof(sTitleBannerGfx), TAG_LT_TITLE_BANNER};
++static const struct SpritePalette sTitleBannerPalette = {sTitleBannerPal, TAG_LT_TITLE_BANNER};
++
++static const struct OamData sTitleBannerOam =
++{
++    .shape = SPRITE_SHAPE(32x32),
++    .size = SPRITE_SIZE(32x32),
++    .priority = 0,
++};
++
++static const union AnimCmd sTitleBannerAnim0[] = {ANIMCMD_FRAME(0, 1), ANIMCMD_END};
++static const union AnimCmd sTitleBannerAnim1[] = {ANIMCMD_FRAME(16, 1), ANIMCMD_END};
++static const union AnimCmd sTitleBannerAnim2[] = {ANIMCMD_FRAME(32, 1), ANIMCMD_END};
++static const union AnimCmd sTitleBannerAnim3[] = {ANIMCMD_FRAME(48, 1), ANIMCMD_END};
++static const union AnimCmd *const sTitleBannerAnims[] = {sTitleBannerAnim0, sTitleBannerAnim1, sTitleBannerAnim2, sTitleBannerAnim3};
++
++static const struct SpriteTemplate sTitleBannerTemplate =
++{
++    .tileTag = TAG_LT_TITLE_BANNER,
++    .paletteTag = TAG_LT_TITLE_BANNER,
++    .oam = &sTitleBannerOam,
++    .anims = sTitleBannerAnims,
++    .images = NULL,
++    .affineAnims = gDummySpriteAffineAnimTable,
++    .callback = SpriteCallbackDummy,
++};
++
++#define TITLE_BANNER_X 6    // left edge of the 128x32 banner
++#define TITLE_BANNER_Y 94   // top edge
++
++void LT_ShowTitleBanner(void)
++{
++    u8 i;
++
++    if (GetSpriteTileStartByTag(TAG_LT_TITLE_BANNER) == 0xFFFF)
++        LoadSpriteSheet(&sTitleBannerSheet);
++    LoadSpritePalette(&sTitleBannerPalette);
++    for (i = 0; i < 4; i++)
++    {
++        u8 spriteId = CreateSprite(&sTitleBannerTemplate, TITLE_BANNER_X + 16 + 32 * i, TITLE_BANNER_Y + 16, 0);
++
++        if (spriteId < MAX_SPRITES)
++            StartSpriteAnim(&gSprites[spriteId], i);
++    }
++}
++
+ const u8 *LT_HeartTile(u8 filledPixels)
+ {
+     if (filledPixels > 8)
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 2086de30a..16f20f25c 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -579,6 +579,14 @@ static void BuildFieldInMode(u8 goalId)
+ 
+     memset(sField, FIELD_UNVISITED, size);
+     BlockStandingObjects();
++    {
++        // Whatever else is going on, the tile the player is standing on is somewhere they can be
++        s32 x = gSaveBlock1Ptr->pos.x + MAP_OFFSET;
++        s32 y = gSaveBlock1Ptr->pos.y + MAP_OFFSET;
++
++        if (x >= 0 && y >= 0 && x < VMap.Xsize && y < VMap.Ysize)
++            sField[y * VMap.Xsize + x] = FIELD_UNVISITED;
++    }
+     fill.head = 0;
+     fill.count = 0;
+     SeedGoals(&fill, goal);
+@@ -600,9 +608,10 @@ void LT_Nav_OnHeapReset(void)
+ 
+ #define TAG_LT_NAV_ARROW 0x1E10
+ 
+-static const u8 sArrowGfx[] = INCBIN_U8("graphics/little_trainers/nav_arrow.4bpp");
++// (u32 so the data is word-aligned: sprite sheets are copied to VRAM 16 bits at a time)
++static const u32 sArrowGfx[] = INCBIN_U32("graphics/little_trainers/nav_arrow.4bpp");
+ 
+-static const struct SpriteSheet sArrowSheet = {sArrowGfx, sizeof(sArrowGfx), TAG_LT_NAV_ARROW};
++static const struct SpriteSheet sArrowSheet = {(const u8 *)sArrowGfx, sizeof(sArrowGfx), TAG_LT_NAV_ARROW};
+ 
+ static const struct OamData sArrowOam =
+ {
+diff --git a/src/title_screen.c b/src/title_screen.c
+index 75f0e6743..1c1ddf0cc 100644
+--- a/src/title_screen.c
++++ b/src/title_screen.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "task.h"
+ #include "new_menu_helpers.h"
+@@ -617,6 +618,7 @@ static void SetTitleScreenScene_Run(s16 *data)
+     case 0:
+         SetHelpContext(HELPCONTEXT_TITLE_SCREEN);
+         CreateTask(Task_TitleScreen_BlinkPressStart, 0);
++        LT_ShowTitleBanner();
+ #if defined(FIRERED)
+         CreateTask(Task_FlameSpawner, 5);
+ #elif defined(LEAFGREEN)

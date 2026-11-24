@@ -10,6 +10,7 @@ Outputs (all 16-colour indexed, GBA-ready):
     battle_marker.png  8x8 star shown on the recommended attack
     hearts.png         72x8 strip of health hearts (empty, half, full), drawn with the colours of
                        the game's own health-box palette so no extra palette is needed
+    title_banner.png   32x128: the "LITTLE TRAINERS" title-screen banner as four 32x32 sprites
     start_menu_icons.png  16 px wide strip of 16x16 icons for the Start menu, drawn with the
                        colours every field menu window already has (white, greys, red, orange,
                        greens, blues), so no extra palette is needed
@@ -330,6 +331,49 @@ def nav_arrow_sheet():
     return [frames[0][y] + frames[1][y] for y in range(16)]
 
 
+# --- title screen banner -------------------------------------------------------------------------
+# "LITTLE / TRAINERS" in a chunky pixel font of our own, 128x32, cut into four 32x32 sprites.
+FONT = {
+    "L": ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
+    "I": ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
+    "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+    "E": ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+    "R": ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
+    "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+    "N": ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
+    "S": ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+}
+BANNER_PALETTE = [(255, 0, 255), (40, 40, 56), (255, 222, 90), (255, 255, 255), (232, 120, 32)] + [(0, 0, 0)] * 11
+B_OUTLINE, B_FILL, B_SHINE, B_SHADE = 1, 2, 3, 4
+
+
+def title_banner():
+    width, height, scale = 128, 32, 2
+    grid = [[T] * width for _ in range(height)]
+    for line, word in enumerate(("LITTLE", "TRAINERS")):
+        x0 = (width - len(word) * 6 * scale + scale) // 2
+        y0 = 1 + line * 16
+        for i, ch in enumerate(word):
+            for y, row in enumerate(FONT[ch]):
+                for x, bit in enumerate(row):
+                    if bit == "1":
+                        for sy in range(scale):
+                            for sx in range(scale):
+                                colour = B_SHINE if (y == 0 and sy == 0) else B_SHADE if (y == 6 and sy == 1) else B_FILL
+                                grid[y0 + y * scale + sy][x0 + (i * 6 + x) * scale + sx] = colour
+    src = [r[:] for r in grid]
+    for y in range(height):                 # dark outline, including diagonals, so it reads on any background
+        for x in range(width):
+            if src[y][x] != T:
+                continue
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    if 0 <= y + dy < height and 0 <= x + dx < width and src[y + dy][x + dx] not in (T, B_OUTLINE):
+                        grid[y][x] = B_OUTLINE
+    # four 32x32 frames stacked vertically, left to right
+    return [grid[y][f * 32:(f + 1) * 32] for f in range(4) for y in range(32)]
+
+
 # --- file writers ----------------------------------------------------------------------------------
 def chunk(tag, body):
     return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", zlib.crc32(tag + body))
@@ -376,6 +420,9 @@ def main():
                       render([(star(4, 4, 3.4, 1.5, 4), YELLOW), (ellipse(4, 4, 0.9), WHITE)], size=8))
     write_indexed_png(os.path.join(OUT, "hearts.png"), hearts_strip(), HEALTHBOX_PALETTE)
     write_indexed_png(os.path.join(OUT, "nav_arrow.png"), nav_arrow_sheet(), PLAYER_PALETTE)
+    write_indexed_png(os.path.join(OUT, "title_banner.png"), title_banner(), BANNER_PALETTE)
+    with open(os.path.join(OUT, "title_banner.pal"), "w", newline="\r\n") as f:
+        f.write("JASC-PAL\n0100\n16\n" + "".join(f"{r} {g} {b}\n" for r, g, b in BANNER_PALETTE))
     menu_cells = start_menu_icons()
     write_indexed_png(os.path.join(OUT, "start_menu_icons.png"), [row for cell in menu_cells for row in cell], MENU_PALETTE)
     if "--menu-preview" in sys.argv:

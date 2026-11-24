@@ -28,6 +28,8 @@ Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 - **Navigation arrow:** a yellow arrow beside the player points along a walkable path to the next
   story goal, from leaving the bedroom to the Pokémon League (28 goals). It goes around people,
   knows about ledges, trees, water and lifts, and shows which way to push on stairs and door mats.
+- **Title screen:** a "LITTLE TRAINERS" banner under the FireRed logo.
+- **Brighter world:** every map's colours are more saturated and a little lighter.
 - **Parent control:** OPTION → MODE switches between Little, Junior and Classic Trainer at any
   time (it replaces the BATTLE STYLE row). The choice is stored in the save.
 - **Autosave:** the game saves by itself each time a story goal is completed (Little and Junior).

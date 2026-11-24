@@ -49,7 +49,8 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Fast text by default; the rival battle uses the picture menu
 - [x] Brock within reach of every starter (team of 2, damage scaling, type-safe attack choice)
 - [ ] Shorter intro and simpler dialogue on the Pallet → Pewter path
-- [ ] Badge celebration screen; autosave at safe checkpoints
+- [x] Autosave whenever a story goal is completed; respawn at the last town after losing
+- [ ] Badge celebration screen
 - [ ] Parent playtest checklist run with a real child
 
 ## Milestone 4 — Graphical remaster (v0.4.0, runs alongside)
@@ -70,8 +71,9 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [ ] Version-exclusive and missable Pokémon made obtainable; Fly without a menu
 
 ## Milestone 6 — Collection and interface (v0.9.0)
+- [x] Parent control: OPTION → MODE (Little / Junior / Classic), saved with the game
+- [x] Title screen banner
 - [ ] Simplified party and storage, sticker-book Pokédex, collection celebrations
-- [ ] Parent settings screen (difficulty change without restarting), custom title screen
 
 ## Milestone 7 — Optional polish (v1.0.0)
 - [ ] Following Pokémon, extra navigation aids, visual rewards, post-game, device compatibility pass
