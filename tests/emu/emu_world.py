@@ -23,7 +23,8 @@ class WorldTestCase(unittest.TestCase):
     def win(self):
         g = self.g
         while g.wait_action_menu():
-            g.set_battle_hp(1, 1)            # set-up: these tests are not about the fight itself
+            g.set_battle_hp(1, 1)            # set-up: these tests are not about the fight itself,
+            g.set_battle_hp(0, g.battle_mon(0)["max_hp"])    # so the Route 1 starter must not lose it
             g.attack()
         g.advance_text(g.free_to_move, max_presses=900, what="control after battle")
         return g.battle_outcome()
