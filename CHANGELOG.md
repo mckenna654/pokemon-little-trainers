@@ -3,6 +3,7 @@
 Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 
 ## [Unreleased] (0.1.0-dev)
+_Pre-release `v0.1.0-dev` (2026-11-24) is this list as it stood at commit `a749e31`: patch only._
 ### Added
 - **Little Trainer rules (Milestone 1)**, all switchable per preset in `src/little_trainers.c`:
   every Poké Ball catches wild Pokémon; a Poké Ball is always in the bag and is never used up;

@@ -14,7 +14,11 @@ _Last updated: 2026-11-24 (session 3)_
   banner, and brighter map colours (`LT_VividPalette`). Tiles, sprites, battle backgrounds and
   fonts are original FireRed. Blocked on art permissions (see below).
 - **Milestones 6–7: mostly not started** (party/storage/Pokédex simplification, following Pokémon).
-- All game changes are in `patches/`. `develop` and `main` are in step when this was written.
+- All game changes are in `patches/`. `main` is at the released commit; `develop` carries later
+  documentation only.
+- **Pre-release `v0.1.0-dev`** (2026-11-24, at Jake's request): the BPS patch and its checksum on
+  the private repo's Releases page, built from `main` at `a749e31`. No ROM is attached, and none
+  ever should be. Jake has started playing this build by hand ("without issue" so far).
 
 ## What changed in session 3
 No typing or nickname questions; pre-filled name screens; shorter start; Yes/No pictures; nine
@@ -40,9 +44,10 @@ repeats the build and the regular tests on every push, and the whole-game run on
   the remaster uses only art drawn for this project.
 
 ## Next actions (in order)
-1. **Jake plays it** (and, if possible, a child does): `builds/Pokemon - Little Trainers.gba` in
-   mGBA or Delta. Use the checklist at the end of `docs/TESTING.md`; record what happened there.
-2. Fix what that shows, then tag v0.1.0 (ask Jake before tagging or releasing).
+1. **Jake is playing it** (and, if possible, a child will). Ask him what he found; the checklist
+   is at the end of `docs/TESTING.md`. Record what happened there.
+2. Fix what that shows, then bump `VERSION` to 0.1.0 and release it the same way as the
+   pre-release (patch and checksum only; ask Jake before tagging or releasing).
 3. Graphics, once the permission question is answered.
 4. Leftovers in `ROADMAP.md`: pictures for the boy/girl choice, bag and party screens; Fly without
    a menu; missable Pokémon; storage-full handling; simpler dialogue; Milestone 6.
