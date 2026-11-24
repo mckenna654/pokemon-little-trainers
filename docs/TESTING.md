@@ -115,9 +115,12 @@ All **Emulator (automated)**. 48 emulator tests in total.
 | Junior preset keeps the arrow but shows the move list | Emulator (automated) | Pass |
 | Autosave fires when a goal is completed and the game carries on | Emulator (automated), as part of the arrow play-through | Pass |
 | Title banner, brighter map colours, solid arrow | Screenshots checked by eye | Pass |
-| Long arrow-only run past Brock: Mt. Moon (correct ladders, fossil pick-up), Misty, Nugget Bridge, Bill's three steps, S.S. Ticket | Emulator (scratch script, not a committed test) | Reached; see `docs/PROGRESS.md` for how far the latest run got |
+| **Long arrow-only run** (one continuous play from a new game, pressing only the arrow's direction and A): Brock, Mt. Moon, Misty, Bill, S.S. Anne and HM01, Lt. Surge, Rock Tunnel, Erika, Game Corner poster, Lift Key, automatic lift, Giovanni, Silph Scope, Pokémon Tower, Poké Flute, Tea, Silph Co., Sabrina, Koga, Safari Zone (HM03, Gold Teeth), Warden (HM04) | Emulator (scratch script, not a committed test) | Reached with 6 badges in about 3.4 hours of game time; later goals: see `docs/PROGRESS.md` |
 
-Problems that run exposed and that are now fixed: paths crossing the wrong ladder, exits covering a
+Problems that run exposed and that are now fixed: ground heights ignored (Safari Zone plateaus,
+where surfing can start and stop), a town's other areas pulling the path over a one-way ledge, a
+locked door with guards (the arrow now leads to people nearby when there is no way onward),
+standing on a tile that was occupied when the path was made, paths crossing the wrong ladder, exits covering a
 whole map edge instead of one area's stretch, no path when a person or item blocks a corridor,
 goals aimed at people who are moved by scripts, losing to Brock by only ever pressing the basic
 attack (the test player now presses A like a child would, which uses the recommended attack), and

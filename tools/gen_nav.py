@@ -93,6 +93,18 @@ class Map:
             return False
         return kind != "rock"
 
+    def same_level(self, a, b):
+        """Ground heights: steps are only possible between equal heights, or via the 'any
+        height' tiles (0 and 15) used for stairs and bridges."""
+        ea = self.blocks[a[1] * self.w + a[0]] >> 12
+        eb = self.blocks[b[1] * self.w + b[0]] >> 12
+        wa, wb = self.behavior(*a) in WATER, self.behavior(*b) in WATER
+        if wa and wb:
+            return True
+        if wa or wb:
+            return (eb if wa else ea) == 3      # you can only get on and off a surfing Pokemon at ordinary ground level
+        return ea == eb or ea in (0, 15) or eb in (0, 15)
+
     def components(self, water):
         if water not in self.comp:
             comp, n = {}, 0
@@ -106,7 +118,7 @@ class Map:
                         cx, cy = queue.popleft()
                         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                             nxt = (cx + dx, cy + dy)
-                            if nxt not in comp and self.walkable(nxt[0], nxt[1], water):
+                            if nxt not in comp and self.walkable(nxt[0], nxt[1], water) and self.same_level((cx, cy), nxt):
                                 comp[nxt] = n
                                 queue.append(nxt)
                     n += 1
