@@ -27,7 +27,7 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Automatic move learning from Rare Candy
 - [ ] Trainer party trims for the early routes
 - [x] Junior and Classic presets exercised by tests (through OPTION → MODE)
-- [ ] Manual play session by a person, then tag v0.1.0
+- [ ] Manual play session by a person, then tag v0.1.0 (the next step: it needs Jake)
 
 ## Milestone 2 — Child-friendly battle interface (v0.2.0)
 - [x] One-press ATTACK / SPECIAL / CATCH (wild) or CHANGE (trainer) / RUN
@@ -68,8 +68,9 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Simple puzzles: spin tiles, Surge's gates, Cinnabar Gym lock, Victory Road barriers, Silph
       doors, Safari step limit, automatic lifts
 - [x] Opponent team caps for trainers, leaders, rival and Elite Four; trade evolutions by level
-- [ ] A scripted play-through beyond Brock (Mt. Moon onwards has only goal-by-goal checks so far)
-- [ ] Sabrina's teleport maze, Koga's invisible walls, Blaine's quiz and Pokémon Tower checked in play
+- [x] The whole game played by the arrow-following test player: new game to Hall of Fame
+- [x] Sabrina's teleport maze, Koga's invisible walls, Blaine's quiz, Pokémon Tower, Silph Co. and
+      Victory Road passed in that play-through
 - [x] LeafGreen-only Pokémon appear in the wild
 - [ ] Missable Pokémon made obtainable; Fly without a menu
 

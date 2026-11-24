@@ -63,6 +63,11 @@ class WholeGameByArrow(unittest.TestCase):
                 g.shot("full-stopped")
                 self.fail(f"stopped with {seen['badges']} badges in {seen['map']} after {g.frame // 3600} minutes of play: {error}")
             note("Hall of Fame")
+            for _ in range(200):                      # on to the Hall of Fame screen itself, for the picture
+                if "HallOfFame" in g.callback2():
+                    break
+                g.press("A", hold=3, wait=17)
+            g.frames(600)
             g.shot("full-hall-of-fame")
             self.assertEqual(seen["badges"], 8)
         finally:

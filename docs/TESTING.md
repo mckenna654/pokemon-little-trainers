@@ -116,22 +116,32 @@ All **Emulator (automated)**. 48 emulator tests in total.
 | Junior preset keeps the arrow but shows the move list | Emulator (automated) | Pass |
 | Autosave fires when a goal is completed and the game carries on | Emulator (automated), as part of the arrow play-through | Pass |
 | Title banner, brighter map colours, solid arrow | Screenshots checked by eye | Pass |
-| **Long arrow-only run** (one continuous play from a new game, pressing only the arrow's direction and A): Brock, Mt. Moon, Misty, Bill, S.S. Anne and HM01, Lt. Surge, Rock Tunnel, Erika, Game Corner poster, Lift Key, automatic lift, Giovanni, Silph Scope, Pokémon Tower, Poké Flute, Tea, Silph Co., Sabrina, Koga, Safari Zone (HM03, Gold Teeth), Warden (HM04) | Emulator (scratch script, not a committed test) | Reached with 6 badges in about 3.4 hours of game time; later goals: see `docs/PROGRESS.md` |
+| **The whole game by arrow** (`tests/emu/emu_full_game.py`): one continuous play from a new game, pressing only the arrow's direction and A, nothing set up behind the game's back: all eight badges, Victory Road, the Elite Four and Champion, into the Hall of Fame | Emulator (automated, opt-in: `scripts/test.sh full`) | **Pass**: Hall of Fame after 207 minutes of game time (12 minutes to run). Badges at 17, 33, 60, 88, 123, 140, 171 and 180 minutes; the starter was Lv 68 at the eighth badge |
+| No typing: A alone starts a new game with real names; catching and gift Pokémon ask for no nickname | Emulator (automated) | Pass |
+| Tick and cross on Yes/No boxes (pixel colours read from the window) and A still answers yes | Emulator (automated) | Pass |
+| Trainers never ask about switching; a beaten Pokémon is replaced by pressing A | Emulator (automated) | Pass |
+| Rare Candy teaches the new move without the "forget a move" screen | Emulator (automated) | Pass |
+| Confetti appears when a badge is earned and stops by itself | Emulator (automated) | Pass |
+| The arrow leads through all five League rooms (trainer first, then the door) to the credits | Emulator (automated; set-up jumps the story forward and makes the test Pokémon sturdy) | Pass |
+| LeafGreen-only Bellsprout turns up beside Oddish on Route 6 (40 wild meetings) | Emulator (automated) | Pass |
+| Hearts without numbers, new type symbols, shorter intro | Screenshots checked by eye | Pass |
 
-Problems that run exposed and that are now fixed: ground heights ignored (Safari Zone plateaus,
-where surfing can start and stop), a town's other areas pulling the path over a one-way ledge, a
-locked door with guards (the arrow now leads to people nearby when there is no way onward),
-standing on a tile that was occupied when the path was made, paths crossing the wrong ladder, exits covering a
-whole map edge instead of one area's stretch, no path when a person or item blocks a corridor,
-goals aimed at people who are moved by scripts, losing to Brock by only ever pressing the basic
-attack (the test player now presses A like a child would, which uses the recommended attack), and
-returning all the way home after a loss.
+Problems the whole-game run exposed, all fixed: ground heights ignored (Safari Zone plateaus,
+where surfing can start and stop); the arrow planning without Surf while the game allowed it (an
+hour lost circling the Safari Zone); a town's other areas pulling the path over a one-way ledge;
+locked doors with guards (the arrow now leads to people nearby when there is no way onward);
+standing on a tile that was occupied when the path was made; Blaine's quiz doors; being carried off
+to the Sevii Islands by pressing A at Bill; a Strength boulder pushed into a dead end in Victory
+Road (the arrow now walks around boulders); the League rooms' shut doors; a Water attack
+recommended against a Lapras that absorbs water; and the party screen that could not be passed
+with A after a Pokémon was beaten. Earlier ones: wrong ladders, exits covering a whole map edge,
+people or items blocking corridors, people moved by scripts, and returning home after a loss.
 
-Not covered by automation: play beyond Brock as a continuous *committed* test; Snorlax with the Flute; Safari
-Zone step limit; Silph Co. doors; Cinnabar Gym door; Strength; Sabrina, Koga and Blaine's gyms.
+Still not covered by automation: the Junior preset's unsimplified puzzles; optional areas; what
+happens when the player wanders off the arrow's route for a long time.
 
-GitHub Actions (Ubuntu): baseline checksum match, patch build and the opening play-through passed
-on the foundation commit.
+GitHub Actions (Ubuntu): baseline checksum match, patch build and the regular emulator tests pass
+on every push; the whole-game run is an extra step for `main`.
 
 ## Not yet tested (be honest about it)
 - **No manual play by a person yet.** Everything above is automated. How the game *feels* to a

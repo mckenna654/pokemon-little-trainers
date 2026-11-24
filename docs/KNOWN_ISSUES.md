@@ -20,13 +20,14 @@
 - **Status protection is shown as SAFEGUARD:** when an opponent tries a status move the game says
   the party is protected by Safeguard. Opponents' AI therefore avoids status moves.
 - **Oak's battle lecture is skipped** in the first rival battle on the Little Trainer preset.
-- **Beyond Brock is only checked goal by goal.** The arrow has been shown to appear at every story
-  goal, but no continuous play-through past the first gym has been run. Expect rough edges in
-  dungeons (Mt. Moon, Rock Tunnel, Pokémon Tower, Silph Co.).
+- **The whole game has been finished by an automated player, not yet by a person.** It follows
+  the arrow exactly; a child will wander, and places off the route are much less tested.
 - **The arrow follows the main story only.** It does not guide to Pokémon Centres, shops or
   optional areas, and Fly still needs the party menu.
-- **Arrow and gates that the map data cannot see:** inside Sabrina's, Koga's and Blaine's gyms and
-  the Pokémon Mansion the arrow may stop at a barrier or teleporter.
+- **Junior preset and puzzles:** Junior keeps the original gym puzzles, so its arrow can stop at a
+  barrier (Surge's gates, Blaine's quiz, spin tiles). Little Trainer has no such stops.
+- **Boulders:** the arrow walks around Strength boulders and never asks for one to be pushed. A
+  child can still push one into a corridor; leaving the cave floor and coming back resets them.
 - **The Pokémon Mansion is skipped** on the Little Trainer preset (Cinnabar Gym is already
   unlocked), so its items and Pokémon are optional.
 - **Opponent levels are unchanged**; only team sizes and damage are reduced.
@@ -35,6 +36,8 @@
   is included yet. See `docs/GRAPHICS.md`.
 - **Only one emulator core tested:** mGBA 0.10.5 (headless). No device compatibility is claimed.
 - **No manual play yet:** all gameplay checks so far are automated.
+- **Slow moments:** the arrow's path is worked out in one go when the map or goal changes, which
+  can take longer than one frame on big maps (a brief hitch, not measured on real hardware).
 - **Vanilla saves unsupported:** start a fresh save with Little Trainers.
 
 ## Build environment
