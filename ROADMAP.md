@@ -24,9 +24,9 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Automatic move learning in battle and during evolution; evolution cannot be cancelled
 - [x] No loss penalties: no money lost, friendly "need a little rest" message
 - [~] Wild encounters halved (built; checked in source only, no statistical test)
-- [ ] Automatic move learning from Rare Candy (still asks)
+- [x] Automatic move learning from Rare Candy
 - [ ] Trainer party trims for the early routes
-- [ ] Junior and Classic presets exercised by tests (needs a way to switch preset)
+- [x] Junior and Classic presets exercised by tests (through OPTION → MODE)
 - [ ] Manual play session by a person, then tag v0.1.0
 
 ## Milestone 2 — Child-friendly battle interface (v0.2.0)
@@ -37,20 +37,22 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Direct catch with no bag; B does nothing; running always works
 - [x] Six-heart health display
 - [x] Picture menu in the first rival battle (trainer layout tested there)
-- [ ] More type symbols (fighting, poison, flying, dragon, dark, steel currently use the sparkle)
+- [x] A symbol for every attack type except Normal (which keeps the sparkle)
 - [ ] Friendly handling when party and storage are both full (currently just an error sound)
 - [x] Start menu: a picture beside each entry
-- [ ] Hide the HP numbers under the player's hearts; pictures for Yes/No boxes, the new-game
-      screens and the party screen
+- [x] HP numbers hidden under the hearts; tick and cross on Yes/No boxes
+- [x] No typing: no nickname questions, name screens pre-filled; trainers never ask about switching
+- [ ] Pictures for the new-game boy/girl choice, the bag and the party screen
 
 ## Milestone 3 — First gym vertical slice (v0.3.0)
 - [x] Navigation arrow, story-aware, from the bedroom to the Boulder Badge
 - [x] An arrow-following test player completes new game → Brock using only the arrow, A and ATTACK
 - [x] Fast text by default; the rival battle uses the picture menu
 - [x] Brock within reach of every starter (team of 2, damage scaling, type-safe attack choice)
-- [ ] Shorter intro and simpler dialogue on the Pallet → Pewter path
+- [x] Shorter intro (straight to the Professor; A alone starts a game)
+- [ ] Simpler dialogue on the Pallet → Pewter path
 - [x] Autosave whenever a story goal is completed; respawn at the last town after losing
-- [ ] Badge celebration screen
+- [x] Badge celebration (confetti)
 - [ ] Parent playtest checklist run with a real child
 
 ## Milestone 4 — Graphical remaster (v0.4.0, runs alongside)
@@ -68,7 +70,8 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Opponent team caps for trainers, leaders, rival and Elite Four; trade evolutions by level
 - [ ] A scripted play-through beyond Brock (Mt. Moon onwards has only goal-by-goal checks so far)
 - [ ] Sabrina's teleport maze, Koga's invisible walls, Blaine's quiz and Pokémon Tower checked in play
-- [ ] Version-exclusive and missable Pokémon made obtainable; Fly without a menu
+- [x] LeafGreen-only Pokémon appear in the wild
+- [ ] Missable Pokémon made obtainable; Fly without a menu
 
 ## Milestone 6 — Collection and interface (v0.9.0)
 - [x] Parent control: OPTION → MODE (Little / Junior / Classic), saved with the game

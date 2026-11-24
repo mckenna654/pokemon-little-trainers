@@ -161,5 +161,37 @@ class PuzzlesMadeSimple(WorldTestCase):
             self.assertEqual((block >> 10) & 3, 0, "the barrier tile can be walked through")
 
 
+class VersionExclusives(WorldTestCase):
+    def test_leafgreen_only_pokemon_turn_up_in_the_wild(self):
+        """Route 6 has Oddish in FireRed and Bellsprout in LeafGreen. Meet forty wild Pokemon there
+        (running from each): both must turn up, and nothing that does not belong on the route."""
+        g = self.g
+        route6 = location_of("Route6")
+        info = MapInfo(route6)
+        grass = [(x, y) for y in range(info.height) for x in range(info.width)
+                 if info.behavior(x, y) == 0x02 and info.passable(x, y)]
+        a = next(t for t in grass if (t[0] + 1, t[1]) in grass)
+        g.teleport(route6, *a)
+        seen = {}
+        for _ in range(40):
+            for _ in range(400):
+                if g.in_battle():
+                    break
+                g.step("RIGHT" if g.position() == a else "LEFT")
+            else:
+                self.fail("no wild Pokemon appeared")
+            g.wait_action_menu()
+            species = g.enemy().species
+            seen[species] = seen.get(species, 0) + 1
+            g.run_away()
+            g.advance_text(lambda: not g.in_battle() and g.free_to_move(), max_presses=300, what="running away")
+        ODDISH, BELLSPROUT, PIDGEY, MEOWTH = 43, 69, 16, 52
+        self.assertIn(BELLSPROUT, seen, f"met: {seen}")
+        self.assertIn(ODDISH, seen, f"met: {seen}")
+        self.assertLessEqual(set(seen), {ODDISH, BELLSPROUT, PIDGEY, MEOWTH}, f"met: {seen}")
+        self.assertGreater(seen[ODDISH] + seen.get(PIDGEY, 0) + seen.get(MEOWTH, 0), seen[BELLSPROUT],
+                           "the LeafGreen Pokemon is the rarer one")
+
+
 if __name__ == "__main__":
     unittest.main()

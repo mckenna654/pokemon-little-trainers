@@ -89,9 +89,9 @@ class Map:
         kind = self.obstacles.get((x, y))
         if kind == "tree" and not can[1]:
             return False
-        if kind == "boulder" and not can[2]:
-            return False
-        return kind != "rock"
+        # Boulders are never part of a route, even with Strength: pushing one the wrong way can
+        # wall the player in, and with the simple-puzzle rules no boulder has to be moved.
+        return kind not in ("rock", "boulder")
 
     def same_level(self, a, b):
         """Ground heights: steps are only possible between equal heights, or via the 'any
@@ -130,9 +130,12 @@ class Map:
         comp = self.components(water)
         if (x, y) in comp:
             return comp[(x, y)]
-        for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-            if (x + dx, y + dy) in comp:
-                return comp[(x + dx, y + dy)]
+        # (two tiles away: an Elite Four room's entrance closes behind the player, who is walked
+        # two steps in)
+        for reach in (1, 2):
+            for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                if (x + dx * reach, y + dy * reach) in comp:
+                    return comp[(x + dx * reach, y + dy * reach)]
         return None
 
 
@@ -186,13 +189,16 @@ class World:
             if along is not None:
                 self.edge_tiles.setdefault((a, b, code), set()).add(along)
 
+        story_doors = {tuple(d) for d in load_json(SPEC).get("story_doors", [])}
         for m in self.order:
             for i, warp in enumerate(m.warps):
                 dest = self.by_id.get(warp["dest_map"])
                 here = (m.name, m.area_of(warp["x"], warp["y"], water))
                 if dest is None:
                     continue                      # MAP_DYNAMIC (lifts): handled below from the other side
-                if not (0 <= warp["x"] < m.w and 0 <= warp["y"] < m.h) or m.behavior(warp["x"], warp["y"]) not in self.warp_behaviors:
+                if not (0 <= warp["x"] < m.w and 0 <= warp["y"] < m.h):
+                    continue
+                if m.behavior(warp["x"], warp["y"]) not in self.warp_behaviors and (m.name, warp["x"], warp["y"]) not in story_doors:
                     continue                      # a warp event that can never fire
                 dwarps = dest.warps
                 wid = int(warp["dest_warp_id"])

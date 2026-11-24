@@ -30,9 +30,13 @@ and earn badges with very little adult help.
 | Experience | ×2.5, whole party | ×1.5, whole party | Original |
 | Attacks | 2 chosen for you, no PP, never miss | 4 moves, generous | Original |
 | Losing | No penalty, friendly message | No money loss | Original |
-| Navigation help | On | Optional | Optional |
-A parent can change the preset without restarting; a child cannot do it by accident.
-Little Trainer is built first; the other presets follow once it is stable.
+| Navigation help | On | On | Off |
+| Typing and nicknames | Never asked | Asked as usual | Original |
+| Written instructions at the start | Skipped | Skipped | Original |
+| Sevii Islands side trip | Not offered | Offered | Original |
+| Badge confetti | On | On | Off |
+A parent can change the preset at any time in OPTION → MODE. (It is not locked: a child who opens
+the options could change it.) The exact numbers for every preset are in `src/little_trainers.c`.
 
 ## Wording
 Pokémon get **tired**, not fainted. Losing is "Your Pokémon need a little rest!". Sentences are

@@ -10,8 +10,9 @@ import struct
 from .gba import GBA, ROOT, EmulatorError
 from .maps import MapInfo
 
-ROM = os.path.join(ROOT, "builds", "Pokemon - Little Trainers.gba")
-SYM = os.path.join(ROOT, "builds", "Pokemon - Little Trainers.sym")
+# (LT_TEST_ROM / LT_TEST_SYM: play a copy of the build, so the project can be rebuilt during a long run)
+ROM = os.environ.get("LT_TEST_ROM") or os.path.join(ROOT, "builds", "Pokemon - Little Trainers.gba")
+SYM = os.environ.get("LT_TEST_SYM") or os.path.join(ROOT, "builds", "Pokemon - Little Trainers.sym")
 BASELINE_ROM = os.path.join(ROOT, "builds", "baseline-firered-rev1.gba")
 BASELINE_SYM = os.path.join(ROOT, "builds", "baseline-firered-rev1.sym")
 if os.environ.get("LT_TEST_BASELINE") == "1":

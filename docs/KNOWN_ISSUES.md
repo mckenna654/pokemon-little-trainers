@@ -1,16 +1,19 @@
 # Known issues and limitations
 
 ## Open
-- **Rare Candy still asks which move to forget** when the move list is full (battle level-ups and
-  evolution are automatic).
 - **MODE replaces BATTLE STYLE** in the OPTION menu; battle style stays on SHIFT. A child who
   opens OPTION could change MODE: it is not locked.
-- **Six move types share the generic sparkle symbol** (fighting, poison, flying, dragon, dark,
-  steel); Normal-type specials also use it.
-- **HP numbers still show under the player's hearts**, and the opponent's hearts are the same red
-  whatever its health (the original bar's green/yellow/red is not used).
-- **Some menus are still words only:** Yes/No boxes, the new-game screens, the bag, and the party
-  screen opened by CHANGE. The Start menu has pictures but no trainer card entry on the Little and
+- **Normal-type special attacks use the generic sparkle symbol.**
+- **Hearts are the same red whatever the health** (the original bar's green/yellow/red is not used).
+- **Some menus are still words only:** the boy/girl choice, the bag, the party screen opened by
+  CHANGE, shop lists and the "use next Pokémon?" question in battle. Yes/No boxes on the field have
+  a tick and a cross.
+- **The Sevii Islands trip is switched off on the Little Trainer preset.** Bill waits in Cinnabar's
+  Pokémon Centre and says only that he will wait. To take the trip, switch MODE to Junior or
+  Classic first. On those presets the arrow does not guide the island quest.
+- **Names:** the player and rival get the game's default names unless a grown-up changes them on
+  the name screen (B rubs out). Caught Pokémon keep their species names; the Name Rater in
+  Lavender Town can still rename them. The Start menu has pictures but no trainer card entry on the Little and
   Junior presets.
 - **No bag or switching in wild battles** on the Little Trainer preset (by design; healing is
   automatic). If party and PC storage are both full, CATCH only plays an error sound.

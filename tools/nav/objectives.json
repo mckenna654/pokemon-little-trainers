@@ -13,8 +13,15 @@
     "avoid: maps the route must not use yet (blocked by a guard, a sleeping Snorlax, a missing bike).",
     "skipped_by_simple_puzzles: the Little Trainer preset opens this gate by itself, so the goal",
     "is already done there (it still guides players on presets without simple puzzles).",
-    "surf / cut / strength: true once the player has that HM, so the route may cross water, pass",
-    "cuttable trees or pass pushable boulders."
+    "surf / cut / strength: true once the player has that HM, so the route may cross water or pass",
+    "cuttable trees. (Boulders are never part of a route.)",
+    "story_doors: doors that are drawn shut in the map data and opened by the story (the Elite Four's",
+    "rooms open when their trainer is beaten). The route may use them; in the game the arrow leads",
+    "to the person in the room until the door is really open."
+  ],
+  "story_doors": [
+    ["PokemonLeague_LoreleisRoom", 6, 2], ["PokemonLeague_BrunosRoom", 6, 2],
+    ["PokemonLeague_AgathasRoom", 6, 2], ["PokemonLeague_LancesRoom", 6, 5]
   ],
   "defaults": { "avoid": [], "surf": false },
   "blocks": {
@@ -83,7 +90,7 @@
       "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true },
     { "id": "giovanni",       "done": {"flag": "FLAG_BADGE08_GET"}, "map": "ViridianCity_Gym", "target": {"object": "Giovanni"},
       "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true },
-    { "id": "league",         "done": {"flag": "FLAG_SYS_GAME_CLEAR"}, "map": "IndigoPlateau_PokemonCenter_1F", "target": {"anywhere": true},
+    { "id": "league",         "done": {"flag": "FLAG_SYS_GAME_CLEAR"}, "map": "PokemonLeague_HallOfFame", "target": {"anywhere": true},
       "avoid": ["cycling_road", "seafoam"], "strength": true, "cut": true, "surf": true }
   ]
 }
