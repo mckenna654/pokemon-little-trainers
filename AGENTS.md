@@ -39,7 +39,8 @@ English in docs and in-game text. The full product specification is summarised i
 1. Edit in `game/`; one commit per coherent change (`git -C game commit`).
 2. `scripts/build.sh` → `builds/Pokemon - Little Trainers.gba` + verified `.bps`.
 3. `scripts/test.sh` (hygiene, unit tests, emulator tests). Add an emulator test for each gameplay
-   feature in `tests/emu/`.
+   feature in `tests/emu/`. Then **playtest**: passing tests are not enough, the screens must be
+   looked at (`.claude/skills/playtest/SKILL.md`).
 4. `scripts/export-patches.sh`; commit `patches/` + docs here; push.
 Never leave changes only in `game/`: it is not backed up. `scripts/apply-patches.sh` rebuilds
 `game/` from `patches/` and refuses to overwrite unexported work.

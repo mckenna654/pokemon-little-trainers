@@ -14,6 +14,11 @@ python3 -m unittest tests.emu.emu_story -v     # one emulator test file
 ```
 Screenshots from emulator tests land in `builds/screenshots/` (local only).
 
+**Looking at the screens** is a separate step from the tests: `python3 -m tests.emu.screen_tour`
+plays through the screens a child sees and writes contact sheets to `builds/screenshots/tour/` for
+a reviewer to inspect one by one. The procedure is the `playtest` skill
+(`.claude/skills/playtest/SKILL.md`).
+
 ## How the emulator tests work
 - `scripts/build-emu.sh` builds mGBA 0.10.5's core from source and `tools/gbarun.c` on top of it.
 - Tests press real buttons. Nothing is patched into the ROM for testing, and no cheats are used.
