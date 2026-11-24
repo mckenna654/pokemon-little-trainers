@@ -107,7 +107,23 @@ All **Emulator (automated)**. 48 emulator tests in total.
 | Lt. Surge's gates are open and the arrow leads to him | Pass |
 | Victory Road's first rock barrier is walkable | Pass |
 
-Not covered by automation: play beyond Brock as a continuous run; Snorlax with the Flute; Safari
+### 2026-11-25 — Autosave, presets, banner, colours, long arrow-only run (patches 0017–0019)
+| Check | Method | Result |
+| --- | --- | --- |
+| OPTION → MODE changes Little → Junior and the value is kept | Emulator (automated) | Pass |
+| Classic preset shows the original FIGHT menu and move list | Emulator (automated) | Pass |
+| Junior preset keeps the arrow but shows the move list | Emulator (automated) | Pass |
+| Autosave fires when a goal is completed and the game carries on | Emulator (automated), as part of the arrow play-through | Pass |
+| Title banner, brighter map colours, solid arrow | Screenshots checked by eye | Pass |
+| Long arrow-only run past Brock: Mt. Moon (correct ladders, fossil pick-up), Misty, Nugget Bridge, Bill's three steps, S.S. Ticket | Emulator (scratch script, not a committed test) | Reached; see `docs/PROGRESS.md` for how far the latest run got |
+
+Problems that run exposed and that are now fixed: paths crossing the wrong ladder, exits covering a
+whole map edge instead of one area's stretch, no path when a person or item blocks a corridor,
+goals aimed at people who are moved by scripts, losing to Brock by only ever pressing the basic
+attack (the test player now presses A like a child would, which uses the recommended attack), and
+returning all the way home after a loss.
+
+Not covered by automation: play beyond Brock as a continuous *committed* test; Snorlax with the Flute; Safari
 Zone step limit; Silph Co. doors; Cinnabar Gym door; Strength; Sabrina, Koga and Blaine's gyms.
 
 GitHub Actions (Ubuntu): baseline checksum match, patch build and the opening play-through passed
