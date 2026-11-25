@@ -31,6 +31,36 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
+### 2026-11-25 — Easier-not-certain rules, diagonal arrow, white flash (patches 0035–0038)
+
+Build: ROM SHA-1 `7d7e33b779032bddfe3cdcaceb6a9c3b96b18314`. Emulator: headless mGBA 0.10.5 only.
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Common Pokémon are caught nearly every time | `emu_catch.py`: 20 balls at a healthy Route 1 Pokémon, each from the same saved moment a few frames later (so each gets different luck); at least 19 must catch | Pass |
+| A rare Pokémon usually breaks free; weakening helps | Same method with an Onix made to appear: 40 balls at full health must catch between 3 and 26 times (the game's sum gives 34%); 20 balls at 1 HP must catch at least 19 | Pass |
+| A miss costs nothing | After a miss the buttons are back, the Onix is there with the same health, the party is unchanged, and throwing again (bag still empty) catches it | Pass |
+| Classic keeps the original odds | 40 Poké Balls from the bag at a healthy Route 1 Pokémon on Classic: between 3 and 26 catches (the original sum gives 34%) | Pass |
+| Damage taken 50%, bosses bring three | `emu_milestone1.py` (damage compared with every value the formula allows at 50%; at these low levels the 50% and 60% ranges overlap, so this is a weak check), `emu_world.py` (Lorelei brings 3, keeps Lapras) | Pass |
+| Either direction of a diagonal arrow is a good step | `emu_diagonal.py`: Route 1 to Viridian City twice, once taking the path's own step and once taking the arrow's other direction whenever it is diagonal. Neither walk bumps into anything; the second is no more than four steps longer; at least three diagonals are seen | Pass |
+| The diagonal arrow is one whole arrow | Read from the console's sprite memory: mirror-symmetric about its diagonal, comes to a point, head in the half it points to, tail much narrower | Pass |
+| The box never shows a half-drawn menu | `emu_playtest1.py`: every frame of a turn is looked at; **failed before the fix** (all 120 sample points blanked for six frames) | Pass |
+| Regular suite | `scripts/test.sh`: 34 unit tests, 82 emulator tests (1 skipped: the opt-in whole-game run) | Pass |
+| Whole game by arrow and A | `LT_FULL_RUN=1 python3 -m unittest tests.emu.emu_full_game` on this build: 8 badges, Hall of Fame at 206 minutes of play. (Also passed on the build before the flash fix, at 212 minutes.) | Pass |
+| Screens | Screen tour (319 screens, 27 sheets) with new scenes: a diagonal arrow, a hard-to-catch Pokémon with misses. An independent reviewer examined all 26 sheets of the tour taken before the flash fix | Found the white flash and a tour scene that no longer showed a beaten Pokémon (both fixed); other points below |
+
+The reviewer's other points: confetti can cover the arrow for a moment (known issue); the up
+arrow sat further from the player than the others (fixed, patch 0038); CHANGE and the attack
+burst are hard to name (known); the save box and level-up banner are original FireRed layouts.
+After the fixes the tour was retaken and the changed scenes (the forced beaten Pokémon and party
+screen, the arrows) were looked at again by Claude; the full set of sheets was not re-reviewed
+independently after the last two patches.
+
+**Not tested:** play by a person or a child; any other emulator or device; arrows pointing left,
+down-left and down-right on a screen (flips of pictures that were seen); diagonal arrows in caves,
+on water or indoors; catching legendaries; the Safari Zone's own catching screens beyond what the
+whole-game run passes through.
+
 ### 2026-11-25 — Illustrated artwork integrated (patch 0034)
 
 Build: ROM SHA-1 `3074c0e690ce1502423ca873a24029f83a984d7f`. Emulator: headless mGBA 0.10.5 only.

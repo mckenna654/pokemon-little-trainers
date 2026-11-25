@@ -86,6 +86,11 @@ the palette is loaded. It changes no tiles, no collision and no palette layout, 
 maps; it is the first, cheap step of the remaster and works with any future tileset. Tunable with
 `LT_VIVID_SATURATION_PERCENT` and `LT_VIVID_LIFT`.
 
-## Comparison screenshots
-Kept locally in `builds/screenshots/` (git-ignored, not uploaded) as original / Little Trainers pairs, produced by
-`tests/emu/` runs. Screenshots of the original game are generated locally from the baseline build.
+## Screenshots
+- **For the README** (`docs/screenshots/`, six pictures, committed at Jake's request on
+  2026-11-25): Little Trainers screens taken from the screen tour of the released build. They
+  necessarily show original FireRed artwork (maps, Pokémon, fonts) around our own interface. They
+  are pictures of the game running, not extracted graphics, and the repository is private.
+- **Everything else** stays in `builds/screenshots/` (git-ignored, not uploaded): the screen tours,
+  test screenshots and original / Little Trainers comparison pairs. Screenshots of the unmodified
+  game are generated locally from the baseline build and are never committed.

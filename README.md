@@ -2,10 +2,10 @@
 
 # Pokémon: Little Trainers
 
-**A graphically remastered, preschool-friendly Pokémon FireRed modification: simplified combat,
-accessible exploration, visual navigation, easier catching and child-friendly progression.**
+**A preschool-friendly Pokémon FireRed modification: battles by picture, an arrow to follow,
+easy catching and nothing lost by losing.**
 
-![status](https://img.shields.io/badge/status-early%20development-orange)
+![status](https://img.shields.io/badge/status-test%20build%20v0.1.0--dev.3-orange)
 ![base](https://img.shields.io/badge/base-FireRed%20v1.1-red)
 ![platform](https://img.shields.io/badge/platform-GBA-blue)
 ![repo](https://img.shields.io/badge/repo-private-lightgrey)
@@ -18,14 +18,56 @@ adult help. It is a real GBA ROM hack built from the
 [pret/pokefirered](https://github.com/pret/pokefirered) decompilation, and it runs on any standard
 GBA emulator.
 
+| | | |
+| :---: | :---: | :---: |
+| ![Title screen](docs/screenshots/title.png) | ![An arrow shows the way](docs/screenshots/arrow.png) | ![Picture buttons and hearts in battle](docs/screenshots/battle-menu.png) |
+| The title screen | An arrow always shows the way | Pictures to press, hearts for health |
+| ![Throwing a ball](docs/screenshots/catch.png) | ![Start menu with pictures](docs/screenshots/start-menu.png) | ![Confetti for a badge](docs/screenshots/badge.png) |
+| One press to throw a ball | Pictures in the menu | Confetti for every badge |
+
+## What is different from FireRed
+- **Battles by picture:** one or two attacks chosen for the Pokémon, shown as big buttons, with a
+  small star on the one that works best. No move lists, no PP, no missing.
+- **An arrow to follow** from the bedroom to the Hall of Fame. It points diagonally when either
+  of two directions is right.
+- **Hearts instead of numbers**, healing after every battle, and nothing lost by losing.
+- **Easy catching:** balls are free and never run out. Common Pokémon are caught almost every
+  time; rare ones may take a few throws.
+- **No reading needed to get on:** no typing, no nickname questions, ticks and crosses on Yes/No.
+- **Three modes** a parent can pick under OPTION → MODE: Little Trainer (the default), Junior
+  Trainer (2.5 times easier than the original) and Classic Trainer (the original rules).
+
+The full list is in [CHANGELOG.md](CHANGELOG.md), and the design rules in
+[docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md).
+
 **This repository contains no ROMs and no game source.** It holds only our changes (as patches),
 build scripts, tests and documentation. You supply your own FireRed ROM.
 
-## Status
-See [docs/PROGRESS.md](docs/PROGRESS.md) for exactly what is built and how it was tested, and
-[ROADMAP.md](ROADMAP.md) for what is next.
+## Play it: the simple way
+You do not need to build anything. The download is a small patch file, not the game itself: for
+legal reasons no ROM is ever shared here, so you combine the patch with your own copy of FireRed.
 
-## Quick start (macOS, Linux, Windows via WSL)
+1. **Have your own Pokémon FireRed ROM.** It must be the **(USA, Europe) v1.1** version (also
+   called Rev 1), a `.gba` file of 16,777,216 bytes.
+2. **Download the patch** from the
+   [latest release](https://github.com/mckenna654/pokemon-little-trainers/releases): the file ending
+   in `.bps`.
+3. **Put the two together** with a patcher. The easiest is
+   [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/), which works inside a web browser on a
+   computer, phone or tablet (the files stay on your device):
+   - "ROM file": choose your FireRed ROM.
+   - "Patch file": choose the `.bps` you downloaded.
+   - Press **Apply patch** and save the new `.gba` file it gives you.
+4. **Add the new file to your emulator** like any other GBA game: in mGBA use File → Load ROM; in
+   Delta tap **+** and pick the file; in RetroArch use Load Content.
+5. **Start a new game.** Saves from the original FireRed do not work with it.
+
+If the patcher says the ROM is wrong, it is not v1.1: the release notes list the checksums of the
+right one. Only the mGBA emulator has been tested so far; other emulators should work but have
+not been checked.
+
+## Build it yourself (macOS, Linux, Windows via WSL)
+For changing the game, or if you would rather not use a patcher.
 ```bash
 git clone https://github.com/mckenna654/pokemon-little-trainers.git
 cd pokemon-little-trainers
@@ -39,6 +81,13 @@ Play `builds/Pokemon - Little Trainers.gba` in mGBA, RetroArch, Delta or another
 apply `builds/Pokemon - Little Trainers.bps` to your own FireRed v1.1 ROM with any BPS patcher.
 
 More: [docs/BUILD.md](docs/BUILD.md) · [docs/TESTING.md](docs/TESTING.md)
+
+## Status
+A test build: an automated player has finished the whole game using only the arrow and the A
+button, but very little of it has been played by people yet. See
+[docs/PROGRESS.md](docs/PROGRESS.md) for exactly what is built and how it was tested,
+[docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) for what is not right yet, and
+[ROADMAP.md](ROADMAP.md) for what is next.
 
 ## Documents
 | File | Purpose |

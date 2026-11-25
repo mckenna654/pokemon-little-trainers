@@ -2,10 +2,10 @@
 
 Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 
-## [Unreleased] (0.1.0-dev.2)
+## [Unreleased] (0.1.0-dev.3)
 _Pre-releases (patch only, never a ROM): `v0.1.0-dev` (2026-11-24) is this list as it stood at commit
 `a749e31`; `v0.1.0-dev.2` (2026-11-25) adds the fixes from Jake's first playtest and the illustrated
-pictures._
+pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow._
 ### Added
 - **Illustrated pictures in the game (patch 0034):** the 21 battle buttons, the Start menu pictures
   (Pokédex, Pokémon, bag, card, save, option) and the "LITTLE TRAINERS" title plaque are now the
@@ -19,10 +19,10 @@ pictures._
 - **FireRed / Little Trainers source and design review:** `docs/REVIEW-2026-11-25.md`, including
   remaining permanent-loss flows, reading requirements, retained story themes and test limits.
 - **Little Trainer rules (Milestone 1)**, all switchable per preset in `src/little_trainers.c`:
-  every Poké Ball catches wild Pokémon; a Poké Ball is always in the bag and is never used up;
+  every Poké Ball catches wild Pokémon (until 0.1.0-dev.3: see Changed); a Poké Ball is always in the bag and is never used up;
   the party is fully healed after every battle; experience ×2.5 with half shared to Pokémon that
   did not battle; moves use no PP; the player's attacks never miss; opponents never land critical
-  hits; the player deals 150% damage and takes 60%; a full move list swaps in stronger attacks
+  hits; the player deals 150% damage and takes 60% (50% from 0.1.0-dev.3); a full move list swaps in stronger attacks
   automatically; losing a battle costs no money.
 - **Picture battle menu (Milestone 2):** a row of large buttons instead of words: attack star,
   a special-attack symbol that matches the move's type (flame, drop, leaf, bolt, snowflake, rock,
@@ -86,6 +86,29 @@ pictures._
   Pokédex, Safari flag). The trainer card entry is left out on Little and Junior presets.
 - Control symbols (ring, star, hearts, arrow, confetti, tick/cross) drawn by `assets/ui/make_battle_icons.py`.
 - Gentle wording: Pokémon are "tired", not fainted; losing says "Your POKéMON need a little rest!".
+### Changed (after `v0.1.0-dev.2`, at Jake's request)
+- **Little Trainer is twice as easy as Junior, instead of all-or-nothing** (patch 0035). Jake's
+  ladder: Classic is the original game, Junior is 2.5 times easier, Little Trainer twice that.
+  - **Catching is no longer guaranteed.** A ball has five times the original game's odds, so the
+    shape of the original is kept: Pidgey, Rattata, Pikachu and other common Pokémon are caught
+    practically every time; a healthy Onix about one throw in three; a healthy Snorlax about one in
+    six; a legendary bird a few in a hundred. Weakening a Pokémon first helps a great deal (a
+    nearly beaten Onix is all but certain). A miss costs nothing: the free ball is never used up
+    and the Pokémon stays to be tried again.
+  - **Opposing Pokémon deal 50% damage** (was 60%). With the 150% the player deals, that is twice
+    Junior's edge in battle.
+  - **The rival, the Elite Four and the Champion bring at most three Pokémon** (was four; Junior
+    five). Ordinary trainers and gym leaders already brought about half of Junior's teams.
+  - Experience is unchanged (×2.5; Jake asked for it to be left alone).
+- **The arrow points diagonally** (patch 0036) when the way ahead turns a corner within about a
+  screen and either direction is a good first step. Pressing either of the two directions it
+  points between never walks into anything and is no longer a walk.
+### Fixed (after `v0.1.0-dev.2`)
+- **The battle box no longer flashes white each time the buttons come back** (patch 0037). For a
+  tenth of a second every turn the box showed the half-drawn menu in the message box's colours.
+  Present since the menu moved into the message box (patch 0032, so in `v0.1.0-dev.2`); found by
+  the independent look at the screen tour, which happened to photograph one of those frames.
+- The up arrow sits as close to the player as the other arrows (patch 0038).
 ### Fixed (after `v0.1.0-dev`, from Jake's first playtest, issue #1)
 - **The arrow is one whole arrow.** Its picture was being put together from the wrong pieces (the
   top half of the up arrow over the top half of the right arrow), in every direction. It is also

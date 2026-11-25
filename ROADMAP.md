@@ -14,12 +14,12 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 
 ## Milestone 1 — Simplified gameplay (v0.1.0)
 - [x] Central difficulty configuration (`little_trainers.h/.c`): Little / Junior / Classic presets
-- [x] Guaranteed catching of wild Pokémon; trainer Pokémon never catchable
+- [x] Easy catching of wild Pokémon (five times the original odds, free balls; was guaranteed until 0.1.0-dev.3); trainer Pokémon never catchable
 - [x] Unlimited Poké Balls (catch works with an empty bag)
 - [x] Automatic full heal after every battle
 - [x] Experience ×2.5 and party-wide experience
 - [x] Simplified player attacks: no PP limits, player moves do not miss, no recoil
-- [x] Gentler opponents: damage scaling (150% dealt / 60% taken), no enemy critical hits
+- [x] Gentler opponents: damage scaling (150% dealt / 50% taken), no enemy critical hits
 - [x] No status conditions on the player's Pokémon
 - [x] Automatic move learning in battle and during evolution; evolution cannot be cancelled
 - [x] No loss penalties: no money lost, friendly "need a little rest" message
@@ -45,7 +45,7 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [ ] Pictures for the new-game boy/girl choice, the bag and the party screen
 
 ## Milestone 3 — First gym vertical slice (v0.3.0)
-- [x] Navigation arrow, story-aware, from the bedroom to the Boulder Badge
+- [x] Navigation arrow, story-aware, from the bedroom to the Boulder Badge (points diagonally when either of two directions is right, since 0.1.0-dev.3)
 - [x] An arrow-following test player completes new game → Brock using only the arrow, A and ATTACK
 - [x] Fast text by default; the rival battle uses the picture menu
 - [x] Brock within reach of every starter (team of 2, damage scaling, type-safe attack choice)

@@ -131,9 +131,9 @@ class Milestone1(BattleTestCase):
             self.assertGreater(min(allowed), max(original), "boosted damage is above anything the original allows")
 
             if taken:   # the opponent used Tackle (35 power, same-type bonus for Pidgey and Rattata)
-                allowed = damage_rolls(foe["level"], foe["attack"], me["defense"], 35, 60, stab=True)
+                allowed = damage_rolls(foe["level"], foe["attack"], me["defense"], 35, 50, stab=True)
                 original = damage_rolls(foe["level"], foe["attack"], me["defense"], 35, 100, stab=True)
-                self.assertIn(taken, allowed, "scaled to 60%, and never a critical hit")
+                self.assertIn(taken, allowed, "scaled to 50%, and never a critical hit")
                 self.assertLess(max(allowed), min(original), "set-up: scaled and original ranges do not overlap")
                 checked_taken = True
                 break

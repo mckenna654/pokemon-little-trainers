@@ -17,6 +17,7 @@ import hashlib
 import os
 import struct
 import sys
+import tempfile
 import zlib
 
 from . import story
@@ -26,6 +27,7 @@ from .gba import read_png
 
 OUT = os.environ.get("LT_TOUR_OUT") or os.path.join(SHOTS, "tour")     # (LT_TOUR_OUT: a second tour beside the first)
 LEADER_BROCK = 414
+ONIX = 95
 FLAG_BADGE02_GET = 0x821
 PER_SHEET, COLUMNS, SCALE, GAP = 12, 3, 3, 12
 
@@ -87,6 +89,41 @@ def close_menus(g):
     raise RuntimeError("could not get back to the field")
 
 
+def throw_balls(t, g, scene):
+    """Press CATCH until a ball catches, with a picture every other press of A in between."""
+    for _ in range(40):
+        g.press_button(g.CATCH)
+        t.press_through(g, scene, lambda: g.at_action_menu() or (not g.in_battle() and g.callback2() == "CB2_Overworld"), every=2)
+        if not g.in_battle():
+            return
+    t.shot(g, scene + " (gave up here)")
+
+
+def wait_for_a_miss(g):
+    """Leave the game at a moment from which the next ball thrown will miss, so the tour always
+    shows what a miss looks like. Luck depends on the moment the button is pressed: each try
+    starts from the same saved moment a few frames later and presses exactly as throw_balls does."""
+    state = os.path.join(tempfile.mkdtemp(prefix="lt-tour-"), "before-the-throw.ss")
+    g.save_state(state)
+    try:
+        for delay in range(2, 122, 3):
+            g.load_state(state)
+            g.frames(delay)
+            g.press_button(g.CATCH)
+            for _ in range(400):
+                if g.at_action_menu() or not g.in_battle():
+                    break
+                g.press("A", hold=3, wait=17)
+            if g.in_battle():                           # it broke free and the buttons are back
+                g.load_state(state)
+                g.frames(delay)
+                return
+        raise RuntimeError("forty balls and the hard-to-catch Pokemon never broke free")
+    finally:
+        os.remove(state)
+        os.rmdir(os.path.dirname(state))
+
+
 def tour():
     t = Tour()
 
@@ -131,6 +168,9 @@ def tour():
     # 3. A wild battle: every button, then a catch
     g = game_at("route1")
     t.shot(g, "Route 1")
+    g.follow_arrow(lambda: g.free_to_move() and "-" in (g.nav_arrow_shown() or ""), max_actions=300, what="a diagonal arrow")
+    g.frames(10)
+    t.shot(g, "Route 1: the arrow pointing diagonally (either of its two directions is a good step)")
     story.find_wild_battle(g)
     g.wait_action_menu()
     g.frames(20)
@@ -141,8 +181,15 @@ def tour():
         g.frames(20)
         t.shot(g, "wild battle menu, each button from the left")
         g.press("RIGHT", wait=8)
-    g.catch()
-    t.press_through(g, "catching", lambda: not g.in_battle() and g.callback2() == "CB2_Overworld", every=2)
+    throw_balls(t, g, "catching a common Pokemon")
+
+    # A Pokemon that is hard to catch (set-up: an Onix is made to appear here on Route 1)
+    g.settle()
+    g.frames(60)
+    g.start_wild_battle(ONIX, 5)
+    g.wait_action_menu()
+    wait_for_a_miss(g)
+    throw_balls(t, g, "a hard-to-catch Pokemon (set-up: Onix): a ball it breaks out of, then throws until one catches")
 
     # 4. Field menus
     g.settle()
@@ -189,11 +236,17 @@ def tour():
         g.press("RIGHT", wait=8)
     for _ in range(4):
         g.press("LEFT", wait=8)
-    g.set_battle_hp(0, 1)                         # the lead is beaten by the next hit
-    g.set_battle_hp(1, 300)
-    g.attack()
-    t.press_through(g, "the turns up to a beaten Pokemon, then the party screen",
-                    lambda: g.at_action_menu() or not g.in_battle(), max_presses=200, every=2)
+    lead = g.battle_mon(0)["species"]
+    for _ in range(10):                           # (the leader's Pokemon does not attack every turn)
+        g.set_battle_hp(0, 1)                     # the lead is beaten by the next hit
+        g.set_battle_hp(1, 300)
+        g.attack()
+        t.press_through(g, "the turns up to a beaten Pokemon, then the party screen",
+                        lambda: g.at_action_menu() or not g.in_battle(), max_presses=200, every=2)
+        if not g.in_battle() or g.battle_mon(0)["species"] != lead:
+            break
+    else:
+        t.shot(g, "the turns up to a beaten Pokemon, then the party screen (gave up here: the lead was never beaten)")
     for press in range(900):
         if not g.in_battle() and g.free_to_move():
             break

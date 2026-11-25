@@ -77,7 +77,7 @@ Line numbers drift as patches land; search by function name.
 All rules flow through one module so engine edits stay small and reversible:
 - `include/little_trainers.h`: preset enum, tunable constants (`LT_*`), rule query functions.
 - `src/little_trainers.c`: `LT_GetDifficulty()` and helpers.
-Engine files call a query (for example `LT_GuaranteedCatch()`) instead of hard-coding behaviour.
+Engine files ask the rules (for example `LT_Rules()->healAfterBattle`) instead of hard-coding behaviour.
 
 `LT_Rules()` returns the active preset's `struct LtRules`; `LT_BattleRulesActive()` is false in
 link, Battle Tower, Trainer Tower and e-Reader battles, so those are never altered.
@@ -85,7 +85,7 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | Patch | Change | Engine hook (file → function) | Rule field |
 | --- | --- | --- | --- |
 | 0001 | Rules module, presets, move scoring | new `src/little_trainers.c`, `include/little_trainers.h`, `ld_script.ld` | — |
-| 0002 | Guaranteed / easier catching | `battle_script_commands.c` → `Cmd_handleballthrow` (after the odds are computed; trainer, ghost and tutorial branches untouched) | `guaranteedCatch`, `catchRatePercent` |
+| 0002, 0035 | Easier catching: the original odds times a factor (Little 5, Junior 2.5), never a certainty | `battle_script_commands.c` → `Cmd_handleballthrow` (after the odds are computed; trainer, ghost and tutorial branches untouched) | `catchRatePercent` |
 | 0002 | Free Poké Balls | `battle_main.c` → `CB2_InitBattle` calls `LT_OnBattleStart()` (adds one ball if the bag has none, wild battles only); `item_use.c` → `BattleUseFunc_PokeBallEtc` does not remove the ball | `freeBalls` |
 | 0002 | Heal after battle | `battle_main.c` → `ReturnFromBattleToOverworld` (runs after experience, evolution and catching) | `healAfterBattle` |
 | 0002 | Boosted and party-wide experience | `battle_script_commands.c` → `Cmd_getexp` cases 1–2 (bench share reuses the Exp. Share path; bench message suppressed) | `expPercent`, `benchExpPercent` |
@@ -144,6 +144,14 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
   it or picks it up. People already dealt with are then routed around. The path is rebuilt after
   every conversation, battle or menu. The field lives on the heap and is forgotten when the heap
   is reset.
+- **Diagonal arrows (patch 0036):** the player can only step up, down, left or right, so a
+  diagonal arrow is a promise that either of its two directions is a good step. `SecondDirection()`
+  follows the path up to seven steps ahead (about what is on screen); if it turns a corner, and
+  the path from the tile beside the player in the corner's direction joins that same path without
+  costing a step, the arrow points between the two. Otherwise it stays straight. `sShownDir` is
+  always the path's own next step and `sShownDir2` the other direction (0 for a straight arrow).
+  `nav_arrow.png` has three frames stacked (up, right, up-and-right); the other five directions
+  are flips.
 - **Route data format:** `sLtNavExits` is a pool of exit lists (count, then exit/from/to triples;
   an exit is a map edge with the stretch of tiles to use, or a warp number); each route has one
   `u16` offset per map. About 1 KB of lists plus 850 bytes per route.
@@ -177,6 +185,12 @@ which run on their own battle controllers.
 - The background does not scroll to the original menu page (`gBattle_BG0_Y` stays 0).
   `LT_BattleMenu_Hide()` redraws the empty message window, which clears the buttons and puts the
   window's own palette back on its tiles.
+- **Nothing is sent to the screen until the menu is fully drawn.** Drawing the buttons takes
+  several frames of the console's time, and copies to video memory are carried out at the next
+  frame from whatever the window holds then. `LT_BattleMenu_Show()` therefore asks for one copy,
+  at the very end (it stops the message printer with `B_TEXT_FLAG_WINDOW_CLEAR`, which despite
+  its name means "leave the window alone"). Asking earlier showed the half-drawn box for up to six
+  frames, in the message box's colours.
 - `gActionSelectionCursor[battler]` holds the selected button's slot (`LT_MENU_*`).
 - Sprite sheets with more than one frame (`nav_arrow.png`, `title_banner.png`) stack their frames
   **vertically**. The game reads a sheet one frame's worth of tiles at a time in image rows, so

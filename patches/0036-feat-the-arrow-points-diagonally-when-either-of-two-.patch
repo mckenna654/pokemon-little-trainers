@@ -1,0 +1,210 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 16:47:28 +1100
+Subject: feat: the arrow points diagonally when either of two directions is
+ right
+
+When the path turns a corner within seven steps and taking the corner's
+direction first meets the same path no later, the arrow points between the two
+directions. New up-and-right frame in nav_arrow.png (flipped for the other
+three diagonals).
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/graphics/little_trainers/nav_arrow.png b/graphics/little_trainers/nav_arrow.png
+index e5d3532a0a1a54f9846b7ff760f0042c2c354dd1..af6025c70238c12658ae6f792d72bac5a13ecb35 100644
+GIT binary patch
+delta 163
+zcmV;U09^mg0qp^h7YZ;00{{R3>T%~}ks&{Scu7P-RCwBzk;@UlAP7Y1fc}ePXn_VC
+z!q=cVg^SD^R@Vgp0HJD0o=9APND@#Y1A!a_3g8IUTGgrg*I<gh$_5~JLx(dP)sU@^
+zjcWKNJXG_C@6CL_{wcpeX9^jEG}=)eWX~8_l^tWb7tb8i-pr!y?UnSB9*p^`Cr=R$
+R+@t^i002ovPDHLkV1ln}MlJvV
+
+delta 130
+zcmV-|0Db@M0nGuB7YZN*0{{R3>8IuYks&{ASV=@dRCwBzkIN0fFbG4v0s9YUu|gJz
+zD8H&SJ=K?3Pcaw(5VZEHSEvohRe*&YBnpryK_D@=W;6BANQFaP1ERO#tC@ebjO|a2
+kHhK~rsd?cuS<mgM3kBJ7d3f46RR91007*qoM6N<$f;@CIvH$=8
+
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 57e854397..90322306d 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -86,7 +86,8 @@ static EWRAM_DATA bool8 sBuiltOnDoor = FALSE;
+ static EWRAM_DATA u8 sMetCount = 0;
+ static EWRAM_DATA u8 sMetX[MAX_MET] = {0};
+ static EWRAM_DATA u8 sMetY[MAX_MET] = {0};
+-static EWRAM_DATA u8 sShownDir = 0;         // where the arrow last pointed
++static EWRAM_DATA u8 sShownDir = 0;         // where the arrow last pointed: the next step of the path
++static EWRAM_DATA u8 sShownDir2 = 0;        // the other direction of a diagonal arrow (0: the arrow is straight)
+ static EWRAM_DATA u8 sNoPathTimer = 0;
+ 
+ // People within reach when there is no way onward (PATH_TO_SOMEONE)
+@@ -847,10 +848,24 @@ static const struct OamData sArrowOam =
+     .priority = 1, // above the map, below text windows and menus
+ };
+ 
++// The sheet has three pictures, one under the other: up, right, and up-and-right. The other
++// five directions are those three flipped.
+ static const union AnimCmd sArrowAnim_South[] = {ANIMCMD_FRAME(0, 1, .vFlip = TRUE), ANIMCMD_END};
+ static const union AnimCmd sArrowAnim_North[] = {ANIMCMD_FRAME(0, 1), ANIMCMD_END};
+ static const union AnimCmd sArrowAnim_West[] = {ANIMCMD_FRAME(4, 1, .hFlip = TRUE), ANIMCMD_END};
+ static const union AnimCmd sArrowAnim_East[] = {ANIMCMD_FRAME(4, 1), ANIMCMD_END};
++static const union AnimCmd sArrowAnim_NorthEast[] = {ANIMCMD_FRAME(8, 1), ANIMCMD_END};
++static const union AnimCmd sArrowAnim_NorthWest[] = {ANIMCMD_FRAME(8, 1, .hFlip = TRUE), ANIMCMD_END};
++static const union AnimCmd sArrowAnim_SouthEast[] = {ANIMCMD_FRAME(8, 1, .vFlip = TRUE), ANIMCMD_END};
++static const union AnimCmd sArrowAnim_SouthWest[] = {ANIMCMD_FRAME(8, 1, .hFlip = TRUE, .vFlip = TRUE), ANIMCMD_END};
++
++enum
++{
++    ARROW_ANIM_NORTH_EAST = DIR_EAST,   // (the four straight arrows are numbered DIR_x - 1)
++    ARROW_ANIM_NORTH_WEST,
++    ARROW_ANIM_SOUTH_EAST,
++    ARROW_ANIM_SOUTH_WEST,
++};
+ 
+ static const union AnimCmd *const sArrowAnims[] =
+ {
+@@ -858,6 +873,10 @@ static const union AnimCmd *const sArrowAnims[] =
+     [DIR_NORTH - 1] = sArrowAnim_North,
+     [DIR_WEST - 1] = sArrowAnim_West,
+     [DIR_EAST - 1] = sArrowAnim_East,
++    [ARROW_ANIM_NORTH_EAST] = sArrowAnim_NorthEast,
++    [ARROW_ANIM_NORTH_WEST] = sArrowAnim_NorthWest,
++    [ARROW_ANIM_SOUTH_EAST] = sArrowAnim_SouthEast,
++    [ARROW_ANIM_SOUTH_WEST] = sArrowAnim_SouthWest,
+ };
+ 
+ static const struct SpriteTemplate sArrowTemplate =
+@@ -895,13 +914,77 @@ static struct Sprite *ArrowSprite(void)
+     return &gSprites[sArrowSpriteId];
+ }
+ 
+-static void ShowArrow(u8 dir)
++// How far ahead a corner in the path is looked for, in steps: about what is on screen.
++#define DIAGONAL_LOOKAHEAD 7
++
++// The path is a chain of single steps, and a straight arrow shows the next one. When the path
++// turns a corner within a few steps, and taking the corner's direction first is just as good
++// (walking that way meets the same path no later), then both directions are right and the arrow
++// points between them. Returns the corner's direction, or 0 to keep the arrow straight.
++static u8 SecondDirection(u8 dir)
++{
++    s32 px = gSaveBlock1Ptr->pos.x + MAP_OFFSET;
++    s32 py = gSaveBlock1Ptr->pos.y + MAP_OFFSET;
++    s32 width = VMap.Xsize;
++    s32 height = VMap.Ysize;
++    u16 path[DIAGONAL_LOOKAHEAD];       // the tiles the path visits next, in order
++    s32 x = px, y = py;
++    u8 d = dir, turn = 0;
++    u32 length, i, j;
++
++    if (sField == NULL)
++        return 0;
++    for (length = 0; length < DIAGONAL_LOOKAHEAD; )
++    {
++        x += sDirDelta[d][0];
++        y += sDirDelta[d][1];
++        if (x < 0 || y < 0 || x >= width || y >= height)
++            break;
++        path[length++] = y * width + x;
++        d = sField[y * width + x];
++        if (d < DIR_SOUTH || d > DIR_EAST)
++            break; // the goal, or a hop over a ledge: the chain of single steps ends here
++        if (turn == 0 && d != dir)
++            turn = d;
++    }
++    if (turn == 0)
++        return 0;
++
++    // The tile beside the player in the corner's direction: can it be stepped onto, and does
++    // the path from there join the one above without costing a step?
++    x = px + sDirDelta[turn][0];
++    y = py + sDirDelta[turn][1];
++    if (x < 0 || y < 0 || x >= width || y >= height
++     || !SameLevel(px, py, x, y) || SomeoneInTheWay(turn))
++        return 0;
++    for (i = 0; i < DIAGONAL_LOOKAHEAD; i++)
++    {
++        d = sField[y * width + x];
++        for (j = i; j < length; j++)    // (j >= i: reached in no more steps than along the path)
++        {
++            if (path[j] == y * width + x)
++                return turn;
++        }
++        if (d < DIR_SOUTH || d > DIR_EAST)
++            break;
++        x += sDirDelta[d][0];
++        y += sDirDelta[d][1];
++        if (x < 0 || y < 0 || x >= width || y >= height)
++            break;
++    }
++    return 0;
++}
++
++// `dir` is the next step of the path; `dir2`, if not 0, is a second direction that is just as
++// good, and the arrow is drawn pointing between the two.
++static void ShowArrow(u8 dir, u8 dir2)
+ {
+     static const s8 sBob[] = {0, 1, 2, 1};
+     struct Sprite *arrow = ArrowSprite();
+     struct Sprite *player = &gSprites[gPlayerAvatar.spriteId];
+     s8 bob;
+ 
++    sShownDir2 = 0;
+     if (arrow == NULL)
+         return;
+     if (dir < DIR_SOUTH || dir > DIR_EAST)
+@@ -913,9 +996,23 @@ static void ShowArrow(u8 dir)
+     bob = sBob[(sBobTimer++ >> 3) & 3]; // a gentle nudge in the direction to walk
+     arrow->oam.paletteNum = player->oam.paletteNum;
+     // The camera keeps the player in the middle of the screen: their sprite is centred on (120, 72).
+-    arrow->x = 120 + sArrowOffset[dir][0] + sDirDelta[dir][0] * bob;
+-    arrow->y = 72 + sArrowOffset[dir][1] + sDirDelta[dir][1] * bob;
+-    StartSpriteAnimIfDifferent(arrow, dir - 1);
++    if (dir2 >= DIR_SOUTH && dir2 <= DIR_EAST && sDirDelta[dir][0] * sDirDelta[dir2][0] + sDirDelta[dir][1] * sDirDelta[dir2][1] == 0)
++    {
++        s32 dx = sDirDelta[dir][0] + sDirDelta[dir2][0];    // -1 or 1 each
++        s32 dy = sDirDelta[dir][1] + sDirDelta[dir2][1];
++
++        arrow->x = 120 + dx * (18 + bob);
++        arrow->y = 72 + (dy < 0 ? -14 - bob : 26 + bob);
++        StartSpriteAnimIfDifferent(arrow, dy < 0 ? (dx > 0 ? ARROW_ANIM_NORTH_EAST : ARROW_ANIM_NORTH_WEST)
++                                                 : (dx > 0 ? ARROW_ANIM_SOUTH_EAST : ARROW_ANIM_SOUTH_WEST));
++        sShownDir2 = dir2;
++    }
++    else
++    {
++        arrow->x = 120 + sArrowOffset[dir][0] + sDirDelta[dir][0] * bob;
++        arrow->y = 72 + sArrowOffset[dir][1] + sDirDelta[dir][1] * bob;
++        StartSpriteAnimIfDifferent(arrow, dir - 1);
++    }
+     arrow->invisible = FALSE;
+ }
+ 
+@@ -1054,7 +1151,7 @@ void LT_Nav_Update(void)
+         if (sSavedGoalPlus1 != 0 && goalPlus1 > sSavedGoalPlus1 && LT_Rules()->autoSave)
+         {
+             sSavedGoalPlus1 = goalPlus1;
+-            ShowArrow(0);
++            ShowArrow(0, 0);
+             LT_AutoSave();
+             return;
+         }
+@@ -1063,7 +1160,7 @@ void LT_Nav_Update(void)
+ 
+     if (goal == NO_GOAL)
+     {
+-        ShowArrow(0);
++        ShowArrow(0, 0);
+         return;
+     }
+ 
+@@ -1134,5 +1231,6 @@ void LT_Nav_Update(void)
+             dir = StepOffDirection(); // standing on the ladder to take: step off, then back on
+     }
+     sShownDir = dir;
+-    ShowArrow(dir);
++    // (a goal that is stood on and pushed against has one direction only, as does a blocked step)
++    ShowArrow(dir, (FieldAtPlayer() == dir && !SomeoneInTheWay(dir)) ? SecondDirection(dir) : 0);
+ }

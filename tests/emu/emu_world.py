@@ -55,12 +55,12 @@ class TrainerTeams(WorldTestCase):
         self.assertEqual(self.team_size(LEADER_LT_SURGE), 3, "all three once the player has three badges")
         self.assertEqual(self.win(), WON)
 
-    def test_elite_four_bring_four_and_keep_their_strongest(self):
+    def test_elite_four_bring_three_and_keep_their_strongest(self):
         g = self.g
         team = None
         g.start_trainer_battle(LORELEI)
         team = g.enemy_party()
-        self.assertEqual(len(team), 4, "five in the original")
+        self.assertEqual(len(team), 3, "five in the original, and on Junior")
         self.assertEqual(team[-1].species, 131, "Lapras, her last and strongest, is kept")
 
 

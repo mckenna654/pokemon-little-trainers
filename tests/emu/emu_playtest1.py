@@ -62,6 +62,26 @@ class PictureMenuOnScreen(unittest.TestCase):
         self.assertEqual(region(pixels, 8, 16), {PANEL}, "left end of the box is plain panel")
         self.assertEqual(region(pixels, 224, 232), {PANEL}, "right end of the box is plain panel")
 
+    def test_the_box_never_shows_a_half_drawn_menu(self):
+        """Each time the buttons came back, the box flashed white for a tenth of a second with
+        part of the first button in it: the game was showing the menu while it was still being
+        drawn, in the message box's colours. Watch every frame of a turn."""
+        g = self.wild_battle([SCRATCH, GROWL, EMBER, 0])
+        g.set_battle_hp(1, 300)                         # set-up: the wild Pokemon lasts the turn
+        g.attack()
+        worst, frames = 0, 0
+        for frames in range(1, 1500):
+            g.frames(1)
+            pixels = g.pixels()
+            inside = [pixels[y][x] for y in range(124, 148, 4) for x in range(60, 220, 8)]
+            worst = max(worst, sum(colour != PANEL for colour in inside))
+            if frames > 60 and g.at_action_menu():
+                break
+        self.assertTrue(g.at_action_menu(), "set-up: the buttons came back")
+        # Text and buttons cover part of the box; a box that is anything but panel nearly
+        # everywhere is the flash.
+        self.assertLess(worst, len(inside) * 3 // 4, f"in {frames} frames the inside of the box was never blanked out")
+
     def test_two_attacks_get_two_attack_buttons(self):
         g = self.wild_battle([SCRATCH, GROWL, EMBER, 0])
         pixels = g.pixels()
@@ -239,8 +259,8 @@ class ArrowPicture(unittest.TestCase):
             seen = {}
 
             def seen_both_ways():
-                direction = g.nav_arrow() if g.free_to_move() else None
-                if direction and direction not in seen:
+                direction = g.nav_arrow_shown() if g.free_to_move() else None
+                if direction and "-" not in direction and direction not in seen:
                     seen[direction] = self.arrow_picture(g)
                 return bool(seen.keys() & {"UP", "DOWN"}) and bool(seen.keys() & {"LEFT", "RIGHT"})
 

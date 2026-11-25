@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 17:11:12 +1100
+Subject: fix: the battle box no longer flashes white when the buttons come
+ back
+
+Drawing the buttons takes several frames of the console's time. The menu asked
+for the message window to be copied to the screen before drawing, so the next
+frames showed the half-drawn box in the message box's colours: a white flash
+with part of the first button in it, every turn. Now nothing is sent until the
+picture is finished.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 8d2d221fc..43f4cf652 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -345,7 +345,12 @@ void LT_BattleMenu_Show(u8 battler)
+     if (!SlotShown(gActionSelectionCursor[battler]))
+         gActionSelectionCursor[battler] = LT_MENU_ATTACK;
+ 
+-    BattlePutTextOnWindow(gText_EmptyString3, B_WIN_MSG);
++    // Stop any message still being printed in this window, but do not send the window to the
++    // screen yet. Drawing the buttons takes several frames of the console's time, and a copy
++    // asked for now would be carried out at the next frame: the box would show whatever had been
++    // drawn so far, in the message box's colours (a white flash with part of a button in it).
++    // The one copy at the end sends the finished picture and its colours together.
++    BattlePutTextOnWindow(gText_EmptyString3, B_WIN_MSG | B_TEXT_FLAG_WINDOW_CLEAR); // (the flag means: leave the window alone)
+     LoadPalette(sIconsPal, BG_PLTT_ID(MENU_PALETTE), PLTT_SIZE_4BPP);
+     sPulseTimer = 0;
+ 

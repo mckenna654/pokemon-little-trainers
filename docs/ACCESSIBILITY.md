@@ -25,7 +25,9 @@ and earn badges with very little adult help.
 ## Difficulty presets
 | | Little Trainer (3–4, default) | Junior Trainer (5–6) | Classic Trainer (7+) |
 | --- | --- | --- | --- |
-| Catching | Always succeeds, no balls needed | Generous odds | Original |
+| Catching | 5× the original odds, no balls needed, a miss costs nothing | 2.5× the original odds | Original |
+| Damage dealt / taken | 150% / 50% | 120% / 80% | Original |
+| Rival, Elite Four, Champion bring | At most 3 Pokémon | At most 5 | Original teams |
 | Healing | Automatic after every battle | Automatic | Pokémon Centres |
 | Experience | ×2.5, whole party | ×1.5, whole party | Original |
 | Attacks | 2 chosen for you, no PP, never miss | 4 moves, generous | Original |
@@ -35,6 +37,12 @@ and earn badges with very little adult help.
 | Written instructions at the start | Skipped | Skipped | Original |
 | Sevii Islands side trip | Not offered | Offered | Original |
 | Badge confetti | On | On | Off |
+**The ladder (Jake, 2026-11-25):** Classic is the original game, Junior is 2.5 times easier, and
+Little Trainer is twice as easy as Junior. Nothing on Little Trainer is a certainty that was a
+matter of odds in the original: common Pokémon are caught almost every time, rare ones usually
+break free, and weakening one first helps. Experience is the one number left where Jake set it
+(×2.5; twice Junior would be ×3).
+
 A parent can change the preset at any time in OPTION → MODE. (It is not locked: a child who opens
 the options could change it.) The exact numbers for every preset are in `src/little_trainers.c`.
 

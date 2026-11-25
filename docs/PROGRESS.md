@@ -1,6 +1,41 @@
 # Progress and handoff
 
-_Last updated: 2026-11-25 (session 5: illustrated artwork integrated)_
+_Last updated: 2026-11-25 (session 6: easier-not-certain rules, diagonal arrow)_
+
+## Session 6 — twice as easy as Junior, diagonal arrow, README (patches 0035–0038)
+
+Jake's instructions: "if classic is normal, junior is 2.5xs easier, make little trainers twice as
+easy as junior across all aspects of the game. also add diagonal directions to the arrow. build on
+github once finished", then screenshots and a simpler install guide in the README.
+
+- **Catching is no longer guaranteed on Little Trainer** (0035): five times the original odds
+  (Junior 2.5). Common Pokémon are caught practically every time, a healthy Onix about one throw
+  in three, legendaries a few in a hundred; weakening helps a lot. A miss costs nothing.
+- **Other dials set to twice Junior** (0035): opposing Pokémon deal 50% damage (was 60%); the rival,
+  Elite Four and Champion bring three Pokémon (was four). How "twice as easy" was read for each
+  dial is in `docs/ACCESSIBILITY.md`. **Experience was left at ×2.5** because Jake asked earlier for
+  it to be left alone (twice Junior would be ×3). Wild encounter rate (50%, Junior 75%) was left
+  as pacing rather than difficulty. Both are one number each if Jake wants them changed.
+- **Diagonal arrow** (0036): shown when the path turns a corner within seven steps and either
+  direction is an equally good first step. See `docs/ARCHITECTURE.md`.
+- **Found on the way and fixed** (0037): the battle box flashed white for up to six frames every
+  time the buttons came back. It had been there since patch 0032, so it is in `v0.1.0-dev.2`.
+  Also (0038) the up arrow sat further from the player than the others.
+- **README**: six screenshots (committed in `docs/screenshots/` at Jake's request, a change from
+  the earlier "screenshots stay local" rule: see `docs/GRAPHICS.md`), a simple "download the patch
+  and add it" guide, and the build guide kept.
+- **Checked on the final build** (ROM SHA-1 `7d7e33b779032bddfe3cdcaceb6a9c3b96b18314`): 34 unit
+  tests, 81 emulator tests, and the whole game by arrow and A (Hall of Fame at 206 minutes of
+  play). An independent reviewer examined all 26 sheets of the screen tour; its real findings were
+  the white flash and a tour scene that no longer showed a beaten Pokémon, both fixed, and the
+  changed scenes were looked at again afterwards.
+- **Not checked:** nobody has played this build by hand; no child has tried catching with misses;
+  the left, down-left and down-right arrows were not seen in the tour (they are flips of pictures
+  that were); headless mGBA 0.10.5 only.
+- **Open question put to Jake:** he asked for the repository to be made public. That reverses the
+  project's standing rule, so it waits for his explicit confirmation after being told what it
+  exposes (Nintendo-derived patch fragments and screenshots, his name and email in the history,
+  session links in commit messages, issue #1). Until he confirms, the repo stays private.
 
 ## Session 5 — Jake's ChatGPT artwork is in the game (patch 0034)
 
@@ -44,7 +79,7 @@ replace the drawings and be merged.
   plus our own hearts, Yes/No tick and cross, navigation arrow, confetti, and brighter map colours
   (`LT_VividPalette`). Tiles, sprites, battle backgrounds and fonts are original FireRed.
 - **Milestones 6–7: mostly not started** (party/storage/Pokédex simplification, following Pokémon).
-- All game changes are in `patches/` (34 files).
+- All game changes are in `patches/` (38 files).
 - **Pre-release `v0.1.0-dev`** (2026-11-24, at Jake's request): the BPS patch and its checksum on
   the private repo's Releases page, built from commit `a749e31`. No ROM is attached, and none ever
   should be. It does not contain the session 4 fixes or the illustrated pictures.
@@ -103,8 +138,9 @@ the whole-game run on `main`.
   sprite pack is used.
 
 ## Next actions (in order)
-1. **Ask Jake what he thinks of the pictures in `v0.1.0-dev.2`**: the Start menu pictures are small,
-   and CHANGE is now a friendly face with no "swap" cue (see `docs/KNOWN_ISSUES.md`).
+1. **Jake's answers wanted:** whether to make the repository public (see session 6 above); whether
+   rare Pokémon are now too hard to catch on Little Trainer (a floor would be one rule); and what
+   he thinks of the pictures (small Start menu pictures; CHANGE has no "swap" cue).
 2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
    them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
    The parent checklist is at the end of `docs/TESTING.md`.

@@ -1,0 +1,21 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 17:11:12 +1100
+Subject: fix: the up arrow sits as close to the player as the others
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/little_trainers_nav.c b/src/little_trainers_nav.c
+index 90322306d..95b9361ad 100644
+--- a/src/little_trainers_nav.c
++++ b/src/little_trainers_nav.c
+@@ -894,7 +894,7 @@ static const struct SpriteTemplate sArrowTemplate =
+ static const s8 sArrowOffset[][2] =
+ {
+     [DIR_SOUTH] = {  0,  30},
+-    [DIR_NORTH] = {  0, -24},
++    [DIR_NORTH] = {  0, -19},   // (the top rows of the player's picture are empty: this leaves the same gap as below)
+     [DIR_WEST]  = {-20,   8},
+     [DIR_EAST]  = { 20,   8},
+ };

@@ -1,6 +1,22 @@
 # Known issues and limitations
 
 ## Open
+- **Rare Pokémon are now hard to catch on Little Trainer.** Five times the original odds is still
+  small for the rarest: a healthy Snorlax about one ball in six, a healthy legendary bird or Mewtwo
+  about two in a hundred (about four in a hundred when nearly beaten). Balls are free, so a child
+  can keep pressing CATCH, but each miss gives the wild Pokémon a turn, and a non-reader will not
+  know that weakening it first helps. None of these are needed to finish the game. A floor (say,
+  never worse than one in three) would be a one-line rule if Jake wants it.
+- **A miss is told in words** ("Oh, no! The POKéMON broke free!"), like the rest of the original
+  battle messages.
+- **Diagonal arrows only appear near a corner** (within seven steps of it) and only when both
+  directions are equally good; on a long straight stretch the arrow stays straight even if the
+  goal is off to one side. The four straight arrows and the up-and-right family have been seen on
+  screen; not every diagonal has been looked at in every kind of place (caves, water, indoors).
+- **Confetti can cover the arrow** for a moment while it falls after a badge.
+- **Battles on Little Trainer are easier again** (50% damage taken, three-Pokémon bosses). With an
+  A-masher winning the whole game before this change, it may now be too easy for an older child:
+  Junior is the step up.
 - **Start menu pictures are only 14 pixels.** The illustrated bag, save disk and cog are
   recognisable but coarse; the larger versions in `assets/generated/v1/menu-32/` need a bigger
   menu (a code change) before they can be used. The Pokédex and trainer card pictures have not

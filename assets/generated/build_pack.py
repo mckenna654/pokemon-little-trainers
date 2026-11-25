@@ -114,7 +114,7 @@ def before_after(name, old, new, palette, per_row, scale, gap=4):
 # --- checks ----------------------------------------------------------------------------------------
 def validate():
     expected = {"battle_icons.png": (32, 32 * len(BATTLE)), "battle_ring.png": (32, 32),
-                "battle_marker.png": (8, 8), "hearts.png": (72, 8), "nav_arrow.png": (16, 32),
+                "battle_marker.png": (8, 8), "hearts.png": (72, 8), "nav_arrow.png": (16, 48),
                 "confetti.png": (32, 8), "start_menu_icons.png": (16, 16 * len(MENU)),
                 "yes_no_icons.png": (16, 32), "title_banner.png": (32, 128)}
     report = {}

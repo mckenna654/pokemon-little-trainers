@@ -73,11 +73,11 @@
     "nav_arrow.png": {
       "size": [
         16,
-        32
+        48
       ],
       "bit_depth": 4,
       "palette_entries": 16,
-      "sha256": "f202b208cf93b650017ff6e5368ca34df93fea46dc3611802d043a93877fc761"
+      "sha256": "4e0488e2e56ff4b45e99a81f7212fd7ecb95f684fa9b15999d8bd9c060797451"
     },
     "confetti.png": {
       "size": [

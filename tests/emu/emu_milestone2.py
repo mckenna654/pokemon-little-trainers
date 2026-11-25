@@ -110,7 +110,7 @@ class SimpleBattleMenu(BattleTestCase):
         self.assertEqual(self.fight(), WON)
         self.assertEqual(g.party()[0].moves, [GROWL, LEER, 0, 0], "real moves untouched after the battle")
 
-    def test_catch_is_one_press_with_an_empty_bag(self):
+    def test_catching_needs_no_bag_and_no_ball_in_it(self):
         g = self.g
         for expected_party in (2, 3):
             story.find_wild_battle(g)

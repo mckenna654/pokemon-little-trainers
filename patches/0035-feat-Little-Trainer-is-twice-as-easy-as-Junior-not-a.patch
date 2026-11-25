@@ -1,0 +1,114 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Wed, 25 Nov 2026 16:47:28 +1100
+Subject: feat: Little Trainer is twice as easy as Junior, not all-or-nothing
+
+Catching is no longer guaranteed on Little Trainer: a ball has five times the
+original odds (Junior has two and a half), so common Pokemon are caught almost
+every time, rare ones usually break free, and weakening one first helps. A
+miss costs nothing: the free ball is never used up.
+
+Opposing Pokemon deal 50% damage (was 60%); with the player's 150% that is
+twice Junior's edge in battle. Rival, Elite Four and Champion bring at most
+three Pokemon (was four; Junior five). Experience is unchanged.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index a879c26d8..e87fbb5dc 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -4,7 +4,7 @@
+ // Pokemon: Little Trainers - central rules for the preschool-friendly presets.
+ //
+ // Engine code never hard-codes Little Trainers behaviour. It asks this module, e.g.
+-//     if (LT_Rules()->guaranteedCatch) ...
++//     if (LT_Rules()->healAfterBattle) ...
+ // so every rule can be tuned or switched off here, per difficulty preset.
+ 
+ enum
+@@ -23,9 +23,10 @@ enum
+ struct LtRules
+ {
+     // Catching
+-    bool8 guaranteedCatch;      // every ball thrown at a catchable wild Pokemon succeeds
+     bool8 freeBalls;            // Poke Balls are never used up and are always available
+-    u8 catchRatePercent;        // scales catch odds when not guaranteed (100 = original)
++    u16 catchRatePercent;       // scales the original game's catch odds (100 = original, 500 = five
++                                // times as likely). Never a certainty: the odds still depend on the
++                                // Pokemon, its health and the ball, as they always did.
+ 
+     // Recovery and losing
+     bool8 healAfterBattle;      // full party heal (HP, PP, status) when a battle ends
+diff --git a/src/battle_script_commands.c b/src/battle_script_commands.c
+index 544f7e666..d15a65b7c 100644
+--- a/src/battle_script_commands.c
++++ b/src/battle_script_commands.c
+@@ -9643,12 +9643,11 @@ static void Cmd_handleballthrow(void)
+         if (gBattleMons[gBattlerTarget].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON))
+             odds = (odds * 15) / 10;
+ 
+-        // Little Trainers: catching is guaranteed (or just easier) depending on the preset.
+-        // Trainer, ghost and tutorial battles were already handled above and are unaffected.
+-        if (LT_Rules()->guaranteedCatch)
+-            odds = 255;
+-        else
+-            odds = odds * LT_Rules()->catchRatePercent / 100;
++        // Little Trainers: catching is easier by a factor that depends on the preset, but it
++        // keeps the original game's shape: common Pokemon are easy, rare ones are hard, and
++        // weakening one first helps. Trainer, ghost and tutorial battles were already handled
++        // above and are unaffected.
++        odds = odds * LT_Rules()->catchRatePercent / 100;
+ 
+         if (gLastUsedItem != ITEM_SAFARI_BALL)
+         {
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 89fbf9875..d9cc20b40 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -26,9 +26,8 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+ {
+     [LT_DIFFICULTY_LITTLE] =
+     {
+-        .guaranteedCatch = TRUE,
+         .freeBalls = TRUE,
+-        .catchRatePercent = 100,
++        .catchRatePercent = 500,          // twice Junior
+         .healAfterBattle = TRUE,
+         .noLossPenalty = TRUE,
+         .autoRespawn = TRUE,
+@@ -39,7 +38,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .playerNeverMisses = TRUE,
+         .enemyNoCrits = TRUE,
+         .playerDamagePercent = 150,
+-        .enemyDamagePercent = 60,
++        .enemyDamagePercent = 50,         // with 150% dealt: three times the edge of the original, twice Junior's
+         .playerStatusShield = TRUE,
+         .versionExclusivePercent = 35,
+         .encounterRatePercent = 50,
+@@ -55,7 +54,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .noSideTrips = TRUE,
+         .trainerPartyCap = 2,
+         .leaderPartyCap = 2,
+-        .bossPartyCap = 4,
++        .bossPartyCap = 3,                // (half of Junior's five, rounded up)
+         .autoLearnMoves = TRUE,
+         .tradeEvoLevel = 36,
+         .friendshipEvoThreshold = 150,
+@@ -67,7 +66,6 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+     },
+     [LT_DIFFICULTY_JUNIOR] =
+     {
+-        .guaranteedCatch = FALSE,
+         .freeBalls = TRUE,
+         .catchRatePercent = 250,
+         .healAfterBattle = TRUE,
+@@ -108,7 +106,6 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+     },
+     [LT_DIFFICULTY_CLASSIC] =
+     {
+-        .guaranteedCatch = FALSE,
+         .freeBalls = FALSE,
+         .catchRatePercent = 100,
+         .healAfterBattle = FALSE,

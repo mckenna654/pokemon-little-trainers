@@ -15,6 +15,7 @@ Outputs (all 16-colour indexed, GBA-ready):
     battle_icons.png   32 px wide strip, one 32x32 button per icon, in the order of ICONS below
     battle_ring.png    32x32 selection ring
     battle_marker.png  8x8 star shown on the recommended attack
+    nav_arrow.png      16x48: the walking arrow pointing up, right, and up-and-right
     hearts.png         72x8 strip of health hearts (empty, half, full), drawn with the colours of
                        the game's own health-box palette so no extra palette is needed
     title_banner.png   32x128: the "LITTLE TRAINERS" title-screen banner as four 32x32 sprites
@@ -414,12 +415,19 @@ PLAYER_PALETTE = [(131, 123, 164), (172, 123, 65), (255, 197, 148), (222, 148, 1
 
 
 def nav_arrow_sheet():
-    """16x32: an arrow pointing up, and under it one pointing right (the game flips them for down
-    and left). One flat colour with a dark outline. The two frames are stacked, not side by side:
-    the game reads a sprite sheet four tiles (one 16x16 frame) at a time, in rows of the image."""
+    """16x48: an arrow pointing up, under it one pointing right, and under that one pointing up
+    and to the right (the game flips them for the other five directions). One flat colour with a
+    dark outline. The frames are stacked, not side by side: the game reads a sprite sheet four
+    tiles (one 16x16 frame) at a time, in rows of the image."""
     up = [(7.5, 1), (14.5, 8), (10, 8), (10, 15), (5, 15), (5, 8), (0.5, 8)]
     right = [(16 - y, x) for x, y in up]
-    return [row for pts in (up, right) for row in render([(poly(pts), 13)], size=16, outline_colour=15)]
+    # The same arrow turned an eighth of a turn about the middle of the frame, a little shorter
+    # so that its corners stay inside. Mirror images of each other across the diagonal.
+    half, shaft, tip, tail, barb = 6.4, 1.9, 8.2, 8.2, 1.8
+    along = lambda a, b: (8 + (a + b) * 0.7071, 8 + (b - a) * 0.7071)          # a: towards the point, b: to its right
+    up_right = [along(tip, 0), along(barb, half), along(barb, shaft), along(-tail, shaft),
+                along(-tail, -shaft), along(barb, -shaft), along(barb, -half)]
+    return [row for pts in (up, right, up_right) for row in render([(poly(pts), 13)], size=16, outline_colour=15)]
 
 
 def confetti_sheet():

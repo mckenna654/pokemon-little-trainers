@@ -33,6 +33,8 @@ SUBSTRUCT_ORDER = ["GAEM", "GAME", "GEAM", "GEMA", "GMAE", "GMEA", "AGEM", "AGME
                    "EGAM", "EGMA", "EAGM", "EAMG", "EMGA", "EMAG", "MGAE", "MGEA", "MAGE", "MAEG", "MEGA", "MEAG"]
 
 
+B_OUTCOME_CAUGHT = 7
+
 class Mon:
     """A decoded struct Pokemon (100 bytes)."""
 
@@ -222,6 +224,11 @@ class FireRed(GBA):
         self.run_script([0x5C, 0x03] + self._u16(trainer_id) + [0, 0] + ptr, wait=False)
         self.run_until(self.in_battle, max_frames=900, what="trainer battle to start")
 
+    def start_wild_battle(self, species, level):
+        """Meet a chosen wild Pokemon where the player stands (test set-up: setwildbattle, dowildbattle)."""
+        self.run_script([0xB6] + self._u16(species) + [level, 0, 0, 0xB7], wait=False)
+        self.run_until(self.in_battle, max_frames=900, what="wild battle to start")
+
     # --- navigation arrow -------------------------------------------------------------------
     NAV_DIRS = {1: "DOWN", 2: "UP", 3: "LEFT", 4: "RIGHT"}
 
@@ -238,9 +245,8 @@ class FireRed(GBA):
         x, y = self.position()
         return self.r8(field + (y + 7) * width + (x + 7))
 
-    def nav_arrow(self):
-        """The direction the on-screen arrow is pointing right now, or None if it is hidden.
-        Read from the arrow sprite itself, so this is exactly what the player sees."""
+    def _arrow_anim(self):
+        """Which picture the arrow sprite is showing (0-3 straight, 4-7 diagonal), or None if hidden."""
         sprite_id = self.r8(self.sym("sArrowSpriteId"))
         if sprite_id >= 64:
             return None
@@ -248,7 +254,33 @@ class FireRed(GBA):
         flags = self.r8(sprite + 0x3E)
         if not flags & 1 or flags & 4:                      # not in use, or invisible
             return None
-        return ("DOWN", "UP", "LEFT", "RIGHT")[self.r8(sprite + 0x2A) & 3]
+        return self.r8(sprite + 0x2A)
+
+    def nav_arrow_shown(self):
+        """The arrow exactly as the player sees it: "UP", "DOWN", "LEFT", "RIGHT", one of the four
+        diagonals ("UP-RIGHT" and so on), or None if it is hidden. Read from the sprite itself."""
+        anim = self._arrow_anim()
+        if anim is None:
+            return None
+        return ("DOWN", "UP", "LEFT", "RIGHT", "UP-RIGHT", "UP-LEFT", "DOWN-RIGHT", "DOWN-LEFT")[anim & 7]
+
+    def nav_arrow(self):
+        """The next step of the path the arrow is showing, or None if the arrow is hidden. For a
+        straight arrow this is where it points; a diagonal arrow points between this direction
+        and nav_arrow_second()."""
+        shown = self.nav_arrow_shown()
+        if shown is None:
+            return None
+        if "-" not in shown:
+            return shown
+        return self.NAV_DIRS.get(self.r8(self.sym("sShownDir")))
+
+    def nav_arrow_second(self):
+        """The other direction of a diagonal arrow (just as good as nav_arrow()), else None."""
+        shown = self.nav_arrow_shown()
+        if shown is None or "-" not in shown:
+            return None
+        return self.NAV_DIRS.get(self.r8(self.sym("sShownDir2")))
 
     def follow_arrow(self, until, max_actions=4000, on_battle=None, what="goal"):
         """Play using only what a child would see: walk where the arrow points, and press A when
@@ -386,8 +418,28 @@ class FireRed(GBA):
     def special(self):
         self.press_button(self.SPECIAL)
 
-    def catch(self):
+    def throw_ball(self):
+        """One press of CATCH. True if the ball caught the Pokemon; False if it broke free and the
+        battle menu is back. (On Little Trainer about seven throws in ten catch.)"""
         self.press_button(self.CATCH)
+        return self._ball_thrown()
+
+    def _ball_thrown(self):
+        self.run_until(lambda: self.battle_outcome() == B_OUTCOME_CAUGHT or self.at_action_menu() or not self.in_battle(),
+                       mash="B", step=10, max_frames=3600, what="the ball to catch, or the Pokemon to break free")
+        if self.battle_outcome() == B_OUTCOME_CAUGHT:
+            return True
+        self.frames(4)
+        return False
+
+    def catch(self, max_throws=40):
+        """Throw balls until one catches. Returns how many it took."""
+        for throws in range(1, max_throws + 1):
+            if self.throw_ball():
+                return throws
+            if not self.in_battle():
+                raise EmulatorError("the battle ended without a catch")
+        raise EmulatorError(f"{max_throws} balls and nothing caught")
 
     def run_away(self):
         self.press_button(self.RUN)
@@ -409,8 +461,9 @@ class FireRed(GBA):
         self._move_cursor(self.sym("gMoveSelectionCursor"), slot)
         self.press("A", wait=20)
 
-    def throw_ball(self):
-        """BAG -> Poke Balls pocket -> first ball -> USE."""
+    def throw_ball_from_bag(self):
+        """The original menus (Junior, Classic): BAG -> Poke Balls pocket -> first ball -> USE.
+        True if the ball caught the Pokemon; False if it broke free and the menu is back."""
         self.choose_action(1)
         self.run_until(lambda: self.callback2() == "CB2_BagMenuRun", max_frames=600, what="bag to open")
         self.frames(60)
@@ -424,6 +477,8 @@ class FireRed(GBA):
         self.press("A", wait=30)     # pick the first item
         self.press("A", wait=30)     # USE
         self.run_until(lambda: self.callback2() != "CB2_BagMenuRun", max_frames=600, what="bag to close")
+        self.frames(30)
+        return self._ball_thrown()
 
     def shot(self, name):
         self.screenshot(os.path.join(SHOTS, name + ".png"))
