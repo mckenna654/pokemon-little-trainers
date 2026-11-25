@@ -73,7 +73,8 @@ Other commands: `scripts/build.sh baseline` (must byte-match v1.1), `scripts/bui
 - Delete a branch after its PR merges.
 
 ## Accessibility principles (apply to every change)
-Assume the player cannot read, mashes A, and gives up when punished. Prefer icons over words,
+Assume the player cannot read, mashes A, and gives up when punished. Put a picture beside the word (pictures
+help a child learn to read; they do not replace the words),
 never punish mistakes, never allow permanent loss (Pokémon, items, progress), keep battles short,
 always show where to go, keep the child's choices meaningful (do not auto-play the game).
 Details and the review checklist: `docs/ACCESSIBILITY.md`.

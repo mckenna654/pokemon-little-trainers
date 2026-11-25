@@ -8,7 +8,10 @@ has little patience for repetition; does not understand type charts, inventories
 and earn badges with very little adult help.
 
 ## Rules every feature must pass
-1. **No reading required** for anything on the critical path. Icons first, one or two words second.
+1. **No reading required** for anything on the critical path, **but the words stay.** A picture
+   comes first and its word sits beside it. The pictures are there to help a child learn the
+   words, not to replace reading (Jake, 2026-11-25): do not remove a word because a picture now
+   says the same thing, and give a new picture its word.
 2. **Mashing A is safe.** It must never discard a Pokémon or item, overwrite a save, or pick a
    harmful option. The default option is always the kind one.
 3. **Nothing is lost for good.** No money loss, no permanently missed Pokémon, no released Pokémon,

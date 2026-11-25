@@ -4,8 +4,8 @@
 
 # Pokémon: Little Trainers
 
-**A preschool-friendly Pokémon FireRed modification: battles by picture, an arrow to follow,
-easy catching and nothing lost by losing.**
+**A preschool-friendly Pokémon FireRed modification: pictures that help with the words, an arrow
+to follow, easy catching and nothing lost by losing.**
 
 ![status](https://img.shields.io/badge/status-test%20build%20v0.1.0--dev.3-orange)
 ![base](https://img.shields.io/badge/base-FireRed%20v1.1-red)
@@ -13,11 +13,17 @@ easy catching and nothing lost by losing.**
 
 </div>
 
-Little Trainers adapts Pokémon FireRed for children aged three to six: a child who cannot read
+Little Trainers adapts Pokémon FireRed for children aged three to six: a child who cannot read yet
 should be able to choose a Pokémon, explore, catch, battle, evolve and earn badges with very little
 adult help. It is a real GBA ROM hack built from the
 [pret/pokefirered](https://github.com/pret/pokefirered) decompilation, and it runs on any standard
 GBA emulator.
+
+**The pictures are there to help a child learn to read, not to replace reading.** The words stay
+on screen beside them: the Start menu shows a backpack next to the word BAG, the battle buttons
+show each attack's name beside its picture, and Yes and No keep their words next to the tick and
+the cross. A child can play by the pictures today and pick up the words as they go. The story,
+the signs and what people say are still written, for reading together.
 
 | | | |
 | :---: | :---: | :---: |
@@ -34,7 +40,8 @@ GBA emulator.
 - **Hearts instead of numbers**, healing after every battle, and nothing lost by losing.
 - **Easy catching:** balls are free and never run out. Common Pokémon are caught almost every
   time; rare ones may take a few throws.
-- **No reading needed to get on:** no typing, no nickname questions, ticks and crosses on Yes/No.
+- **Pictures beside the words, not instead of them:** a child who cannot read yet can still get
+  on, with no typing and no nickname questions, and sees the word next to every picture.
 - **Three difficulty modes** a parent can switch between at any time: see below.
 
 The full list is in [CHANGELOG.md](CHANGELOG.md), and the design rules in
@@ -44,7 +51,7 @@ The full list is in [CHANGELOG.md](CHANGELOG.md), and the design rules in
 A grown-up picks the mode in the game's **OPTION** menu, under **MODE**. A new game starts on
 Little Trainer. The mode can be changed at any time and the new rules apply from then on.
 
-- **Little Trainer** (ages 3 to 4, the default). For a child who cannot read. Battles are picture
+- **Little Trainer** (ages 3 to 4, the default). For a child who cannot read yet. Battles are picture
   buttons, the arrow shows the way, puzzles are already solved, and nothing can go badly wrong.
   It is about twice as easy as Junior.
 - **Junior Trainer** (ages 5 to 6). For a child who is starting to read and wants the real menus.
