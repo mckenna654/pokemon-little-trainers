@@ -47,6 +47,7 @@ Build: ROM SHA-1 `7d7e33b779032bddfe3cdcaceb6a9c3b96b18314`. Emulator: headless 
 | The box never shows a half-drawn menu | `emu_playtest1.py`: every frame of a turn is looked at; **failed before the fix** (all 120 sample points blanked for six frames) | Pass |
 | Regular suite | `scripts/test.sh`: 34 unit tests, 82 emulator tests (1 skipped: the opt-in whole-game run) | Pass |
 | Whole game by arrow and A | `LT_FULL_RUN=1 python3 -m unittest tests.emu.emu_full_game` on this build: 8 badges, Hall of Fame at 206 minutes of play. (Also passed on the build before the flash fix, at 212 minutes.) | Pass |
+| CI and release build | GitHub on `main` at `1b30874` (run 45561805585): baseline, build, unit and emulator tests, whole-game play-through. `scripts/release.sh` locally: clean rebuild gives the same ROM; the published patch applied to the original ROM gives SHA-1 `7d7e33b7…` | Pass |
 | Screens | Screen tour (319 screens, 27 sheets) with new scenes: a diagonal arrow, a hard-to-catch Pokémon with misses. An independent reviewer examined all 26 sheets of the tour taken before the flash fix | Found the white flash and a tour scene that no longer showed a beaten Pokémon (both fixed); other points below |
 
 The reviewer's other points: confetti can cover the arrow for a moment (known issue); the up

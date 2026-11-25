@@ -86,7 +86,11 @@ replace the drawings and be merged.
 - **Pre-release `v0.1.0-dev.2`** (2026-11-25, at Jake's request): patch and checksum only, built
   from `main` at `c18e329` (patched ROM SHA-1 `3074c0e690ce1502423ca873a24029f83a984d7f`). It has
   the session 4 fixes and the illustrated pictures. A clean rebuild reproduced the tested build
-  exactly. Further pre-releases still need Jake's say-so each time.
+  exactly.
+- **Pre-release `v0.1.0-dev.3`** (2026-11-25, at Jake's request): patch and checksum only, built
+  from `main` at `1b30874` (patched ROM SHA-1 `7d7e33b779032bddfe3cdcaceb6a9c3b96b18314`). Session 6's
+  changes. A clean rebuild reproduced the tested build exactly, and CI on that commit passed
+  including the whole-game run. Further pre-releases still need Jake's say-so each time.
 - **Jake's first playtest (2026-11-24)** of that build found four visible defects in the first
   five minutes (GitHub issue #1). Session 4 fixed them and four more found while looking.
 
