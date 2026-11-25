@@ -42,11 +42,12 @@ Build: ROM SHA-1 `3074c0e690ce1502423ca873a24029f83a984d7f`. Emulator: headless 
 | Title letters are separate; plaque is solid | `tests/test_art.py`; the letter test failed on the first export (LITTLE came out as four shapes) | Pass |
 | The bag is a green bag | `tests/test_art.py`; failed on the first export (13 green pixels, 85 grey) | Pass |
 | Pictures fit the game's limits (sizes, menu rows, ring colour, palettes), generator copies the pack | `tests/test_art.py` | Pass |
-| Regular suite | `scripts/test.sh`: 32 unit tests, 75 emulator tests (1 skipped: the opt-in whole-game run) | Pass |
+| Regular suite | `scripts/test.sh`: 32 unit tests (34 after two colour-matching tests were added), 75 emulator tests (1 skipped: the opt-in whole-game run) | Pass |
 | Screens, old build against new | Screen tour of each (216 screens each, checkpoints warm): 197 identical; 19 differ, every differing pixel inside the title plaque, the battle button row or the Start menu picture column | Pass |
 | Changed screens looked at | Title, wild battle menu, trainer battle menu (with CHANGE), Start menu, enlarged, by Claude; all 21 buttons and 9 menu pictures as enlarged previews | No defects seen; doubts in `docs/KNOWN_ISSUES.md` |
 | Independent look at every sheet | A reviewer with no knowledge of the change examined all 19 sheets of the **first export** | Found the title ("UTTLE TRAINERS", stray pixels) and the bag (unnameable); both fixed by re-exporting. Its other points were present before the change (see below) |
-| Whole game by arrow and A | Not repeated locally: no code changed. CI runs it on `main` | See CI |
+| Whole game by arrow and A | Not repeated locally: no code changed. GitHub ran it on `main` at `c18e329` (run 45528579646) | Pass (CI) |
+| Release build | `scripts/release.sh`: clean rebuild, then the suite again (34 unit tests, 75 emulator tests, 1 skipped). Same ROM and patch hashes as the build tested above; the published patch applied to the original ROM gives SHA-1 `3074c0e6…` | Pass |
 
 The reviewer's other points, each checked against the old build's tour, where the same pixels
 appear: hearts jumping in the forced leader fight (the tour writes HP to memory, as its labels

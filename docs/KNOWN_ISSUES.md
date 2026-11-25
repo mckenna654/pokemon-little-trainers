@@ -66,8 +66,8 @@
   is included yet. See `docs/GRAPHICS.md`.
 - **Only one emulator core tested:** mGBA 0.10.5 (headless). No device compatibility is claimed.
 - **Manual play so far:** Jake, the opening and first rival battle of `v0.1.0-dev` in mGBA 0.10.5
-  on Windows (2026-11-24). What he found is GitHub issue #1 and is fixed on `develop`; the fixed
-  build has not been played by a person yet.
+  on Windows (2026-11-24). What he found is GitHub issue #1 and is fixed in `v0.1.0-dev.2`, which
+  has not been played by a person yet.
 - **Slow moments:** the arrow's path is worked out in one go when the map or goal changes, which
   can take longer than one frame on big maps (a brief hitch, not measured on real hardware).
 - **Vanilla saves unsupported:** start a fresh save with Little Trainers.

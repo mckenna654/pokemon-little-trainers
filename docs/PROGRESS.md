@@ -24,7 +24,7 @@ replace the drawings and be merged.
   19 different, every difference inside the title plaque, the button row or the Start menu
   pictures. A reviewer who had not seen the change examined all 19 sheets of the first export;
   its two real findings (title, bag) are what the re-export fixed. The whole-game run was not
-  repeated locally (no code changed); CI runs it on `main`.
+  repeated locally (no code changed); GitHub ran it on `main` at `c18e329` and it passed.
 - **Not checked:** nobody has played this build by hand; no child has been asked to name the
   pictures; 16 type symbols and the Pokédex/card pictures were seen only as enlarged previews;
   headless mGBA 0.10.5 only.
@@ -44,10 +44,14 @@ replace the drawings and be merged.
   plus our own hearts, Yes/No tick and cross, navigation arrow, confetti, and brighter map colours
   (`LT_VividPalette`). Tiles, sprites, battle backgrounds and fonts are original FireRed.
 - **Milestones 6–7: mostly not started** (party/storage/Pokédex simplification, following Pokémon).
-- All game changes are in `patches/` (33 files).
+- All game changes are in `patches/` (34 files).
 - **Pre-release `v0.1.0-dev`** (2026-11-24, at Jake's request): the BPS patch and its checksum on
   the private repo's Releases page, built from commit `a749e31`. No ROM is attached, and none ever
-  should be. **It does not contain the session 4 fixes**: a new pre-release needs Jake's say-so.
+  should be. It does not contain the session 4 fixes or the illustrated pictures.
+- **Pre-release `v0.1.0-dev.2`** (2026-11-25, at Jake's request): patch and checksum only, built
+  from `main` at `c18e329` (patched ROM SHA-1 `3074c0e690ce1502423ca873a24029f83a984d7f`). It has
+  the session 4 fixes and the illustrated pictures. A clean rebuild reproduced the tested build
+  exactly. Further pre-releases still need Jake's say-so each time.
 - **Jake's first playtest (2026-11-24)** of that build found four visible defects in the first
   five minutes (GitHub issue #1). Session 4 fixed them and four more found while looking.
 
@@ -99,8 +103,8 @@ the whole-game run on `main`.
   sprite pack is used.
 
 ## Next actions (in order)
-1. **Ask Jake whether he wants a new pre-release** with the session 4 fixes (patch and checksum
-   only, never a ROM), and what he thinks of the new CHANGE picture and title plaque.
+1. **Ask Jake what he thinks of the pictures in `v0.1.0-dev.2`**: the Start menu pictures are small,
+   and CHANGE is now a friendly face with no "swap" cue (see `docs/KNOWN_ISSUES.md`).
 2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
    them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
    The parent checklist is at the end of `docs/TESTING.md`.
