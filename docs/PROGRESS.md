@@ -86,10 +86,12 @@ the whole-game run on `main`.
 - **Only the mGBA 0.10.5 core has run it.** No Delta, RetroArch, handheld or real hardware check.
 - A child who leaves the arrow's route is much less tested than one who follows it.
 - Junior and Classic presets: menu and rule checks only, no long play.
-- **Graphics permissions (needs Jake):** the four PokeCommunity threads named in the specification
-  cannot be read by automated tools (HTTP 403), so third-party art terms are unknown and none is
-  used. Either connect the Chrome extension, paste the first post of each thread, or decide that
-  the remaster uses only art drawn for this project.
+- **Graphics (Jake's decision, 2026-11-25):** Jake is regenerating a lot of the artwork himself
+  with ChatGPT and will say when it is in the repo. Nothing has arrived yet. When it does: record
+  each piece in `docs/GRAPHICS.md` (made by Jake with ChatGPT, date), then convert it to what the
+  GBA can show (16 colours per palette, 8x8 tiles, exact sprite sizes) before it goes in the game;
+  expect generated pictures to need cleaning up, and check each on screen with the playtest skill.
+  The four PokeCommunity threads are still unreadable (HTTP 403), so no outside art is used.
 
 ## Next actions (in order)
 1. **Ask Jake whether he wants a new pre-release** with the session 4 fixes (patch and checksum
@@ -97,7 +99,8 @@ the whole-game run on `main`.
 2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
    them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
    The parent checklist is at the end of `docs/TESTING.md`.
-3. Graphics, once the permission question is answered.
+3. Graphics, when Jake's regenerated artwork is in the repo (see above). Do not start a
+   competing set of art in the meantime.
 4. Leftovers in `ROADMAP.md`: pictures for the boy/girl choice, bag and party screens; Fly without
    a menu; missable Pokémon; storage-full handling; simpler dialogue; Milestone 6.
 
