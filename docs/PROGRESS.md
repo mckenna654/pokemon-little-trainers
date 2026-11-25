@@ -1,6 +1,20 @@
 # Progress and handoff
 
-_Last updated: 2026-11-25 (session 6: easier-not-certain rules, diagonal arrow)_
+_Last updated: 2026-11-26 (README presentation and reading-support clarification)_
+
+## README update — 2026-11-26
+
+- Jake requested a more professional public README, with clear positioning for the easier
+  modes, especially Little Trainer for ages 3–4. The introduction now explains that artwork
+  supports written labels and shared reading; adult help may still be needed.
+- Replaced the long numerical mode/catch tables with a short mode comparison linked to the
+  accessibility guide. Retained screenshots, patching/build instructions, experimental Steam Deck
+  guidance, contributors and actual test limitations. Removed broad assurances about independent
+  play, rare catches and loss protection.
+- Documentation only: no game patches, difficulty values, artwork, version, milestone status or
+  known gameplay issues changed. README local links/images/anchors (28), code fences, collapsible
+  section and whitespace checked. Game builds and emulator tests were not rerun for this copy edit.
+- Next development actions remain those listed below; no new release was made.
 
 ## Session 6 — twice as easy as Junior, diagonal arrow, README (patches 0035–0038)
 
