@@ -31,6 +31,21 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
+### 2026-11-25 — Codex artwork pack and source review (no game integration)
+
+- All 33 existing patches replayed cleanly on pinned upstream; local `game/` remains clean.
+- 23 existing unit tests passed (`python3 -m unittest discover -s tests -p 'test_*.py' -t . -v`).
+- Navigation check passed: 30 goals, 25 route tables, 425 maps. Expected notes: Surge/Blaine
+  routes do not solve Junior's original barriers.
+- `assets/generated/build_pack.py` validated 27 transparent source PNGs and nine four-bit
+  graphics sheets: dimensions, palette range, reserved ring colour, menu row spacing, solid title
+  interior, per-source size limit and hashes. Six optional larger menu icons also exported.
+- Visually examined: every old/new battle pair (21), every Start-menu position (nine), and the
+  reduced/reassembled title plaque. Corrected a transparent hole in the title export.
+- **Not performed:** new ROM compilation, baseline comparison, emulator tests, screen tour,
+  whole-game play-through, audio checks or device/child play. This is an asset handoff for
+  Claude to integrate and verify; earlier game results below were not rerun in this session.
+
 ### 2026-11-24 — foundation (baseline build, no gameplay patches)
 | Check | Method | Result |
 | --- | --- | --- |

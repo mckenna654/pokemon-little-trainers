@@ -1,0 +1,62 @@
+# Generated UI artwork — v1
+
+Created for Jake on 2026-11-25 with the built-in OpenAI image generation tool. **Artwork handoff for Claude; not yet integrated into a ROM.**
+
+## Look at these first
+
+- [Battle icons: current / replacement](preview/battle-before-after.png) — all 21, enlarged with nearest-neighbour scaling.
+- [Start menu: current / replacement](preview/menu-before-after.png) — all nine enum positions.
+- [Title plaque](preview/title.png) — 128×32 artwork enlarged eight times.
+- [Actual-size menu strip](preview/menu-native.png).
+
+The “old” pictures are generated from this project's own shape-based UI generator, not extracted FireRed graphics. The large illustrations are deliberately simple and friendly; the final game uses the tiny indexed exports.
+
+## Contents
+
+| Location | Contents |
+| --- | --- |
+| `source/battle/` | 21 separate transparent AI-generated source PNGs, one per existing battle icon |
+| `source/menu/` | Five transparent sources: collection book, backpack, trainer card, save book, settings |
+| `source/title/title.png` | Transparent source for LITTLE TRAINERS subtitle plaque |
+| `gba/` | Nine four-bit indexed PNGs and two JASC palettes using the current game contracts |
+| `menu-32/` | Six optional 32×32 menu pictures, including the reused capture ball; use battle palette. Future UI work only |
+| `prompts.json` | Exact accepted prompt for each of the 27 source images; built-in generation mode |
+| `manifest.json` | Explicit icon order, dimensions, bit depth and SHA-256 hashes |
+| `../build_pack.py` | Repeatable conversion; writes only inside this pack |
+
+CATCH doubles as the Pokémon Start-menu picture. The card is repeated in the two slots used by the engine. CLOSE and RETIRE retain the precise existing pixel symbols. The selection ring, recommended star, hearts, arrow, confetti and Yes/No marks also retain the project's existing pixel art. No new type, battle action or gameplay ability was added.
+
+The 14-pixel menu drawings are constrained by the existing interface and lose facial/book detail. Larger sources and `menu-32/` are provided for a future menu redesign; those larger images cannot replace a 16-pixel sheet without code changes.
+
+## Instructions for Claude
+
+1. Fetch `origin/feature/generated-ui-art` and merge this asset/documentation branch into your development branch after reviewing it. Read [the review](../../../docs/REVIEW-2026-11-25.md).
+2. Set up `game/` using the existing project scripts. Keep all current gameplay fixes.
+3. Copy **the contents of `assets/generated/v1/gba/`** to `game/graphics/little_trainers/`. Filenames, icon order and palette indices are intentionally unchanged. This replaces three illustrations sheets: battle icons, Start-menu icons and title banner. The companion sheets preserve the current art.
+4. Update `assets/ui/make_battle_icons.py` or the art pipeline to preserve/prefer the new pack. **Running the old generator after copying will overwrite the replacements.** The new conversion script is separate so this handoff does not change the development pipeline without your review.
+5. Build, run regular emulator tests and the screen tour. Inspect the title over its animated background; all battle types and actions; selected and recommended overlays; the first rival battle; party-change entry; six-row Start menu; Yes/No boxes; and heart/arrow integrity. Check Junior/Classic too, since they share some UI.
+6. Only after inspecting the compiled screens, commit the game graphics in `game/`, export numbered patches, update the project's handoff/test results, and push. This branch deliberately contains **no new game patch and no ROM**.
+
+Regenerate exports without calling image generation again:
+
+```sh
+python3 -m venv /tmp/little-trainers-art
+/tmp/little-trainers-art/bin/pip install -r assets/generated/requirements.txt
+/tmp/little-trainers-art/bin/python assets/generated/build_pack.py
+```
+
+Pillow is only needed to regenerate/validate this pack. The checked-in PNGs are ready for Claude to copy.
+
+## Technical contracts and validation
+
+- Battle: 32×672, 21 vertically stacked 32×32 frames, existing 24×24 picture area and cream buttons. Index 0 transparent; 14 reserved exclusively for the engine's pulsing ring. Existing battle palette preserved.
+- Start: 16×144, nine vertical 16×16 cells; drawing limited to top-left 14×14 because rows are 15 pixels apart. Only shared menu indices 1–9 used.
+- Title: 32×128 packed as four vertical 32×32 frames. Reassemble left-to-right for the 128×32 wordmark; existing title palette preserved. Solid interior enforced in conversion.
+- Arrow: 16×32, vertical up/right frames. Hearts: 72×8. Yes/No: 16×32. These layouts must not be “tidied” into horizontal sprite sheets.
+- The PNG writer preserves GBA transparency as **palette index 0**, matching the existing generator. Desktop software may show this index as magenta. Source PNGs carry real alpha; the game exports use indexed transparency conventions.
+- Validated: 27 transparent sources, nine four-bit sheets, dimensions, index range, ring reservation, menu row spacing, title interior, per-file repository size guard and hashes. Existing 23 unit tests passed.
+- Visually reviewed: all 21 battle replacements, all nine Start-menu positions, and the packed title export. No in-game screenshots or device play performed in this session.
+
+## Provenance
+
+These are newly AI-generated illustrations, not a ripped sprite pack or Aesthetic Red assets. The capture ball intentionally refers to Pokémon's familiar design; Pokémon names/designs remain associated with their respective owners. No claim of exclusive copyright or third-party licence clearance is made for generated work. Keep this fan project's existing private, non-commercial scope. Attribution register: `docs/GRAPHICS.md`.

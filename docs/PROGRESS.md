@@ -1,6 +1,31 @@
 # Progress and handoff
 
-_Last updated: 2026-11-25 (session 4)_
+_Last updated: 2026-11-25 (Codex artwork handoff after session 4)_
+
+## Artwork handoff — feature/generated-ui-art
+
+Jake asked Codex to review FireRed and this project and generate the artwork, while Claude
+continues development. [Review](REVIEW-2026-11-25.md) and
+[art pack / integration instructions](../assets/generated/v1/README.md).
+
+- 27 generated transparent sources: all 21 battle icons, five menu illustrations and title plaque.
+  Converted to the existing indexed PNG contracts, with exact prompts, hashes and before/after
+  previews. Six larger menu pictures also supplied for future menu work.
+- **Not integrated into game/ or patches/.** The old generator would overwrite copied replacements;
+  Claude must update that pipeline as part of integration, compile, inspect the screen tour and
+  export patches. Version remains 0.1.0-dev.
+- Verified here: 33 existing patches replay cleanly; 23 existing unit tests pass; navigation check
+  passes (30 goals / 25 routes / 425 maps); pack format/alpha/palette/layout checks pass; all art
+  comparison sheets and the reduced title inspected. No fresh ROM build, emulator or child play.
+- Review findings include unguarded original release/toss flows, text-heavy party/storage/bag,
+  retained Pokémon Tower/Game Corner themes and mode/save limitations. See the review before
+  claiming the entire game meets the accessibility rules.
+- **Next action for Claude:** fetch this branch, read the pack README, merge its artwork/docs,
+  integrate the `gba/` sheets and protect them from the legacy generator. Keep experience rates
+  and existing gameplay fixes. Then compile, test, inspect and update handoff.
+
+The session 4 gameplay handoff below remains historical evidence and still describes the current
+game patches; this artwork branch does not supersede its unverified gameplay items.
 
 ## Where things stand
 - **The main story is playable from start to finish without reading.** An automated player that

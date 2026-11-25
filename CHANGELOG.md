@@ -5,6 +5,12 @@ Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 ## [Unreleased] (0.1.0-dev)
 _Pre-release `v0.1.0-dev` (2026-11-24) is this list as it stood at commit `a749e31`: patch only._
 ### Added
+- **Generated UI art handoff (not integrated):** 27 transparent AI-generated source illustrations,
+  nine GBA-format graphics sheets, optional larger menu pictures, palettes, exact prompts,
+  hashes and before/after previews in `assets/generated/v1/`. Claude retains gameplay/integration
+  ownership; no ROM, new gameplay patch or release accompanies this pack.
+- **FireRed / Little Trainers source and design review:** `docs/REVIEW-2026-11-25.md`, including
+  remaining permanent-loss flows, reading requirements, retained story themes and test limits.
 - **Little Trainer rules (Milestone 1)**, all switchable per preset in `src/little_trainers.c`:
   every Poké Ball catches wild Pokémon; a Poké Ball is always in the bag and is never used up;
   the party is fully healed after every battle; experience ×2.5 with half shared to Pokémon that

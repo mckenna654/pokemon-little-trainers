@@ -57,6 +57,9 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 
 ## Milestone 4 — Graphical remaster (v0.4.0, runs alongside)
 - [ ] Our own UI art (icons, hearts, cursor, title branding)
+  - 2026-11-25: Codex supplied 27 generated source illustrations, compatible exports and previews
+    in `assets/generated/v1/`. Integration, compiled screen inspection and child recognition
+    checks remain with Claude; checkbox intentionally stays open.
 - [ ] Palette pass, then tiles for the vertical-slice areas, then the rest of Kanto
 - [ ] Battle backgrounds, fonts, text boxes
 - [ ] Comparison screenshots for the 15 reference scenes

@@ -1,6 +1,16 @@
 # Known issues and limitations
 
 ## Open
+- **Generated UI pack awaits integration:** `assets/generated/v1/` contains new art and compatible
+  exports, but the current game patches still use the old pictures. Claude must preserve the new
+  pack in the art pipeline (the old generator overwrites copies), compile and inspect the screens.
+  At 14 pixels, Start-menu artwork loses detail; optional larger pictures require a UI change.
+- **Permanent-loss rule is not comprehensive:** source review found original Pokémon-release and
+  item-toss flows without Little Trainer guards. See `docs/REVIEW-2026-11-25.md`; no gameplay fix
+  is included in the artwork handoff.
+- **Preschool content pass remains:** Pokémon Tower death/ghost text and Game Corner coin/slot
+  interactions are retained. Jake should choose whether to soften them; easier battles and
+  friendly fainting text do not change those scenes.
 - **MODE replaces BATTLE STYLE** in the OPTION menu; battle style stays on SHIFT. A child who
   opens OPTION could change MODE: it is not locked.
 - **Normal-type special attacks use the generic sparkle symbol.**
