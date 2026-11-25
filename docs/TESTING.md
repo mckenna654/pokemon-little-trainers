@@ -31,7 +31,38 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
-### 2026-11-25 — Codex artwork pack and source review (no game integration)
+### 2026-11-25 — Illustrated artwork integrated (patch 0034)
+
+Build: ROM SHA-1 `3074c0e690ce1502423ca873a24029f83a984d7f`. Emulator: headless mGBA 0.10.5 only.
+
+| Check | Method | Result |
+| --- | --- | --- |
+| The game contains the pack's three pictures and none of the old drawings | `tests/emu/emu_art.py` (looks for each picture's bytes in the ROM); failed before the change | Pass |
+| Nothing else in the ROM changed | Byte comparison with the previous build (rebuilt from its patch): 4,416 bytes differ, all inside the battle buttons, Start menu pictures and title plaque | Pass |
+| Title letters are separate; plaque is solid | `tests/test_art.py`; the letter test failed on the first export (LITTLE came out as four shapes) | Pass |
+| The bag is a green bag | `tests/test_art.py`; failed on the first export (13 green pixels, 85 grey) | Pass |
+| Pictures fit the game's limits (sizes, menu rows, ring colour, palettes), generator copies the pack | `tests/test_art.py` | Pass |
+| Regular suite | `scripts/test.sh`: 32 unit tests, 75 emulator tests (1 skipped: the opt-in whole-game run) | Pass |
+| Screens, old build against new | Screen tour of each (216 screens each, checkpoints warm): 197 identical; 19 differ, every differing pixel inside the title plaque, the battle button row or the Start menu picture column | Pass |
+| Changed screens looked at | Title, wild battle menu, trainer battle menu (with CHANGE), Start menu, enlarged, by Claude; all 21 buttons and 9 menu pictures as enlarged previews | No defects seen; doubts in `docs/KNOWN_ISSUES.md` |
+| Independent look at every sheet | A reviewer with no knowledge of the change examined all 19 sheets of the **first export** | Found the title ("UTTLE TRAINERS", stray pixels) and the bag (unnameable); both fixed by re-exporting. Its other points were present before the change (see below) |
+| Whole game by arrow and A | Not repeated locally: no code changed. CI runs it on `main` | See CI |
+
+The reviewer's other points, each checked against the old build's tour, where the same pixels
+appear: hearts jumping in the forced leader fight (the tour writes HP to memory, as its labels
+say); the player's pixels at the edge of the save box; the small suggested-attack mark that reads
+as a dot; uneven confetti pieces; the player's name differing between the tour's first part and
+the rest (two separate runs). They are recorded in `docs/KNOWN_ISSUES.md` where they matter.
+
+A lesson for comparing tours: the first comparison showed whole battles differing, which was not
+the artwork. A tour that has to create its checkpoints plays out differently from one that loads
+them. Compare tours taken the same way (see the playtest skill).
+
+**Not tested:** play by a person or a child; any other emulator or device; 16 of the type
+symbols and the Pokédex and card pictures on a compiled screen; Junior and Classic screens (they
+share the same pictures; only their existing automated checks ran).
+
+### 2026-11-25 — Codex artwork pack and source review (before integration; Codex's own record)
 
 - All 33 existing patches replayed cleanly on pinned upstream; local `game/` remains clean.
 - 23 existing unit tests passed (`python3 -m unittest discover -s tests -p 'test_*.py' -t . -v`).

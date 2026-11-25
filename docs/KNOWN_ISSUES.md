@@ -1,13 +1,22 @@
 # Known issues and limitations
 
 ## Open
-- **Generated UI pack awaits integration:** `assets/generated/v1/` contains new art and compatible
-  exports, but the current game patches still use the old pictures. Claude must preserve the new
-  pack in the art pipeline (the old generator overwrites copies), compile and inspect the screens.
-  At 14 pixels, Start-menu artwork loses detail; optional larger pictures require a UI change.
+- **Start menu pictures are only 14 pixels.** The illustrated bag, save disk and cog are
+  recognisable but coarse; the larger versions in `assets/generated/v1/menu-32/` need a bigger
+  menu (a code change) before they can be used. The Pokédex and trainer card pictures have not
+  been seen in the game yet (the screen tour stops before the Pokédex is given).
+- **CHANGE is a friendly green face**, which says "a Pokémon" more than "swap". The earlier
+  drawing had a second head and an arrow. No child has been asked what any of the pictures mean.
+- **Only the attack burst, fire, CATCH, RUN and CHANGE buttons have been seen on compiled
+  screens**; the other 16 type symbols were checked only as enlarged previews.
+- **The small yellow mark on the suggested attack** (a star, 8 pixels) reads as a dot. A reviewer
+  who had not been told could not say what it was for.
+- **Save box and the player:** when the save box is open it covers the player except a sliver, so
+  a couple of the player's pixels show at its edge. Same before and after the new pictures; not
+  yet compared with unmodified FireRed.
 - **Permanent-loss rule is not comprehensive:** source review found original Pokémon-release and
   item-toss flows without Little Trainer guards. See `docs/REVIEW-2026-11-25.md`; no gameplay fix
-  is included in the artwork handoff.
+  has been made yet.
 - **Preschool content pass remains:** Pokémon Tower death/ghost text and Game Corner coin/slot
   interactions are retained. Jake should choose whether to soften them; easier battles and
   friendly fainting text do not change those scenes.

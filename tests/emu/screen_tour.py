@@ -7,6 +7,10 @@ a few special moments, pressing A like a child, and writes numbered contact shee
 
     python3 -m tests.emu.screen_tour            # -> builds/screenshots/tour/sheet-01.png ...
 
+To compare two builds, tour each into its own folder: set LT_TOUR_OUT, and LT_TEST_ROM / LT_TEST_SYM
+for the other build. Two tours of builds that differ only in pictures show the same moments, so
+every tile that differs is a picture that changed.
+
 Nothing here asserts anything. Add a scene whenever a new kind of screen is added to the game.
 """
 import hashlib
@@ -20,7 +24,7 @@ from .checkpoints import game_at
 from .firered import FireRed, SHOTS
 from .gba import read_png
 
-OUT = os.path.join(SHOTS, "tour")
+OUT = os.environ.get("LT_TOUR_OUT") or os.path.join(SHOTS, "tour")     # (LT_TOUR_OUT: a second tour beside the first)
 LEADER_BROCK = 414
 FLAG_BADGE02_GET = 0x821
 PER_SHEET, COLUMNS, SCALE, GAP = 12, 3, 3, 12
@@ -97,6 +101,8 @@ def tour():
     for _ in range(4):                           # PRESS START blinks and the flames move: four looks
         g.frames(77)
         t.shot(g, "title screen")
+    while g.callback2() == "CB2_TitleScreenRun":      # leave the title, so the next scene is not a picture of it
+        g.press("A", hold=3, wait=17)
     t.press_through(g, "new game: from the title screen through the Professor's talk",
                     lambda: g.callback2() == "CB2_Overworld", every=4)
     g.frames(120)

@@ -57,9 +57,11 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 
 ## Milestone 4 — Graphical remaster (v0.4.0, runs alongside)
 - [ ] Our own UI art (icons, hearts, cursor, title branding)
-  - 2026-11-25: Codex supplied 27 generated source illustrations, compatible exports and previews
-    in `assets/generated/v1/`. Integration, compiled screen inspection and child recognition
-    checks remain with Claude; checkbox intentionally stays open.
+  - 2026-11-25: battle buttons, Start menu pictures and title plaque are now the illustrations
+    generated for Jake (`assets/generated/v1/`, patch 0034), checked on compiled screens. Still
+    open: 16 of the type symbols and the Pokédex/card pictures have not been seen in the game, the
+    Start menu pictures are small (see `docs/KNOWN_ISSUES.md`), and no child has been asked to
+    name the pictures.
 - [ ] Palette pass, then tiles for the vertical-slice areas, then the rest of Kanto
 - [ ] Battle backgrounds, fonts, text boxes
 - [ ] Comparison screenshots for the 15 reference scenes

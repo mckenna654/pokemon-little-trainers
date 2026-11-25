@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
-"""Convert the generated illustrations into existing Little Trainers graphics contracts.
+"""Turn the large illustrations in v1/source/ into the small pictures the game uses (v1/gba/).
 
-Requires Pillow (requirements.txt). Does not write to game/ or alter the legacy generator.
+    python3 assets/generated/build_pack.py      # about two minutes; needs nothing but Python
+
+Writes only inside this pack. `assets/ui/make_battle_icons.py` then copies the three illustrated
+sheets (battle buttons, Start menu pictures, title plaque) into the game, so after changing a
+source picture run this, then that, then `scripts/build.sh`.
+
+The first version of this script (Codex, 2026-11-25) resized with an image library: smoothly for
+the icons, by nearest pixel for the title. On the compiled screens the title's letters had run
+together ("UTTLE TRAINERS") and the green bag had come out grey. Every picture is now shrunk by
+vote instead (see shrink.py), which needs no image library and can be checked by the unit tests.
 """
 import hashlib
 import importlib.util
 import json
+import struct
+import zlib
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+import shrink
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -21,116 +32,126 @@ art = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(art)
 BATTLE = [name for name, _ in art.ICONS]
 MENU = ["pokedex", "pokemon", "bag", "card", "save", "option", "close", "retire", "card"]
+BATTLE_COLOURS = list(range(2, 14))     # not 0 (see-through), 1 (panel) or 14 (the pulsing ring) or 15 (button cream)
+MENU_COLOURS = [1, 2, 3, 4, 5, 6, 8, 9]   # the colours every field menu window has, except the pale green (7):
+                                        # on the menu's white it left the bag with no edge to speak of
+TITLE_COLOURS = [1, 2, 3, 4]
+PAPER = (241, 239, 231)                 # preview background
 
 
-def illustration(path, width, height, resample):
-    image = Image.open(path).convert("RGBA")
-    # Crop by solid ink, excluding faint generated edge halos. Source alpha is preserved on disk.
-    bounds = image.getchannel("A").point(lambda x: 255 if x >= 192 else 0).getbbox()
-    if bounds is None:
-        raise ValueError(f"No solid artwork: {path}")
-    return ImageOps.contain(image.crop(bounds), (width, height), resample)
+def menu_source(name):
+    """CATCH's capture ball doubles as the Pokémon entry's picture."""
+    return SOURCE / "battle/catch.png" if name == "pokemon" else SOURCE / "menu" / f"{name}.png"
 
 
-def indexed(path, size, palette, allowed, box, resample=Image.Resampling.LANCZOS):
-    image = illustration(path, *box, resample)
-    canvas = Image.new("RGBA", size)
-    canvas.paste(image, ((box[0] - image.width) // 2, (box[1] - image.height) // 2))
-    rows = []
-    for y in range(size[1]):
-        row = []
-        for x in range(size[0]):
-            r, g, b, a = canvas.getpixel((x, y))
-            row.append(0 if a < 160 else min(allowed, key=lambda i: sum((v - c) ** 2 for v, c in zip((r, g, b), palette[i]))))
-        rows.append(row)
+def battle_button(name):
+    return art.button(shrink.shrink(SOURCE / "battle" / f"{name}.png", (24, 24), art.PALETTE, BATTLE_COLOURS))
+
+
+def menu_picture(name):
+    """14x14 in the top-left of a 16x16 cell: the Start menu's rows are 15 pixels apart."""
+    return shrink.shrink(menu_source(name), (16, 16), art.MENU_PALETTE, MENU_COLOURS, box=(14, 14))
+
+
+def title_plaque():
+    """128x32. Generated pictures have faint see-through blemishes; none may stay inside the
+    plaque, or the title screen's flames would show through it."""
+    # The letters are fat and the gaps between them are about one game pixel wide, so the plaque
+    # colour counts double (a gap survives when it covers a third of a pixel) and the thin border
+    # double again. With an even vote the two Ts of LITTLE join and the bottom border breaks up.
+    rows = shrink.shrink(SOURCE / "title/title.png", (128, 32), art.BANNER_PALETTE, TITLE_COLOURS,
+                         weights={art.B_PLAQUE: 2, art.B_SHADE: 4})
+    for row in rows:
+        ink = [x for x, c in enumerate(row) if c]
+        if ink:
+            for x in range(ink[0], ink[-1] + 1):
+                if row[x] == 0:
+                    row[x] = art.B_PLAQUE
     return rows
 
 
+def as_frames(rows, width=32):
+    """A wide picture as the game wants it: `width`-pixel frames stacked vertically."""
+    return [row[f * width:(f + 1) * width] for f in range(len(rows[0]) // width) for row in rows]
+
+
+# --- writers ---------------------------------------------------------------------------------------
 def write(name, rows, palette):
     art.write_indexed_png(str(OUT / name), rows, palette)
-    return rows
 
 
 def pal(name, colours):
     (OUT / name).write_text("JASC-PAL\n0100\n16\n" + "".join(f"{r} {g} {b}\n" for r, g, b in colours))
 
 
-def rgba(rows, palette):
-    result = Image.new("RGBA", (len(rows[0]), len(rows)))
-    result.putdata([(*palette[c], 0 if c == 0 else 255) for row in rows for c in row])
-    return result
+def write_rgb(path, image):
+    def chunk(tag, body):
+        return struct.pack(">I", len(body)) + tag + body + struct.pack(">I", zlib.crc32(tag + body))
+
+    raw = b"".join(b"\x00" + bytes(v for pixel in row for v in pixel) for row in image)
+    path.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", len(image[0]), len(image), 8, 2, 0, 0, 0))
+                     + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
-def contact(name, labels, old, new, palette, cell_size):
-    scale, cols = (4, 6) if cell_size == 32 else (6, 5)
-    width, height = cell_size * scale + 44, cell_size * scale * 2 + 82
-    sheet = Image.new("RGB", (cols * width, ((len(labels) + cols - 1) // cols) * height), "#f1efe7")
-    draw = ImageDraw.Draw(sheet)
-    font = ImageFont.load_default(size=14)
-    for i, label in enumerate(labels):
-        x, y = i % cols * width, i // cols * height
-        draw.text((x + 8, y + 6), f"{i:02} {label}", fill="#282838", font=font)
-        for j, rows in enumerate((old[i], new[i])):
-            icon = rgba(rows, palette).resize((cell_size * scale,) * 2, Image.Resampling.NEAREST)
-            sheet.paste(icon, (x + 28, y + 30 + j * (cell_size * scale + 28)), icon)
-            draw.text((x + 4, y + 30 + j * (cell_size * scale + 28)), "old" if j == 0 else "new", fill="#282838", font=font)
-    sheet.save(PREVIEW / name)
+def enlarged(rows, palette, scale, background=PAPER):
+    return [[palette[c] if c else background for c in row for _ in range(scale)] for row in rows for _ in range(scale)]
 
 
+def before_after(name, old, new, palette, per_row, scale, gap=4):
+    """Pairs in sheet order, left to right then down: the old shape drawing above, the
+    illustration below. (No labels: this script draws no text.)"""
+    size = len(old[0])
+    image = []
+    for start in range(0, len(old), per_row):
+        for cells in (old[start:start + per_row], new[start:start + per_row]):
+            for y in range(size):
+                image.append([c for cell in cells for c in cell[y] + [0] * gap] + [0] * (size + gap) * (per_row - len(cells)))
+            image += [[0] * (size + gap) * per_row] * gap
+        image += [[0] * (size + gap) * per_row] * (2 * gap)
+    write_rgb(PREVIEW / name, enlarged(image, palette, scale))
+
+
+# --- checks ----------------------------------------------------------------------------------------
 def validate():
-    expected = {"battle_icons.png": (32, 672), "battle_ring.png": (32, 32),
+    expected = {"battle_icons.png": (32, 32 * len(BATTLE)), "battle_ring.png": (32, 32),
                 "battle_marker.png": (8, 8), "hearts.png": (72, 8), "nav_arrow.png": (16, 32),
-                "confetti.png": (32, 8), "start_menu_icons.png": (16, 144),
+                "confetti.png": (32, 8), "start_menu_icons.png": (16, 16 * len(MENU)),
                 "yes_no_icons.png": (16, 32), "title_banner.png": (32, 128)}
     report = {}
     for name, size in expected.items():
-        path = OUT / name
-        data = path.read_bytes()
-        with Image.open(path) as image:
-            if image.size != size or image.mode != "P" or data[24:26] != bytes([4, 3]):
-                raise ValueError(f"Wrong graphics contract: {name}")
-            if max(image.get_flattened_data()) > 15:
-                raise ValueError(f"Out of palette: {name}")
+        rows = art.read_indexed_png(str(OUT / name))       # refuses anything but a 4-bit indexed picture
+        if (len(rows[0]), len(rows)) != size:
+            raise ValueError(f"Wrong size: {name}")
         report[name] = {"size": list(size), "bit_depth": 4, "palette_entries": 16,
-                        "sha256": hashlib.sha256(data).hexdigest()}
-    # No icon ink may use the engine's cycling selection-ring index.
-    pixels = list(Image.open(OUT / "battle_icons.png").get_flattened_data())
-    if 14 in pixels:
-        raise ValueError("Battle icon uses animated ring colour")
-    menu = Image.open(OUT / "start_menu_icons.png")
-    for i in range(9):
-        if any(menu.getpixel((x, i * 16 + y)) for x in range(16) for y in (14, 15)):
-            raise ValueError("Menu icon exceeds the 15-pixel row spacing")
-    packed = Image.open(OUT / "title_banner.png")
-    for y in range(32):
-        row = [packed.getpixel((x % 32, x // 32 * 32 + y)) for x in range(128)]
-        ink = [x for x, c in enumerate(row) if c]
-        if ink and any(c == 0 for c in row[ink[0]:ink[-1] + 1]):
-            raise ValueError("Hole inside title plaque")
+                        "sha256": hashlib.sha256((OUT / name).read_bytes()).hexdigest()}
+    if any(14 in row for row in art.read_indexed_png(str(OUT / "battle_icons.png"))):
+        raise ValueError("A battle picture uses the pulsing ring colour")
+    menu = art.read_indexed_png(str(OUT / "start_menu_icons.png"))
+    for i in range(len(MENU)):
+        if any(menu[i * 16 + 14]) or any(menu[i * 16 + 15]):
+            raise ValueError("A menu picture runs into the next menu row")
     sources = {}
     for path in sorted(SOURCE.rglob("*.png")):
-        with Image.open(path) as image:
-            low, high = image.convert("RGBA").getchannel("A").getextrema()
-            if image.mode != "RGBA" or low != 0 or high < 192:
-                raise ValueError(f"Source must preserve true transparency: {path}")
+        rows = shrink.read_rgba(path)[2]                    # refuses anything but 8-bit RGBA
+        if min(min(row[3::4]) for row in rows) != 0 or max(max(row[3::4]) for row in rows) < 192:
+            raise ValueError(f"Source must have a see-through background and solid ink: {path}")
         if path.stat().st_size > 4 * 1024 * 1024:
-            raise ValueError(f"Source exceeds repository size guard: {path}")
+            raise ValueError(f"Source is too large for the repository: {path}")
         sources[str(path.relative_to(PACK))] = hashlib.sha256(path.read_bytes()).hexdigest()
     if len(sources) != 27:
-        raise ValueError(f"Expected 27 generated source images, found {len(sources)}")
+        raise ValueError(f"Expected 27 source pictures, found {len(sources)}")
     (PACK / "manifest.json").write_text(json.dumps({"battle_order": BATTLE, "menu_order": MENU,
                                                    "graphics": report, "source_sha256": sources}, indent=2) + "\n")
-    print(f"Validated {len(sources)} transparent sources and {len(report)} four-bit PNGs; palettes, sprite layout, solid plaque and row spacing checked")
+    print(f"checked {len(sources)} sources and {len(report)} game sheets")
 
 
 def main():
     OUT.mkdir(exist_ok=True)
     PREVIEW.mkdir(exist_ok=True)
-    battle = [art.button(indexed(SOURCE / "battle" / f"{name}.png", (24, 24), art.PALETTE,
-                                list(range(2, 14)), (24, 24))) for name in BATTLE]
+    battle = [battle_button(name) for name in BATTLE]
     write("battle_icons.png", [row for cell in battle for row in cell], art.PALETTE)
     pal("battle_icons.pal", art.PALETTE)
-    # Fine control symbols retain the project's existing original pixel art.
+    # The fine control symbols stay the project's own pixel art; copies are kept here for reference.
     for name, rows, palette in [
         ("battle_ring.png", art.ring(), art.PALETTE),
         ("battle_marker.png", art.render([(art.star(4, 4, 3.4, 1.5, 4), art.YELLOW), (art.ellipse(4, 4, .9), art.WHITE)], size=8), art.PALETTE),
@@ -140,43 +161,24 @@ def main():
         ("yes_no_icons.png", [row for cell in art.yes_no_icons() for row in cell], art.MENU_PALETTE),
     ]:
         write(name, rows, palette)
-    legacy = art.start_menu_icons()
-    menu = []
-    large_menu = []
-    for i, name in enumerate(MENU):
-        if name in ("close", "retire"):
-            menu.append(legacy[i])
-            large_menu.append(None)
-        else:
-            path = SOURCE / "battle/catch.png" if name == "pokemon" else SOURCE / "menu" / f"{name}.png"
-            menu.append(indexed(path, (16, 16), art.MENU_PALETTE, list(range(1, 10)), (14, 14)))
-            large_menu.append(art.button(indexed(path, (24, 24), art.PALETTE, list(range(2, 14)), (24, 24))))
+    drawn = art.start_menu_icons()
+    menu = [drawn[i] if name in ("close", "retire") else menu_picture(name) for i, name in enumerate(MENU)]
     write("start_menu_icons.png", [row for cell in menu for row in cell], art.MENU_PALETTE)
-    # Generated title is a separate 128x32 wordmark, packed as four vertical 32x32 frames.
-    title = indexed(SOURCE / "title/title.png", (128, 32), art.BANNER_PALETTE, [1, 2, 3, 4], (128, 32), Image.Resampling.NEAREST)
-    # Alpha defects inside the solid plaque must not expose the original title animation.
-    for row in title:
-        ink = [x for x, c in enumerate(row) if c]
-        if ink:
-            for x in range(ink[0], ink[-1] + 1):
-                if row[x] == 0:
-                    row[x] = 1
-    write("title_banner.png", [row[f * 32:(f + 1) * 32] for f in range(4) for row in title], art.BANNER_PALETTE)
+    title = title_plaque()
+    write("title_banner.png", as_frames(title), art.BANNER_PALETTE)
     pal("title_banner.pal", art.BANNER_PALETTE)
-    rgba(title, art.BANNER_PALETTE).resize((1024, 256), Image.Resampling.NEAREST).save(PREVIEW / "title.png")
-    contact("battle-before-after.png", BATTLE, [art.button(draw()) for _, draw in art.ICONS], battle, art.PALETTE, 32)
-    contact("menu-before-after.png", MENU, legacy, menu, art.MENU_PALETTE, 16)
-    # Native-size menu strip for checking the real footprint without enlargement.
-    strip = Image.new("RGBA", (16 * 9, 16))
-    for i, cell in enumerate(menu):
-        strip.paste(rgba(cell, art.MENU_PALETTE), (i * 16, 0))
-    strip.save(PREVIEW / "menu-native.png")
-    # Optional larger originals for Claude's future picture-menu work; not drop-in GBA sheets.
-    large_dir = PACK / "menu-32"
-    large_dir.mkdir(exist_ok=True)
-    for name, cell in zip(MENU, large_menu):
-        if cell is not None:
-            art.write_indexed_png(str(large_dir / f"{name}.png"), cell, art.PALETTE)
+
+    # Previews: what changed, enlarged. The game screens themselves are the real check.
+    before_after("battle-before-after.png", [art.button(draw()) for _, draw in art.ICONS], battle, art.PALETTE, 7, 4)
+    before_after("menu-before-after.png", drawn, menu, art.MENU_PALETTE, 9, 6, gap=2)
+    write_rgb(PREVIEW / "title.png", enlarged(title, art.BANNER_PALETTE, 8, (64, 176, 160)))
+    write_rgb(PREVIEW / "menu-native.png", enlarged([[c for cell in menu for c in cell[y]] for y in range(16)], art.MENU_PALETTE, 1, (255, 255, 255)))
+    # Larger menu pictures on battle-style buttons, for a future picture menu; not used by the game.
+    large = PACK / "menu-32"
+    large.mkdir(exist_ok=True)
+    for name in sorted(set(MENU) - {"close", "retire"}):
+        art.write_indexed_png(str(large / f"{name}.png"),
+                              art.button(shrink.shrink(menu_source(name), (24, 24), art.PALETTE, BATTLE_COLOURS)), art.PALETTE)
     validate()
 
 

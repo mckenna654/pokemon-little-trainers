@@ -41,7 +41,7 @@
       ],
       "bit_depth": 4,
       "palette_entries": 16,
-      "sha256": "602ee20dbd56b432e0400fcdca4483a9015d48c5b81222e7ddc05ffd7213d15f"
+      "sha256": "9b0f55efcaf91a500067f1fad3b49a97db98c78d23b84e8734f3e6bf789db51c"
     },
     "battle_ring.png": {
       "size": [
@@ -95,7 +95,7 @@
       ],
       "bit_depth": 4,
       "palette_entries": 16,
-      "sha256": "482dc917312134cffb270fe9d57a911c5d4f1c0030334945b8eb1759a4c8e333"
+      "sha256": "4d3a340adc588907f07c79cd94f12508b91c561245b07cae79f335342646d5ac"
     },
     "yes_no_icons.png": {
       "size": [
@@ -113,7 +113,7 @@
       ],
       "bit_depth": 4,
       "palette_entries": 16,
-      "sha256": "a3f78ae3a17abaa9fbeadaef308509de7b567f2185e06207826453f3a6d28756"
+      "sha256": "34334bb9d731ea00cfe50a04f14620e8c1957741b8b667ef73041a998e95f4cd"
     }
   },
   "source_sha256": {
