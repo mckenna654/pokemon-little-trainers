@@ -20,9 +20,9 @@ adult help. It is a real GBA ROM hack built from the
 GBA emulator.
 
 **The pictures are there to help a child learn to read, not to replace reading.** The words stay
-on screen beside them: the Start menu shows a backpack next to the word BAG, the battle buttons
-show each attack's name beside its picture, and Yes and No keep their words next to the tick and
-the cross. A child can play by the pictures today and pick up the words as they go. The story,
+on screen beside them: the Start menu shows a backpack next to the word BAG, the battle screen
+writes the name of whichever button is chosen (EMBER, CATCH, RUN) beside the pictures, and Yes and
+No keep their words next to the tick and the cross. A child can play by the pictures today and pick up the words as they go. The story,
 the signs and what people say are still written, for reading together.
 
 | | | |
