@@ -10,7 +10,6 @@ easy catching and nothing lost by losing.**
 ![status](https://img.shields.io/badge/status-test%20build%20v0.1.0--dev.3-orange)
 ![base](https://img.shields.io/badge/base-FireRed%20v1.1-red)
 ![platform](https://img.shields.io/badge/platform-GBA-blue)
-![repo](https://img.shields.io/badge/repo-private-lightgrey)
 
 </div>
 
@@ -67,6 +66,29 @@ legal reasons no ROM is ever shared here, so you combine the patch with your own
 If the patcher says the ROM is wrong, it is not v1.1: the release notes list the checksums of the
 right one. Only the mGBA emulator has been tested so far; other emulators should work but have
 not been checked.
+
+## Steam Deck: install and update with one script
+The installer does the steps above for you. It finds your FireRed v1.1 (or asks you to pick it),
+downloads the newest patch, makes the game next to your other GBA games (EmuDeck and RetroDECK
+folders are found by themselves), and remembers what it did. Run it again whenever you like: it
+only does something when there is a newer patch, and it leaves your save file alone.
+
+1. Switch to **Desktop Mode** and open **Konsole**.
+2. Paste these two lines:
+   ```bash
+   curl -L -o ~/install-little-trainers.py https://raw.githubusercontent.com/mckenna654/pokemon-little-trainers/main/steamdeck/install-little-trainers.py
+   python3 ~/install-little-trainers.py
+   ```
+3. Answer the pop-up windows. To update later, run the second line again.
+
+It needs only what SteamOS already has, asks for no password, reads your original ROM without
+changing it, and uploads nothing. To see the game in Gaming Mode, add it to Steam the way you add
+your other emulated games (with EmuDeck, that is Steam ROM Manager). `python3
+~/install-little-trainers.py --help` lists the options.
+
+**Not yet tried on a real Steam Deck.** It has been tested on a Mac: installing, refusing wrong
+ROMs, and updating from one release to the next. If it misbehaves on your Deck, the simple way
+above always works.
 
 ## Build it yourself (macOS, Linux, Windows via WSL)
 For changing the game, or if you would rather not use a patcher.

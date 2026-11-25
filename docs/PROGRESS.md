@@ -32,10 +32,15 @@ github once finished", then screenshots and a simpler install guide in the READM
 - **Not checked:** nobody has played this build by hand; no child has tried catching with misses;
   the left, down-left and down-right arrows were not seen in the tour (they are flips of pictures
   that were); headless mGBA 0.10.5 only.
-- **Open question put to Jake:** he asked for the repository to be made public. That reverses the
-  project's standing rule, so it waits for his explicit confirmation after being told what it
-  exposes (Nintendo-derived patch fragments and screenshots, his name and email in the history,
-  session links in commit messages, issue #1). Until he confirms, the repo stays private.
+- **The repository is public** since 2026-11-25. Jake asked for it, was told what it exposes
+  (Nintendo-derived patch fragments and screenshots, his name and email in the history, session
+  links in commit messages, issue #1) and confirmed. Checked beforehand: no ROMs, saves or
+  credentials in the files or history, no CI artifacts, no repository secrets, and releases hold
+  only patches and checksums. Checked afterwards as a signed-out visitor: the page, the README
+  pictures and the patch download all open.
+- **Steam Deck installer** (`steamdeck/install-little-trainers.py`): finds the player's FireRed
+  v1.1, downloads the newest patch, makes the game in the GBA ROM folder and updates it when run
+  again. Tested on the Mac only (see `docs/TESTING.md`): **it has not been run on a Steam Deck**.
 
 ## Session 5 — Jake's ChatGPT artwork is in the game (patch 0034)
 
@@ -81,7 +86,7 @@ replace the drawings and be merged.
 - **Milestones 6–7: mostly not started** (party/storage/Pokédex simplification, following Pokémon).
 - All game changes are in `patches/` (38 files).
 - **Pre-release `v0.1.0-dev`** (2026-11-24, at Jake's request): the BPS patch and its checksum on
-  the private repo's Releases page, built from commit `a749e31`. No ROM is attached, and none ever
+  the repo's Releases page, built from commit `a749e31`. No ROM is attached, and none ever
   should be. It does not contain the session 4 fixes or the illustrated pictures.
 - **Pre-release `v0.1.0-dev.2`** (2026-11-25, at Jake's request): patch and checksum only, built
   from `main` at `c18e329` (patched ROM SHA-1 `3074c0e690ce1502423ca873a24029f83a984d7f`). It has
@@ -142,9 +147,9 @@ the whole-game run on `main`.
   sprite pack is used.
 
 ## Next actions (in order)
-1. **Jake's answers wanted:** whether to make the repository public (see session 6 above); whether
-   rare Pokémon are now too hard to catch on Little Trainer (a floor would be one rule); and what
-   he thinks of the pictures (small Start menu pictures; CHANGE has no "swap" cue).
+1. **Jake's answers wanted:** whether rare Pokémon are now too hard to catch on Little Trainer (a
+   floor would be one rule); how the Steam Deck installer behaves on a real Deck; and what he
+   thinks of the pictures (small Start menu pictures; CHANGE has no "swap" cue).
 2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
    them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
    The parent checklist is at the end of `docs/TESTING.md`.

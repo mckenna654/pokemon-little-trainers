@@ -13,5 +13,5 @@ Put your own legally obtained **Pokémon FireRed (USA, Europe) v1.1 (Rev 1)** RO
 | Header | title `POKEMON FIRE`, game code `BPRE`, version byte `1` |
 
 Run `scripts/verify-rom.sh` to check. Everything in this folder except this README is ignored by
-Git and must never be uploaded, not even to the private repository. The ROM is only used as the base
+Git and must never be uploaded to the repository (which is public) or anywhere else. The ROM is only used as the base
 for the BPS patch; the game itself is compiled from source.

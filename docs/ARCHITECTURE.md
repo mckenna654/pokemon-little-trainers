@@ -31,8 +31,8 @@ pokemon-little-trainers/
 - Our own code inside the patches, and everything else in this repo, is original work.
 - A BPS patch contains only the bytes that differ from the original ROM, but those bytes include
   recompiled game code. Sharing BPS patches is the long-standing norm for ROM hacks, yet it is not a
-  licence: patches are generated locally, git-ignored, and only attached to a private release if
-  Jake asks.
+  licence: patches are generated locally, git-ignored, and only attached to a release if Jake
+  asks. (The repository has been public since 2026-11-25.)
 - ROMs (original and modified), BIOS, saves and save states never enter Git. Enforced by
   `.gitignore`, the pre-commit hook and CI (`scripts/check-forbidden.sh`, including a history scan
   and GBA-header content detection so a renamed ROM is still caught).

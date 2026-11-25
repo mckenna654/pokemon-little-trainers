@@ -86,6 +86,13 @@ pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the 
   Pokédex, Safari flag). The trainer card entry is left out on Little and Junior presets.
 - Control symbols (ring, star, hearts, arrow, confetti, tick/cross) drawn by `assets/ui/make_battle_icons.py`.
 - Gentle wording: Pokémon are "tired", not fainted; losing says "Your POKéMON need a little rest!".
+### Added (after `v0.1.0-dev.3`)
+- **Steam Deck installer** (`steamdeck/install-little-trainers.py`): one script that finds the
+  player's FireRed v1.1, downloads the newest patch and checks it, makes the game in the GBA ROM
+  folder, and updates it when run again. Plain Python, nothing to install, never changes the
+  original ROM or a save file. Not yet run on a real Steam Deck.
+- The repository is public (Jake's decision, 2026-11-25); the README has a logo, screenshots and
+  a simple download-and-patch guide.
 ### Changed (after `v0.1.0-dev.2`, at Jake's request)
 - **Little Trainer is twice as easy as Junior, instead of all-or-nothing** (patch 0035). Jake's
   ladder: Classic is the original game, Junior is 2.5 times easier, Little Trainer twice that.

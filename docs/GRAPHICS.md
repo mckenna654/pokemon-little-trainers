@@ -59,8 +59,8 @@ pictures and the title plaque. Exact prompts and provenance are in
 `assets/generated/v1/prompts.json` and the pack's README. No external sprite pack or
 ROM-extracted art was used. The capture ball refers to Pokémon's existing design; underlying
 Pokémon names and designs remain with their owners. AI generation does not establish exclusive
-copyright or clear third-party rights, so this stays inside the project's private,
-non-commercial scope.
+copyright or clear third-party rights. The project is a non-commercial fan work (public since
+2026-11-25, at Jake's decision).
 
 `assets/generated/v1/gba/` holds the three sheets as the game uses them (same sizes, frame order
 and palettes as the drawings they replaced). `assets/ui/make_battle_icons.py` copies them into
@@ -95,7 +95,7 @@ colours flattened (which removes a dark smudge the generator left on the plaque)
 - **For the README** (`docs/screenshots/`, six pictures, committed at Jake's request on
   2026-11-25): Little Trainers screens taken from the screen tour of the released build. They
   necessarily show original FireRed artwork (maps, Pokémon, fonts) around our own interface. They
-  are pictures of the game running, not extracted graphics, and the repository is private.
+  are pictures of the game running, not extracted graphics.
 - **Everything else** stays in `builds/screenshots/` (git-ignored, not uploaded): the screen tours,
   test screenshots and original / Little Trainers comparison pairs. Screenshots of the unmodified
   game are generated locally from the baseline build and are never committed.

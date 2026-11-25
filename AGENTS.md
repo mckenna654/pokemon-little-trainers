@@ -51,10 +51,14 @@ Other commands: `scripts/build.sh baseline` (must byte-match v1.1), `scripts/bui
 
 ## Hard rules
 - Never commit or upload ROMs (original or modified), BIOS, saves, save states, `.bps` files or
-  credentials: not to this private repo, CI, artifacts or releases (BPS only in a release, only if
+  credentials: not to this repo, CI, artifacts or releases (BPS only in a release, only if
   Jake asks). `.githooks/pre-commit` and CI run `scripts/check-forbidden.sh`; never bypass it.
   Run `scripts/check-forbidden.sh --history` before the first push of any new branch.
-- Never push the decomp source. Never push to pret. The repo must stay **private**.
+- Never push the decomp source. Never push to pret.
+- **The repo is public** (Jake's decision, 2026-11-25, reversing the original "private" rule).
+  Everything pushed is visible to anyone, straight away: no personal details beyond what is
+  already there, no private notes, and take extra care with the rules above. Do not change the
+  visibility either way without Jake asking.
 - Never modify or delete anything in `~/Downloads` or Jake's own save files.
 - No force-push, history rewrite, or deleting unmerged branches without asking Jake.
 - Honest reporting: say whether a feature is *compiled*, *emulator-tested (automated)*,

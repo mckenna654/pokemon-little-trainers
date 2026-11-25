@@ -31,6 +31,23 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
+### 2026-11-25 — Steam Deck installer (`steamdeck/install-little-trainers.py`)
+
+**Not run on a Steam Deck or on any Linux machine.** Everything below was on macOS.
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Install, update, check, repair, patch file from disk, ROM inside a zip | `tests/test_steamdeck.py` on made-up ROMs in temporary folders, with the download replaced | Pass |
+| Wrong ROMs are refused and named (v1.0, LeafGreen, a changed copy, wrong size); the original is never overwritten | Same | Pass |
+| The patch format: a project-made patch applies; a damaged one or one for another ROM is refused | Same | Pass |
+| The pop-up-window path | Same, with a stand-in program in place of zenity that records what it is asked and answers from a list. **The real zenity was not run** | Pass |
+| The real thing, signed out | With Jake's FireRed v1.1 and the public release: `--check` reports "not installed, newest v0.1.0-dev.3"; install produces SHA-1 `7d7e33b7…` (the released build); running again does nothing | Pass |
+| The real update | Installed `v0.1.0-dev.2` from its patch file, then ran with no options: offered and made the update to `v0.1.0-dev.3`, SHA-1 `7d7e33b7…`; the original ROM's checksum unchanged | Pass |
+
+Not tested: SteamOS itself, the real zenity windows, EmuDeck/RetroDECK folder detection on a real
+Deck (the folder names come from those projects' usual layouts), SD-card paths, and whether a
+save from one test build really carries on in the next.
+
 ### 2026-11-25 — Easier-not-certain rules, diagonal arrow, white flash (patches 0035–0038)
 
 Build: ROM SHA-1 `7d7e33b779032bddfe3cdcaceb6a9c3b96b18314`. Emulator: headless mGBA 0.10.5 only.

@@ -73,4 +73,4 @@ slightly crisper. `tests/test_art.py` holds the title-letter and green-bag check
 
 ## Provenance
 
-These are newly AI-generated illustrations, not a ripped sprite pack or Aesthetic Red assets. The capture ball intentionally refers to Pokémon's familiar design; Pokémon names/designs remain associated with their respective owners. No claim of exclusive copyright or third-party licence clearance is made for generated work. Keep this fan project's existing private, non-commercial scope. Attribution register: `docs/GRAPHICS.md`.
+These are newly AI-generated illustrations, not a ripped sprite pack or Aesthetic Red assets. The capture ball intentionally refers to Pokémon's familiar design; Pokémon names/designs remain associated with their respective owners. No claim of exclusive copyright or third-party licence clearance is made for generated work. Keep this fan project non-commercial. Attribution register: `docs/GRAPHICS.md`.
