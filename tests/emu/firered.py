@@ -53,7 +53,7 @@ class Mon:
         self.hp, self.max_hp = struct.unpack_from("<HH", raw, 86)
 
     @staticmethod
-    def patch(raw, moves=None, exp=None, level=None, hp=None, species=None):
+    def patch(raw, moves=None, exp=None, level=None, hp=None, species=None, friendship=None):
         """Return a copy of a 100-byte struct Pokemon with some fields changed and the
         checksum and encryption redone, exactly as the game stores it."""
         raw = bytearray(raw)
@@ -66,6 +66,8 @@ class Mon:
             struct.pack_into("<I", data, growth + 4, exp)
         if species is not None:
             struct.pack_into("<H", data, growth, species)
+        if friendship is not None:
+            data[growth + 9] = friendship
         if moves is not None:
             struct.pack_into("<4H", data, attacks, *moves)
         struct.pack_into("<H", raw, 28, sum(struct.unpack_from("<24H", data, 0)) & 0xFFFF)
@@ -150,7 +152,8 @@ class FireRed(GBA):
         return tiles
 
     def edit_party_mon(self, index, **changes):
-        """Test set-up only: rewrite a party Pokemon in RAM (moves, exp, level, hp)."""
+        """Test set-up only: rewrite a party Pokemon in RAM (moves, exp, level, hp, species,
+        friendship)."""
         addr = self.sym("gPlayerParty") + 100 * index
         patched = Mon.patch(self.read(addr, 100), **changes)
         for i in range(0, 100, 4):
@@ -253,6 +256,10 @@ class FireRed(GBA):
         sprite = self.sym("gSprites") + 0x44 * sprite_id
         flags = self.r8(sprite + 0x3E)
         if not flags & 1 or flags & 4:                      # not in use, or invisible
+            return None
+        # The id is only remembered: after a map change the slot can hold another sprite until
+        # the game makes the arrow again (the game itself checks the template; so must we).
+        if self.r32(sprite + 0x14) != self.sym("sArrowTemplate"):
             return None
         return self.r8(sprite + 0x2A)
 

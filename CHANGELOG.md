@@ -87,6 +87,11 @@ pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the 
 - Control symbols (ring, star, hearts, arrow, confetti, tick/cross) drawn by `assets/ui/make_battle_icons.py`.
 - Gentle wording: Pokémon are "tired", not fainted; losing says "Your POKéMON need a little rest!".
 ### Added (after `v0.1.0-dev.3`)
+- **QA play-through and accessibility review** (`docs/QA-2026-11-26.md`): the whole game with all
+  three starters, generated wander / backtrack / mash checks, flows off the route, independent
+  screen review. New QA tools in `tests/emu/` (`qa_journey.py`, `qa_property.py`,
+  `qa_scenarios.py`) and regression tests for the bugs found (`emu_qa_flows.py`, issues #3–#6).
+  No gameplay changes.
 - **Steam Deck installer** (`steamdeck/install-little-trainers.py`): one script that finds the
   player's FireRed v1.1, downloads the newest patch and checks it, makes the game in the GBA ROM
   folder, and updates it when run again. Plain Python, nothing to install, never changes the
