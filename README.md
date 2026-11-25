@@ -174,6 +174,17 @@ button, but very little of it has been played by people yet. See
 | [docs/BUILD.md](docs/BUILD.md) · [docs/TESTING.md](docs/TESTING.md) · [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | Building, testing, limitations |
 | [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) | Instructions for Claude sessions |
 
+## Who made this
+- **Jake ([@mckenna654](https://github.com/mckenna654))**: the idea, the design decisions, the
+  direction and the playtesting.
+- **Claude ([@claude](https://github.com/claude), Anthropic's AI model, working in Claude Code)**: the
+  game changes, the tests, the tools and the documentation, as co-author of the commits in this
+  repository.
+- **ChatGPT / Codex (OpenAI)**: the illustrations for the battle buttons, Start menu and title
+  plaque, and a design review ([docs/REVIEW-2026-11-25.md](docs/REVIEW-2026-11-25.md)).
+- **The [pret](https://pret.github.io/) contributors**: the FireRed decompilation everything is
+  built on.
+
 ## Credits and legal
 Pokémon and Pokémon FireRed are © Nintendo, Creatures Inc. and GAME FREAK inc. This is an unofficial,
 non-commercial fan project with no affiliation. The decompilation is the work of the
