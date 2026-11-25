@@ -49,7 +49,12 @@ Judge each tile as a four-year-old's parent would, looking for:
 - **Dead ends for an A-masher**: any screen in the tour's "gave up here" tiles.
 
 Compare with the previous tour when one exists (copy `tour/` aside before a change, for example
-to `tour-before/`): a tile that changed without a reason is a defect until explained.
+to `tour-before/`): a tile that changed without a reason is a defect until explained. For a
+comparison that means something, tour both builds the same way: `LT_TOUR_OUT` chooses the folder
+and `LT_TEST_ROM`/`LT_TEST_SYM` the build (see `tests/emu/screen_tour.py`), and run each tour a
+second time before comparing, because a tour that has to make its checkpoints plays the battles
+differently from one that loads them. Two builds that differ only in pictures then match tile for
+tile except where a picture changed.
 
 A fresh pair of eyes finds more: hand the sheets to a subagent that has not seen the change, with
 this defect list and no hints about what to expect, and check what it reports yourself.

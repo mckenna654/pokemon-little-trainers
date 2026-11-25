@@ -1,6 +1,36 @@
 # Progress and handoff
 
-_Last updated: 2026-11-25 (session 4)_
+_Last updated: 2026-11-25 (session 5: illustrated artwork integrated)_
+
+## Session 5 — Jake's ChatGPT artwork is in the game (patch 0034)
+
+Jake had ChatGPT/Codex generate the artwork (`assets/generated/v1/`, PR #2) and asked for it to
+replace the drawings and be merged.
+
+- **In the game now:** all 21 battle buttons, the Start menu pictures (Pokédex, Pokémon, bag, card,
+  save, option) and the "LITTLE TRAINERS" title plaque are the generated illustrations. The ring,
+  suggested-attack star, hearts, arrow, confetti, tick/cross, CLOSE and RETIRE stay pixel art (the
+  pack kept them on purpose). No code or rule changed: the new build differs from the previous one
+  only inside those three pictures (checked byte by byte).
+- **The pack's first exports were re-done.** On the compiled title screen they read "UTTLE
+  TRAINERS" and the bag was a grey lump; the source illustrations were fine, the shrinking was
+  not. `assets/generated/shrink.py` (plain Python, no image library) now shrinks by vote, and
+  `assets/generated/build_pack.py` uses it for every picture.
+- **Pipeline:** `build_pack.py` makes `assets/generated/v1/gba/`; `assets/ui/make_battle_icons.py`
+  copies those three sheets into `game/` and draws only the control symbols, so re-running it no
+  longer puts the old drawings back.
+- **Checked:** 32 unit tests and 74 emulator tests pass (new: `tests/emu/emu_art.py`, more in
+  `tests/test_art.py`). Screen tour on the old and new builds: 216 screens each, 197 identical,
+  19 different, every difference inside the title plaque, the button row or the Start menu
+  pictures. A reviewer who had not seen the change examined all 19 sheets of the first export;
+  its two real findings (title, bag) are what the re-export fixed. The whole-game run was not
+  repeated locally (no code changed); CI runs it on `main`.
+- **Not checked:** nobody has played this build by hand; no child has been asked to name the
+  pictures; 16 type symbols and the Pokédex/card pictures were seen only as enlarged previews;
+  headless mGBA 0.10.5 only.
+- [Codex's source and design review](REVIEW-2026-11-25.md) came with the pack. Its gameplay
+  findings are **not** addressed yet: Pokémon release and item toss are unguarded, party/bag/
+  storage screens still need reading, Pokémon Tower and Game Corner themes are untouched.
 
 ## Where things stand
 - **The main story is playable from start to finish without reading.** An automated player that
@@ -9,10 +39,10 @@ _Last updated: 2026-11-25 (session 4)_
   a committed test: `tests/emu/emu_full_game.py`, run with `scripts/test.sh full` (about 12 minutes).
 - **Milestones 0–3 and 5: done** apart from the items that need a person (manual play, parent
   playtest) and a few leftovers listed in `ROADMAP.md`.
-- **Milestone 4 (graphical remaster): only our own UI art so far**: picture battle menu, 17 attack
-  symbols, hearts, Start menu icons, Yes/No tick and cross, navigation arrow, confetti, title
-  banner, and brighter map colours (`LT_VividPalette`). Tiles, sprites, battle backgrounds and
-  fonts are original FireRed. Blocked on art permissions (see below).
+- **Milestone 4 (graphical remaster): interface art only so far**: picture battle menu with 21
+  illustrated buttons, illustrated Start menu pictures and title plaque (generated for Jake),
+  plus our own hearts, Yes/No tick and cross, navigation arrow, confetti, and brighter map colours
+  (`LT_VividPalette`). Tiles, sprites, battle backgrounds and fonts are original FireRed.
 - **Milestones 6–7: mostly not started** (party/storage/Pokédex simplification, following Pokémon).
 - All game changes are in `patches/` (33 files).
 - **Pre-release `v0.1.0-dev`** (2026-11-24, at Jake's request): the BPS patch and its checksum on
@@ -61,12 +91,12 @@ the whole-game run on `main`.
 - **Only the mGBA 0.10.5 core has run it.** No Delta, RetroArch, handheld or real hardware check.
 - A child who leaves the arrow's route is much less tested than one who follows it.
 - Junior and Classic presets: menu and rule checks only, no long play.
-- **Graphics (Jake's decision, 2026-11-25):** Jake is regenerating a lot of the artwork himself
-  with ChatGPT and will say when it is in the repo. Nothing has arrived yet. When it does: record
-  each piece in `docs/GRAPHICS.md` (made by Jake with ChatGPT, date), then convert it to what the
-  GBA can show (16 colours per palette, 8x8 tiles, exact sprite sizes) before it goes in the game;
-  expect generated pictures to need cleaning up, and check each on screen with the playtest skill.
-  The four PokeCommunity threads are still unreadable (HTTP 403), so no outside art is used.
+- **Graphics (Jake's decision, 2026-11-25):** artwork comes from Jake's ChatGPT/Codex sessions;
+  this project integrates it and does not draw a competing set. The first pack (interface
+  pictures) is in. Further packs should arrive the same way: sources plus prompts in
+  `assets/generated/`, registered in `docs/GRAPHICS.md`, shrunk with `shrink.py`, then looked at on
+  compiled screens. The four PokeCommunity threads are still unreadable (HTTP 403); no outside
+  sprite pack is used.
 
 ## Next actions (in order)
 1. **Ask Jake whether he wants a new pre-release** with the session 4 fixes (patch and checksum
@@ -74,14 +104,15 @@ the whole-game run on `main`.
 2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
    them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
    The parent checklist is at the end of `docs/TESTING.md`.
-3. Graphics, when Jake's regenerated artwork is in the repo (see above). Do not start a
-   competing set of art in the meantime.
+3. The gameplay gaps in `docs/REVIEW-2026-11-25.md`, most important first: guard Pokémon release
+   and item toss on Little Trainer, then the party screen that CHANGE opens.
 4. Leftovers in `ROADMAP.md`: pictures for the boy/girl choice, bag and party screens; Fly without
    a menu; missable Pokémon; storage-full handling; simpler dialogue; Milestone 6.
 
 ## How to work on it
 - When goals or maps change: `python3 tools/gen_nav.py --check --why`, then `python3 tools/gen_nav.py`,
-  rebuild, `scripts/export-patches.sh`. When UI art changes: `python3 assets/ui/make_battle_icons.py`.
+  rebuild, `scripts/export-patches.sh`. When UI art changes: `python3 assets/generated/build_pack.py` (illustrations) and/or
+  `python3 assets/ui/make_battle_icons.py` (control symbols; also copies the illustrations in).
 - When the arrow misbehaves somewhere: play to that place with `FireRed.follow_arrow`, saving an
   emulator state on each map change, then replay from the last state with a trace of position,
   arrow and `sPathMode`. Save states only work with the exact ROM build that made them. To keep

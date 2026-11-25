@@ -1,0 +1,148 @@
+{
+  "battle_order": [
+    "attack",
+    "sparkle",
+    "fire",
+    "water",
+    "grass",
+    "electric",
+    "ice",
+    "rock",
+    "psychic",
+    "catch",
+    "change",
+    "run",
+    "fighting",
+    "poison",
+    "flying",
+    "ground",
+    "bug",
+    "ghost",
+    "dragon",
+    "dark",
+    "steel"
+  ],
+  "menu_order": [
+    "pokedex",
+    "pokemon",
+    "bag",
+    "card",
+    "save",
+    "option",
+    "close",
+    "retire",
+    "card"
+  ],
+  "graphics": {
+    "battle_icons.png": {
+      "size": [
+        32,
+        672
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "9b0f55efcaf91a500067f1fad3b49a97db98c78d23b84e8734f3e6bf789db51c"
+    },
+    "battle_ring.png": {
+      "size": [
+        32,
+        32
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "ce674a5d3e17e49055a7c60188c1aebec3cb4195719dff5937c4864920417e14"
+    },
+    "battle_marker.png": {
+      "size": [
+        8,
+        8
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "757303a8eafaf7d060959ef889e72d5c2cfdf0a76b39df6455ef5f865bc47573"
+    },
+    "hearts.png": {
+      "size": [
+        72,
+        8
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "21c532302816f6b3086eb0273783139437b2b0659524153bf4abe8bf0b2cf486"
+    },
+    "nav_arrow.png": {
+      "size": [
+        16,
+        32
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "f202b208cf93b650017ff6e5368ca34df93fea46dc3611802d043a93877fc761"
+    },
+    "confetti.png": {
+      "size": [
+        32,
+        8
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "f73620ecfafd3684a896e395ef3a13243ee4d032b5c7404465e388acb02d41f2"
+    },
+    "start_menu_icons.png": {
+      "size": [
+        16,
+        144
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "4d3a340adc588907f07c79cd94f12508b91c561245b07cae79f335342646d5ac"
+    },
+    "yes_no_icons.png": {
+      "size": [
+        16,
+        32
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "2438407a3a0faacb8856a850ccdf7462fe02690194055aeecb51b8ffaed65434"
+    },
+    "title_banner.png": {
+      "size": [
+        32,
+        128
+      ],
+      "bit_depth": 4,
+      "palette_entries": 16,
+      "sha256": "34334bb9d731ea00cfe50a04f14620e8c1957741b8b667ef73041a998e95f4cd"
+    }
+  },
+  "source_sha256": {
+    "source/battle/attack.png": "b67faef30fb9a32f4c19e42511e25b51822c45485888b2a59a82ac5c1e40e313",
+    "source/battle/bug.png": "c47e7c02303947a62f9fc3557c5c414a9c0ccd49570c6a0d3f0bb8d75ae981a3",
+    "source/battle/catch.png": "4231a601959c8e2ddd70fc80c3c3b9500f2e1d76f72301fbd8a6af8122ff3cde",
+    "source/battle/change.png": "739c6563f34e39c07fe1a25d33ca4ebcc0f9930a3dfbbd0b10e3715c9ab43ea1",
+    "source/battle/dark.png": "782c52813af2eb90973a3a9f66f1e6276e715683025f3ef5be5b6dbc72dba76c",
+    "source/battle/dragon.png": "08b41896c68f55c36e0c72ec0a37813092f80ee61a84b7e8eefac6f582917b38",
+    "source/battle/electric.png": "49689ad8ba6987988588d8ef80f281c91a593de36f15a2fda63a02d785f7c809",
+    "source/battle/fighting.png": "9ab7d83b4e338d46248efe1b233c926269971fbcfb8de6dd84a053b78b4832d1",
+    "source/battle/fire.png": "703566f476e539c5fdbd80000de9489769a44e414cfd1f7b137c6df3e775aa2d",
+    "source/battle/flying.png": "938180bd55263a06b5a84d924cb1fee7ada76c2b17ff6d0d002023ffc5ea45af",
+    "source/battle/ghost.png": "e826a2dbbc965eb578c8d1bb0651b0147b7c74268fb8dc871d83f54261752b8f",
+    "source/battle/grass.png": "ef5d1c7aeaa3b3f5773ce2a4690576f2f1025222c7934891a104aed0b6d7c5b8",
+    "source/battle/ground.png": "9b495261545ca8a201054b111e45b8877a51642286e9cbac05b49fce9a20f75f",
+    "source/battle/ice.png": "2a5f5930e795c28d03fe51bf69ac75df50e9f3c96c0e4e5003983cd5cd60db4b",
+    "source/battle/poison.png": "890d1ffb8bdd4aac51fa3b6cc95360043df0c9ee91efdc9f253ef7c140c206d4",
+    "source/battle/psychic.png": "55d3d172b3a4e0731dd7a232a3c14faaa74039a6fede2cf8cd5153959180125e",
+    "source/battle/rock.png": "839bd67220f336a2f6073eaa0ecb293f0b11cec0aa7e2da05a5b13cf2e9bd96b",
+    "source/battle/run.png": "229c3def21662ce2df16f23855bf8ec4e8b51c3e7ac6c471405bbaef538e05d8",
+    "source/battle/sparkle.png": "70c31f5174fce9ff9f7611473a1bcbb56fff0b49e839f9fb922cddbc1f213af4",
+    "source/battle/steel.png": "f4243893e308f052033ff862a8ee7728e60d2d93f327ce5027aa85187fc55cbc",
+    "source/battle/water.png": "76f7c314bb226f162f03e053cf7fa50e3d768b52d806b8240f950131522bbf3c",
+    "source/menu/bag.png": "032cb686f87e7cccf6356a8701b76f22ce2d5d354b15f91b21f82d1677b2506d",
+    "source/menu/card.png": "0eeddf09d8ba4d97a7ecabcf64718d9fbef56c279647322e96e5bf820d18aa3a",
+    "source/menu/option.png": "2b0fa9a384f0f81044b2191cf98833acda36e8140a8f3d7f6a190d5ad6d1a007",
+    "source/menu/pokedex.png": "3d8d0981704c4cf768aa6750eab3db11a1c7483786763e32b441cf176da5ba47",
+    "source/menu/save.png": "7253e6e8d84b75b8a75c1df360d26a0a4357e2c110c8cd09c852ee59f4689b77",
+    "source/title/title.png": "878c6a758ac66ddcc88080e5ac1b4d854dd518e356162f7a4fa89364009458ed"
+  }
+}

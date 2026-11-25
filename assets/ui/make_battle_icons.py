@@ -4,6 +4,13 @@
     python3 assets/ui/make_battle_icons.py            # writes into game/graphics/little_trainers/
     python3 assets/ui/make_battle_icons.py --preview FILE.png   # also writes an enlarged preview
 
+Three sheets are NOT drawn here any more: the battle buttons, the Start menu pictures and the
+title plaque come from the illustrated pack in assets/generated/v1/gba/ (see PACK_SHEETS), and
+this program copies them into the game unchanged. The shape drawings of those three are kept
+below because the pack's own converter (assets/generated/build_pack.py) uses them: the icon
+order, the cream button behind each picture, the CLOSE and RETIRE symbols and the "old" half of
+its before/after previews. `--drawn` writes the old drawings instead, for comparison only.
+
 Outputs (all 16-colour indexed, GBA-ready):
     battle_icons.png   32 px wide strip, one 32x32 button per icon, in the order of ICONS below
     battle_ring.png    32x32 selection ring
@@ -21,12 +28,15 @@ Each button is a cream badge on the battle panel with a 24x24 icon. Shapes are r
 """
 import math
 import os
+import shutil
 import struct
 import sys
 import zlib
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "game", "graphics", "little_trainers")
+PACK = os.path.join(ROOT, "assets", "generated", "v1", "gba")
+PACK_SHEETS = ("battle_icons.png", "start_menu_icons.png", "title_banner.png")
 
 T, PANEL, DARK, WHITE, LGREY, GREY, RED, DRED, ORANGE, YELLOW, BLUE, LBLUE, GREEN, PURPLE, RING, CREAM = range(16)
 PALETTE = [
@@ -487,6 +497,31 @@ def write_indexed_png(path, rows, palette=None):
                 + chunk(b"PLTE", plte) + chunk(b"IDAT", zlib.compress(bytes(raw), 9)) + chunk(b"IEND", b""))
 
 
+def read_indexed_png(path):
+    """The rows of colour numbers in a 4-bit indexed PNG (the opposite of write_indexed_png)."""
+    with open(path, "rb") as f:
+        data = f.read()
+    pos, idat = 8, b""
+    while pos < len(data):
+        length, tag = struct.unpack(">I4s", data[pos:pos + 8])
+        body = data[pos + 8:pos + 8 + length]
+        pos += 12 + length
+        if tag == b"IHDR":
+            w, h, depth, colour_type = struct.unpack(">IIBB", body[:10])
+            if (depth, colour_type) != (4, 3):
+                raise ValueError(f"{path}: not a 4-bit indexed picture")
+        elif tag == b"IDAT":
+            idat += body
+    raw, stride = zlib.decompress(idat), (w + 1) // 2
+    rows = []
+    for y in range(h):
+        line = raw[y * (stride + 1):(y + 1) * (stride + 1)]
+        if line[0] != 0:
+            raise ValueError(f"{path}: filtered rows are not supported")
+        rows.append([(line[1 + x // 2] >> (0 if x % 2 else 4)) & 15 for x in range(w)])
+    return rows
+
+
 def write_preview(path, cells, scale=4, per_row=6):
     rows_of_cells = [cells[i:i + per_row] for i in range(0, len(cells), per_row)]
     out = []
@@ -504,7 +539,11 @@ def write_preview(path, cells, scale=4, per_row=6):
                 + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
 
 
-def main():
+def main(out=OUT, drawn=False):
+    """Write every sheet into `out`. The three PACK_SHEETS are copied from the illustrated pack
+    unless `drawn` asks for the old shape drawings."""
+    global OUT
+    OUT = out
     cells = [button(draw()) for _, draw in ICONS]
     os.makedirs(OUT, exist_ok=True)
     write_indexed_png(os.path.join(OUT, "battle_icons.png"), [row for cell in cells for row in cell])
@@ -542,8 +581,12 @@ def main():
                 cell = [[r[y][x] if r[y][x] != T else cell[y][x] for x in range(32)] for y in range(32)]
             selected.append(cell)
         write_preview(sys.argv[sys.argv.index("--preview") + 1], selected)
-    print(f"wrote {len(cells)} icons to {os.path.relpath(OUT, ROOT)}")
+    if not drawn:
+        for name in PACK_SHEETS:                # last, so nothing above can overwrite them
+            shutil.copyfile(os.path.join(PACK, name), os.path.join(OUT, name))
+    print(f"wrote {len(cells)} icons to {os.path.relpath(OUT, ROOT)}"
+          + (" (old shape drawings)" if drawn else f"; {', '.join(PACK_SHEETS)} from the illustrated pack"))
 
 
 if __name__ == "__main__":
-    main()
+    main(drawn="--drawn" in sys.argv)
