@@ -86,6 +86,11 @@ the palette is loaded. It changes no tiles, no collision and no palette layout, 
 maps; it is the first, cheap step of the remaster and works with any future tileset. Tunable with
 `LT_VIVID_SATURATION_PERCENT` and `LT_VIVID_LIFT`.
 
+## Logo
+`docs/logo.png` (README and share pictures) is the title plaque illustration from
+`assets/generated/v1/source/title/title.png`, reduced to a third of its size with its three
+colours flattened (which removes a dark smudge the generator left on the plaque).
+
 ## Screenshots
 - **For the README** (`docs/screenshots/`, six pictures, committed at Jake's request on
   2026-11-25): Little Trainers screens taken from the screen tour of the released build. They

@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/logo.png" alt="Little Trainers" width="420">
+
 # Pokémon: Little Trainers
 
 **A preschool-friendly Pokémon FireRed modification: battles by picture, an arrow to follow,
