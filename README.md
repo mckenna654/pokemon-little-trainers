@@ -35,10 +35,60 @@ GBA emulator.
 - **Easy catching:** balls are free and never run out. Common Pokémon are caught almost every
   time; rare ones may take a few throws.
 - **No reading needed to get on:** no typing, no nickname questions, ticks and crosses on Yes/No.
-- **Three modes** a parent can pick under OPTION → MODE: Little Trainer (the default), Junior
-  Trainer (2.5 times easier than the original) and Classic Trainer (the original rules).
+- **Three difficulty modes** a parent can switch between at any time: see below.
 
 The full list is in [CHANGELOG.md](CHANGELOG.md), and the design rules in
+[docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md).
+
+## The three difficulty modes
+A grown-up picks the mode in the game's **OPTION** menu, under **MODE**. A new game starts on
+Little Trainer. The mode can be changed at any time and the new rules apply from then on.
+
+- **Little Trainer** (ages 3 to 4, the default). For a child who cannot read. Battles are picture
+  buttons, the arrow shows the way, puzzles are already solved, and nothing can go badly wrong.
+  It is about twice as easy as Junior.
+- **Junior Trainer** (ages 5 to 6). For a child who is starting to read and wants the real menus.
+  It plays like the original game with the sharp edges taken off: about two and a half times
+  easier than the original, still with the arrow, the hearts and automatic healing.
+- **Classic Trainer** (ages 7 and up). The original FireRed rules, for an older brother or sister
+  or a parent. Only the brighter colours remain.
+
+| | Little Trainer | Junior Trainer | Classic Trainer |
+| --- | --- | --- | --- |
+| **Battle screen** | Picture buttons: one or two attacks chosen for you, CATCH or CHANGE, RUN | The original menus: four moves, bag, Pokémon, run | Original |
+| **Your attacks** | Never miss, never run out | Can miss and run out, as in the original | Original |
+| **Damage you deal / take** | 150% / 50% | 120% / 80% | Original |
+| **Opponents' critical hits** | Never | Never | Original |
+| **Sleep, poison, burn, freeze, paralysis, confusion on your Pokémon** | Never | Never | Original |
+| **Opponents' teams** | Trainers bring at most 2 Pokémon; gym leaders 2, growing to 4 by the last gym; the rival, Elite Four and Champion 3 | Trainers at most 3; gym leaders 3, growing to 5; the rival, Elite Four and Champion 5 | Original teams |
+| **Catching** | 5 times the original chance; balls are free and never run out | 2.5 times the original chance; balls are free | Original |
+| **Experience** | 2.5 times, and half is shared with Pokémon that did not battle | 1.5 times, with the same sharing | Original |
+| **Health** | Six hearts; healed after every battle | Six hearts; healed after every battle | The original bar and numbers; Pokémon Centres |
+| **Pokémon found only in LeafGreen** | Mixed in with the wild Pokémon | Mixed in | Not found |
+| **Losing a battle** | No money lost; back to the last town visited | Same | Original |
+| **Running from wild Pokémon** | Always works | Always works | Original |
+| **Wild Pokémon in grass and caves** | Half as often | Three-quarters as often | Original |
+| **Arrow to follow** | Yes | Yes | No |
+| **Puzzles** (hidden switches, spin tiles, quiz doors) | Already solved or switched off | As in the original (the arrow does not solve them) | Original |
+| **Cut, Surf, Strength and the like** | Work once you have the HM and its badge, with no need to teach them; caves are lit | Same | Must be taught, as in the original |
+| **New moves when levelling up** | Learned automatically, replacing the weakest | The game asks, as in the original | Original |
+| **Typing names and nicknames** | Never asked | Asked | Asked |
+| **Saving** | The game also saves itself as the story moves on | Same | Only when you save |
+| **Trade evolutions** (Kadabra, Machoke, Graveler, Haunter) | Happen at level 36 | Happen at level 36 | By trading only |
+
+How catching compares, for a healthy Pokémon and a plain Poké Ball (weakening it first raises all
+of these a lot):
+
+| | Little Trainer | Junior Trainer | Classic Trainer |
+| --- | --- | --- | --- |
+| Pidgey, Rattata, Caterpie | about 100% | about 100% | 34% |
+| Pikachu | about 100% | 62% | 28% |
+| Onix, Scyther | 34% | 17% | 6% |
+| Snorlax | 17% | 8% | 3% |
+| Legendary birds, Mewtwo | 2% | 1% | under 1% |
+
+On Little and Junior a missed ball costs nothing but a turn, because balls are free there. The exact numbers for every rule live in one table in the game's source
+(`src/little_trainers.c`, patch 0001 onwards), and the thinking behind them is in
 [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md).
 
 **This repository contains no ROMs and no game source.** It holds only our changes (as patches),
