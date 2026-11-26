@@ -1,0 +1,100 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 12:52:33 +1100
+Subject: fix: CHANGE is left out while trapped; CATCH where no ball can work
+ (#5)
+
+- CHANGE is not shown while the Pokemon cannot be switched out (Wrap, Bind,
+  Mean Look, Ingrain, Shadow Tag, Arena Trap, Magnet Pull: the engine's own
+  checks). Pressing A after CHANGE used to go round "can't be switched out!"
+  for ever.
+- CATCH is not shown against the Pokemon Tower ghost (every ball is dodged)
+  or when the party and every PC box are full (it only beeped).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 43f4cf652..d5202c830 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -5,8 +5,10 @@
+ #include "battle_message.h"
+ #include "data.h"
+ #include "little_trainers.h"
++#include "pokemon.h"
+ #include "menu.h"
+ #include "strings.h"
++#include "constants/abilities.h"
+ #include "constants/battle.h"
+ #include "constants/pokemon.h"
+ 
+@@ -78,6 +80,8 @@ static EWRAM_DATA u8 sSpecialSlot = 0;
+ static EWRAM_DATA u8 sRecommended = 0;
+ static EWRAM_DATA u8 sPulseTimer = 0;
+ static EWRAM_DATA bool8 sSomeoneToChangeTo = FALSE;
++static EWRAM_DATA bool8 sCanLeave = FALSE;        // the active Pokemon may be switched out
++static EWRAM_DATA bool8 sCanCatch = FALSE;        // a ball thrown now could work
+ 
+ static const u8 sLabelColors[] = {COLOR_PANEL, COLOR_WHITE, COLOR_DARK};
+ 
+@@ -255,15 +259,48 @@ static bool32 SomeoneToChangeTo(void)
+     return FALSE;
+ }
+ 
++// True if the battler may leave the field. The same checks the battle engine makes when CHANGE is
++// chosen (Wrap, Bind, Mean Look, Ingrain, Shadow Tag, Arena Trap, Magnet Pull), without the side
++// effects of its ability helpers. Chosen anyway, CHANGE would open a party screen where pressing
++// A goes round "can't be switched out!" for ever.
++static bool32 CanLeaveField(u8 battler)
++{
++    u8 i;
++
++    if (gBattleMons[battler].status2 & (STATUS2_WRAPPED | STATUS2_ESCAPE_PREVENTION)
++     || gStatuses3[battler] & STATUS3_ROOTED)
++        return FALSE;
++    for (i = 0; i < gBattlersCount; i++)
++    {
++        if (i == battler || gBattleMons[i].hp == 0)
++            continue;
++        if (gBattleMons[i].ability == ABILITY_MAGNET_PULL && IS_BATTLER_OF_TYPE(battler, TYPE_STEEL))
++            return FALSE;
++        if (GetBattlerSide(i) == GetBattlerSide(battler))
++            continue;
++        if (gBattleMons[i].ability == ABILITY_SHADOW_TAG)
++            return FALSE;
++        if (gBattleMons[i].ability == ABILITY_ARENA_TRAP && !IS_BATTLER_OF_TYPE(battler, TYPE_FLYING)
++         && gBattleMons[battler].ability != ABILITY_LEVITATE)
++            return FALSE;
++    }
++    return TRUE;
++}
++
+ // A button is only shown when it does something of its own:
+ // - with a single attack to offer, ATTACK and SPECIAL would be two buttons for the same move;
+-// - with nobody to change to, CHANGE would open a list where no choice works.
++// - with nobody to change to, CHANGE would open a list where no choice works;
++// - while the Pokemon is held in battle, CHANGE could only say "can't be switched out!";
++// - CATCH is left out where no ball can work: a ghost (the Pokemon Tower Marowak dodges every
++//   ball) or nowhere to put another Pokemon (party and every PC box full).
+ static bool32 SlotShown(u8 slot)
+ {
+     if (slot == LT_MENU_SPECIAL)
+         return sBasicSlot != sSpecialSlot;
+     if (slot == LT_MENU_CATCH_OR_CHANGE && (gBattleTypeFlags & BATTLE_TYPE_TRAINER))
+-        return sSomeoneToChangeTo;
++        return sSomeoneToChangeTo && sCanLeave;
++    if (slot == LT_MENU_CATCH_OR_CHANGE)
++        return sCanCatch;
+     return slot < LT_BattleMenu_ButtonCount();
+ }
+ 
+@@ -334,6 +371,8 @@ void LT_BattleMenu_Show(u8 battler)
+     LT_ChooseAttackSlots(battler, &sBasicSlot, &sSpecialSlot);
+     sRecommended = LT_RecommendedAttack(battler, sBasicSlot, sSpecialSlot);
+     sSomeoneToChangeTo = SomeoneToChangeTo();
++    sCanLeave = CanLeaveField(battler);
++    sCanCatch = !(gBattleTypeFlags & BATTLE_TYPE_GHOST) && !IsPlayerPartyAndPokemonStorageFull();
+ 
+     // The first time the menu opens in a battle the cursor starts on the recommended attack,
+     // so simply pressing A does something sensible. After that it stays where the player left it.

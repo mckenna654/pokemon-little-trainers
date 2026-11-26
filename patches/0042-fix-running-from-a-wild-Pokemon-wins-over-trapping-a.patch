@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 12:52:33 +1100
+Subject: fix: running from a wild Pokemon wins over trapping abilities on
+ Little and Junior
+
+alwaysRunAway now also skips IsRunningFromBattleImpossible in wild battles, so
+Arena Trap, Shadow Tag and Magnet Pull no longer stop RUN (QA-05).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/battle_main.c b/src/battle_main.c
+index d2b9b12e2..cd9171fee 100644
+--- a/src/battle_main.c
++++ b/src/battle_main.c
+@@ -3029,6 +3029,12 @@ u8 IsRunningFromBattleImpossible(void)
+     u8 side;
+     s32 i;
+ 
++    // Little Trainers: running from a wild Pokemon never fails, so Arena Trap, Shadow Tag, Magnet
++    // Pull and trapping moves do not stop it either (TryRunFromBattle then always succeeds).
++    if (LT_BattleRulesActive() && LT_Rules()->alwaysRunAway && !(gBattleTypeFlags & BATTLE_TYPE_TRAINER)
++     && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
++        return BATTLE_RUN_SUCCESS;
++
+     if (gBattleMons[gActiveBattler].item == ITEM_ENIGMA_BERRY)
+         holdEffect = gEnigmaBerries[gActiveBattler].holdEffect;
+     else

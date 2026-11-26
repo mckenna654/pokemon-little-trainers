@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 12:52:33 +1100
+Subject: fix: no evolution is started that the game would only stop (#6)
+
+The evolution scene cancels evolutions beyond the first 151 Pokemon until the
+National Pokedex. With the easier presets' lower friendship threshold, Chansey
+and Golbat started such an evolution after every level-up (about 12 times in
+the second half of the QA run). With noEvolutionCancel, such a target is not
+returned at all.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/pokemon.c b/src/pokemon.c
+index b4f740354..5a4bebff9 100644
+--- a/src/pokemon.c
++++ b/src/pokemon.c
+@@ -5117,6 +5117,12 @@ u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 type, u16 evolutionItem)
+                 break;
+             }
+         }
++        // Little Trainers: the evolution scene stops any evolution beyond the first 151 Pokemon
++        // until the National Pokedex (Golbat to Crobat, Chansey to Blissey). With the lower
++        // friendship needed on the easier presets that happened after every level-up, so such
++        // an evolution is not started at all.
++        if (LT_Rules()->noEvolutionCancel && !IsNationalPokedexEnabled() && targetSpecies > SPECIES_MEW)
++            targetSpecies = SPECIES_NONE;
+         break;
+     case EVO_MODE_TRADE:
+         for (i = 0; i < EVOS_PER_MON; i++)

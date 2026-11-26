@@ -21,6 +21,10 @@ from .checkpoints import game_at
 ITEM_POTION, ITEM_POKE_BALL = 13, 4
 PIDGEY, DIGLETT, RATTATA, CHANSEY = 16, 50, 19, 113
 ITEM_RARE_CANDY = 68
+ITEM_SILPH_SCOPE = 359
+ITEMMENUACTION_TOSS = 1
+MAROWAK = 105
+SPECIAL_START_MAROWAK_BATTLE = 0x156          # StartMarowakBattle in data/specials.inc
 ABILITY_ARENA_TRAP = 71
 SPECIAL_SHOW_STORAGE_PC = 0x3C              # ShowPokemonStorageSystemPC in data/specials.inc
 VAR_LT_DIFFICULTY = 0x4029
@@ -49,6 +53,17 @@ def known_bug(ref):
                 print(f"\n    {ref}: the set-up failed before the bug check: {error!r}", file=sys.stderr)
         return unittest.expectedFailure(run)
     return decorate
+
+
+def buttons_reachable(g):
+    """The battle buttons the ring can reach, moving with LEFT and RIGHT as a child would."""
+    seen = {g.menu_cursor()}
+    for key in ("LEFT",) * 4 + ("RIGHT",) * 4:
+        g.press(key, wait=8)
+        seen.add(g.menu_cursor())
+    for _ in range(4):
+        g.press("LEFT", wait=8)
+    return seen
 
 
 def bug_check(condition, message):
@@ -117,55 +132,65 @@ class QaTestCase(unittest.TestCase):
 class PermanentLoss(QaTestCase):
     """docs/ACCESSIBILITY.md rule 3: nothing is lost for good on Little Trainer."""
 
-    @known_bug("QA-01 (#3)")        # the bag's TOSS throws items away for good
     def test_an_item_cannot_be_thrown_away(self):
+        """QA-01 (#3, fixed): the bag's item menu has no TOSS on Little Trainer."""
         g = self.g
         g.give_item(ITEM_POTION, 1)                      # set-up
         open_start_entry(g, START_BAG)
         g.press("A", wait=20)
         g.run_until(lambda: g.callback2() == "CB2_BagMenuRun", max_frames=600, what="the bag")
         g.frames(60)
-        for key in ("A", "DOWN", "DOWN", "A", "A", "A", "A"):   # POTION, TOSS, (1 of 1), YES (already chosen)
-            g.press(key, wait=40)
+        g.press("A", wait=40)                            # the Potion: its menu opens
+        count = g.r8(g.sym("sContextMenuNumItems"))
+        actions = list(g.read(g.r32(g.sym("sContextMenuItemsPtr")), count))
         g.shot("qa-toss")
-        self.assertEqual(g.party()[0].item, 0, "set-up: the presses reached TOSS, not GIVE")
-        bug_check(bag_count(g, ITEM_POTION) == 1, "the Potion is still in the bag")
+        self.assertNotIn(ITEMMENUACTION_TOSS, actions, f"no TOSS in the item menu ({actions})")
+        self.assertEqual(count, 3, "USE, GIVE, CANCEL")
+        for key in ("DOWN", "DOWN", "A", "A", "A", "A"):  # the presses that used to throw it away
+            g.press(key, wait=40)
+        self.assertEqual(bag_count(g, ITEM_POTION), 1, "the Potion is still in the bag")
 
-    def release_starter(self, answer):
-        """DEPOSIT POKeMON -> the starter -> RELEASE -> the question, answered by `answer`."""
+    def test_no_pokemon_can_be_released_whatever_is_pressed(self):
+        """QA-02 (#4, fixed): the PC's menu for a Pokemon has no RELEASE on Little Trainer. Every
+        entry of that menu is tried from the bottom up (STORE, at the top, moves the Pokemon into
+        a box), each followed by UP and A (what answered YES before)."""
         g = self.g
-        give_mon(g, PIDGEY)                              # set-up: someone to keep (the last one can't go)
+        give_mon(g, PIDGEY)                              # set-up: two Pokemon
         self.assertEqual(g.party_count(), 2, "set-up: two Pokemon")
         open_pc(g)
         g.press("DOWN", wait=45)                         # DEPOSIT POKeMON
         g.press("A", wait=45)
         g.frames(60)                                     # (the box screen takes a moment to open)
-        for key in ("A", "DOWN", "DOWN", "DOWN", "A"):   # the starter, RELEASE: "Release this POKeMON?"
-            g.press(key, wait=45)
-        for key in answer:
-            g.press(key, hold=3, wait=30)
-        for _ in range(8):
-            g.press("B", wait=40)
-
-    @known_bug("QA-02 (#4)")        # the PC's RELEASE lets the starter go for good
-    def test_a_pokemon_cannot_be_released(self):
-        g = self.g
-        self.release_starter(["UP"] + ["A"] * 6)         # YES (the cursor starts on NO)
+        for entry in (4, 3, 2, 1, 0):
+            g.press("A", wait=45)                        # the starter's menu
+            for _ in range(entry):
+                g.press("DOWN", wait=30)
+            for key in ("A", "UP", "A", "A", "A", "A"):
+                g.press(key, hold=3, wait=30)
+            for _ in range(3):
+                g.press("B", wait=40)
+            if g.callback2() != "CB2_PokeStorage":       # left the PC: go back in for the next try
+                for _ in range(6):
+                    if g.free_to_move():
+                        break
+                    g.press("B", wait=40)
+                open_pc(g)
+                g.press("DOWN", wait=45)
+                g.press("A", wait=45)
+                g.frames(60)
         g.shot("qa-release")
-        bug_check(g.party_count() + storage_count(g) == 2, "both Pokemon are still the player's")
-
-    def test_mashing_a_at_the_release_question_lets_nobody_go(self):
-        """The release question starts on NO, so pressing A at it never releases anyone. The same
-        presses with UP first do release (the QA-02 test above), so the question is reached."""
-        g = self.g
-        self.release_starter(["A"] * 30)
-        self.assertEqual(g.party_count() + storage_count(g), 2)
+        for _ in range(40):                              # leave the PC: a Pokemon being moved is in
+            if g.free_to_move():                         # neither the party nor a box until it lands
+                break
+            g.press("B", wait=40)
+        g.frames(60)
+        self.assertTrue(g.free_to_move(), "set-up: back on the field")
+        self.assertEqual(g.party_count() + storage_count(g), 2, "both Pokemon are still the player's")
 
 
 class Evolution(QaTestCase):
-    @known_bug("QA-04 (#6)")        # "CHANSEY is evolving!" then it stops, after every level-up
     def test_no_evolution_starts_that_the_game_will_stop(self):
-        """Little Trainer lowers the friendship needed to evolve (150, not 220). Chansey and Golbat
+        """QA-04 (#6, fixed). Little Trainer lowers the friendship needed to evolve (150, not 220). Chansey and Golbat
         then try to evolve into Blissey and Crobat, which FireRed cancels until the National
         Pokedex, and Little Trainer never reaches the National Pokedex. (Unmodified FireRed does the
         same at friendship 220; the lower threshold makes it common.)"""
@@ -188,7 +213,8 @@ class Evolution(QaTestCase):
             g.press("A", hold=3, wait=17)
         g.shot("qa-chansey-evolution")
         self.assertEqual(g.party()[1].level, 21, "set-up: the candy was used on the Chansey")
-        bug_check(not {c for c in seen if "Evolution" in c}, "no evolution scene that cannot finish")
+        self.assertFalse({c for c in seen if "Evolution" in c}, "no evolution scene that cannot finish")
+        self.assertEqual(g.party()[1].species, CHANSEY)
 
 
 class CatchingWhenFull(QaTestCase):
@@ -206,8 +232,8 @@ class CatchingWhenFull(QaTestCase):
         self.assertEqual(storage_count(g), 1, "the new Pokemon went to the PC")
 
     def test_with_the_pc_full_catch_is_refused_and_the_battle_can_still_end(self):
-        """QA-07: with nowhere to put another Pokemon, CATCH only plays a failure sound. Nothing
-        on screen says why. This checks it is not a trap: the battle can still be finished."""
+        """QA-07 (fixed): with nowhere to put another Pokemon, CATCH is left out (it used to play
+        only a failure sound), and the battle can still be finished."""
         g = self.g
         for _ in range(5):
             give_mon(g, RATTATA)                         # set-up: a full party
@@ -219,12 +245,7 @@ class CatchingWhenFull(QaTestCase):
         self.assertEqual(storage_count(g), BOXES * PER_BOX)
         story.find_wild_battle(g)
         self.assertTrue(g.wait_action_menu())
-        g.press_button(g.CATCH)
-        g.frames(40)
-        self.assertTrue(g.at_action_menu(), "the buttons are still there: the ball was not thrown")
-        for _ in range(10):                               # a child pressing it again and again
-            g.press("A", wait=20)
-        self.assertTrue(g.in_battle() and g.at_action_menu())
+        self.assertNotIn(g.CATCH, buttons_reachable(g), "no CATCH button")
         g.shot("qa-catch-when-full")
         g.run_away()
         g.advance_text(g.free_to_move, max_presses=200, what="control after running")
@@ -233,8 +254,8 @@ class CatchingWhenFull(QaTestCase):
 
 class Trapped(QaTestCase):
     def test_run_from_a_pokemon_with_arena_trap(self):
-        """Diglett's Arena Trap stops running away in the original game. Little Trainer promises
-        that running always works; this records which wins and that nothing gets stuck."""
+        """QA-05 (fixed): Diglett's Arena Trap stops running away in the original game. Little
+        Trainer's rule is that running from a wild Pokemon always works, and now it wins."""
         g = self.g
         g.start_wild_battle(DIGLETT, 5)                  # set-up: a wild Diglett on Route 1
         self.assertTrue(g.wait_action_menu())
@@ -246,47 +267,55 @@ class Trapped(QaTestCase):
                 break
             g.press("A", hold=3, wait=13)
         g.shot("qa-run-arena-trap")
-        self.assertTrue(not g.in_battle() or g.at_action_menu(), "the game came back to the player")
-        # QA-05: Arena Trap still wins on Little Trainer, although the README says running always
-        # works. Recorded as the game behaves now.
-        self.assertTrue(g.in_battle(), "Arena Trap stopped the run")
+        self.assertFalse(g.in_battle(), "ran away from the Diglett")
+        self.assertEqual(g.battle_outcome(), OUTCOME_RAN)
 
-    def trapped_change(self):
+    def trapped_battle(self):
         """A trainer battle, a second Pokemon on the bench, the lead held by Mean Look (set-up),
-        then CHANGE."""
+        then one turn so that the buttons are drawn again."""
         g = self.g
         give_mon(g, PIDGEY)                              # set-up: someone to change to
         g.start_trainer_battle(BUG_CATCHER_RICK)         # set-up: a trainer battle started by script
         self.assertTrue(g.wait_action_menu(), "set-up: the battle buttons")
+        self.assertIn(g.CHANGE, buttons_reachable(g), "set-up: CHANGE is there before the trap")
         flags = g.r32(g.sym("gBattleMons") + STATUS2)
-        g.w32(g.sym("gBattleMons") + STATUS2, flags | STATUS2_ESCAPE_PREVENTION)
-        self.lead = g.battle_mon(0)["species"]
-        g.press_button(g.CATCH)                          # CHANGE in a trainer battle
+        g.w32(g.sym("gBattleMons") + STATUS2, flags | STATUS2_ESCAPE_PREVENTION)   # set-up: Mean Look
+        g.set_battle_hp(1, 300)                          # set-up: the opponent lasts the turn
+        g.set_battle_hp(0, g.battle_mon(0)["max_hp"])
+        g.attack()
+        self.assertTrue(g.wait_action_menu(), "set-up: the next turn's buttons")
 
-    @known_bug("QA-03 (#5)")        # A alone goes round SHIFT -> "can't be switched out" for ever
-    def test_change_while_trapped_comes_back_with_a_alone(self):
-        """An A-masher must end up back at the buttons. Brock's Onix knows Bind, so this can
-        happen at the first gym."""
+    def test_no_change_button_while_trapped(self):
+        """QA-03 (#5, fixed): CHANGE used to open a party screen where pressing A went round
+        SHIFT -> "can't be switched out!" for ever. Brock's Onix knows Bind."""
         g = self.g
-        self.trapped_change()
-        for _ in range(150):
-            if g.at_action_menu():
-                break
-            g.press("A", hold=3, wait=13)
+        self.trapped_battle()
+        self.assertNotIn(g.CHANGE, buttons_reachable(g), "no CHANGE while held in battle")
         g.shot("qa-change-when-trapped")
-        bug_check(g.at_action_menu(), f"back at the buttons (stuck on {g.callback2()})")
 
-    def test_change_while_trapped_b_gets_back_and_the_pokemon_stays_in(self):
+    def test_change_comes_back_when_free_again(self):
         g = self.g
-        self.trapped_change()
-        for _ in range(5):
-            g.press("A", hold=3, wait=30)
-        for _ in range(10):
-            if g.at_action_menu():
-                break
-            g.press("B", hold=3, wait=30)
-        self.assertTrue(g.at_action_menu(), "B gets back to the buttons")
-        self.assertEqual(g.battle_mon(0)["species"], self.lead)
+        self.trapped_battle()
+        flags = g.r32(g.sym("gBattleMons") + STATUS2)
+        g.w32(g.sym("gBattleMons") + STATUS2, flags & ~STATUS2_ESCAPE_PREVENTION)  # set-up: the trap ends
+        g.set_battle_hp(1, 300)
+        g.attack()
+        self.assertTrue(g.wait_action_menu())
+        self.assertIn(g.CHANGE, buttons_reachable(g))
+
+
+class GhostBattle(QaTestCase):
+    def test_no_catch_button_against_the_tower_ghost(self):
+        """QA-06 (fixed): the Pokemon Tower Marowak dodges every ball, so CATCH is left out."""
+        g = self.g
+        g.give_item(ITEM_SILPH_SCOPE)                    # set-up: the ghost can be seen
+        g.run_script([0x25, *struct.pack("<H", SPECIAL_START_MAROWAK_BATTLE), 0x27], wait=False)   # set-up: the Tower battle
+        g.run_until(g.in_battle, max_frames=900, what="the Marowak battle")
+        self.assertTrue(g.wait_action_menu(), "set-up: the battle buttons")
+        self.assertEqual(g.battle_mon(1)["species"], MAROWAK, "set-up: the Marowak")
+        self.assertNotIn(g.CATCH, buttons_reachable(g), "no CATCH against the ghost")
+        self.assertIn(g.RUN, buttons_reachable(g))
+        g.shot("qa-ghost-buttons")
 
 
 class SavingAndModes(QaTestCase):
