@@ -18,7 +18,10 @@ easier from a numbers standpoint instead of menus", then "update it on the readm
   107 emulator tests pass; the two new Junior tests fail on dev.6. Junior battle screen looked at.
   Not played by hand; no whole-game run on Junior.
 - Branch `feature/junior-picture-menus`, PR #12 to `develop`. Jake: "merge and build": version
-  0.1.0-dev.7. **Next:** a whole-game run on Junior would show whether no potions mid-battle plus
+  0.1.0-dev.7. Before release `scripts/test.sh full` passed (55 unit, 107 emulator tests, whole
+  game on Little Trainer) and CI was green; PR #12 merged, `main` = `develop` at `4241233`.
+  **v0.1.0-dev.7 published** (pre-release, patch and checksum only), patched ROM SHA-1
+  `96e8235eafeb99425d2a0bc51e8970c16bfb4900`. **Next:** Jake's son playing by hand; a whole-game run on Junior would show whether no potions mid-battle plus
   Junior's harder numbers is too tough.
 
 ## Session 10 — gentler type matchups (patch 0047)

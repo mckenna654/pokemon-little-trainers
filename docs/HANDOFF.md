@@ -1,5 +1,8 @@
 # Handoff
 
+2026-11-26: Junior Trainer now uses Little Trainer's picture menus (patch 0048); only its numbers
+differ. Published as pre-release v0.1.0-dev.7. See the latest entry in `docs/PROGRESS.md`.
+
 2026-11-26: public README refreshed to present Little Trainer as an easier mode for ages 3–4
 and artwork as support for reading. Documentation only; current gameplay and remaining work
 are unchanged. See the latest entry in `docs/PROGRESS.md`.
