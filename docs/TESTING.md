@@ -31,6 +31,25 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
+### 2026-11-26 — QA play-through and accessibility review (no gameplay changes)
+
+Full report with every finding, reproduction steps and evidence: **`docs/QA-2026-11-26.md`**.
+Build: `develop` `9c8cf67`, ROM SHA-1 `7d7e33b779032bddfe3cdcaceb6a9c3b96b18314` (rebuilt from
+clean; same as the released `v0.1.0-dev.3`). Headless mGBA 0.10.5 only.
+
+| Check | Result |
+| --- | --- |
+| `scripts/build.sh clean`, then `scripts/test.sh full` before any QA change | 49 unit, 82 emulator tests including the whole game: pass |
+| Whole game, fresh save, arrow and A only, no memory edits (`tests/emu/qa_journey.py`) | Squirtle 207 min, Charmander 211 min (lost to Misty twice), Bulbasaur 270 min (lost to the Silph rival twice and the Champion twice): **all reached the Hall of Fame** |
+| Wander off the arrow / walk back along it / mash every button (`tests/emu/qa_property.py`, 10 states × 2 seeds) | 60 of 60 pass; no Pokémon lost while mashing (items used: 0 in every run, recorded, not a pass condition) |
+| Arrow pictures, all 8 directions | Clean; one flag traced to a harness bug (QA-10, fixed) |
+| Flows off the route (`tests/emu/emu_qa_flows.py`, new in the regular suite) | 8 pass; 4 expected failures are open bugs QA-01 to QA-04 (issues #3–#6), each counted only when its bug check fails (`known_bug`, unit-tested in `tests/test_known_bug.py`) |
+| Screens | 2,254 journey and tour screens on 190 sheets, reviewed by 5 independent reviewers; every finding checked by Claude, false alarms listed in the report |
+| Regular suite after adding the QA tests and the harness fix (`scripts/test.sh`, before the review fixes) | 49 unit tests; 94 emulator tests, 1 skipped (the opt-in whole game), 4 expected failures (bugs #3–#6): pass |
+| Full suite after the code-review fixes (`scripts/test.sh full`) | 55 unit tests; 94 emulator tests with none skipped (the whole game by arrow and A played again on the fixed harness and passed), 4 expected failures (bugs #3–#6): pass |
+
+**Not tested:** play by a person or a child; other emulators and devices; a whole game on Junior
+or Classic; the Game Corner, Power Plant, Seafoam and the legendary birds; the Sevii Islands.
 
 ### 2026-11-26 — README copy and structure
 

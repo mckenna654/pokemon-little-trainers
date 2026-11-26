@@ -1,6 +1,31 @@
 # Progress and handoff
 
-_Last updated: 2026-11-26 (README presentation and reading-support clarification)_
+_Last updated: 2026-11-26 (session 7: QA play-through, branch `qa/2026-11-26-playthrough`)_
+
+## Session 7 — QA play-through and accessibility review (no gameplay changes)
+
+Jake asked for a thorough QA pass of the current build without changing gameplay, difficulty,
+experience or artwork. Report: **`docs/QA-2026-11-26.md`**.
+
+- **Main story completed** from a fresh save with all three starters by arrow and A only (no
+  memory edits). Bulbasaur is much harder late on (S-01).
+- **Confirmed bugs, filed as issues:** #3 item toss (QA-01), #4 Pokémon release (QA-02), #5 CHANGE
+  while trapped loops for an A-masher (QA-03), #6 Chansey/Golbat evolution that always stops
+  (QA-04). Each has a regression test in `tests/emu/emu_qa_flows.py` marked as an expected failure:
+  when a fix lands, remove the decorator.
+- **Smaller confirmed points:** QA-05 Arena Trap still stops RUN; QA-06 CATCH offered against the
+  Tower ghost; QA-07 a full PC makes CATCH only beep; QA-08 Yes/No boxes without pictures in the
+  bag, shop and PC; QA-09 the arrow drawn over neighbours.
+- **Decisions for Jake:** saving after catches (D-01), selling (D-02), the post-game and the end of
+  the arrow (D-03), MODE not locked (D-04), words-only screens (D-05), story themes (D-06).
+- **New QA tools** (not part of `scripts/test.sh`): `tests/emu/qa_journey.py` (whole game with
+  pictures, a log and save states), `qa_property.py` (seeded wander / backtrack / mash / arrow
+  checks with shrinking), `qa_scenarios.py` (save-reload, mode switch, shop, party, post-game from
+  save states). Harness fix: `nav_arrow_shown()` checks the sprite template (QA-10).
+- **Skills:** the project's playtest skill and Superpowers' systematic-debugging,
+  verification-before-completion and requesting-code-review were used. Trail of Bits'
+  spec-to-code-compliance and property-based-testing are not installed; their roles were covered by
+  the report's spec-by-spec findings and the seeded, shrinking generated tests.
 
 ## README update — 2026-11-26
 
@@ -161,14 +186,15 @@ the whole-game run on `main`.
   sprite pack is used.
 
 ## Next actions (in order)
-1. **Jake's answers wanted:** whether rare Pokémon are now too hard to catch on Little Trainer (a
-   floor would be one rule); how the Steam Deck installer behaves on a real Deck; and what he
-   thinks of the pictures (small Start menu pictures; CHANGE has no "swap" cue).
-2. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
+1. **Fix the QA bugs** (issues #3–#6), worst first, each by removing its test's
+   `expectedFailure` and making it pass. Then the S-01 pacing question and Jake's D-decisions in
+   `docs/QA-2026-11-26.md`.
+2. **Jake's answers wanted:** the QA report's decisions; whether rare Pokémon are now too hard to
+   catch on Little Trainer (a floor would be one rule); how the Steam Deck installer behaves on a
+   real Deck; and what he thinks of the pictures (small Start menu pictures; CHANGE has no "swap" cue).
+3. **Jake keeps playing** (and, if possible, a child will). New findings go in GitHub Issues; fix
    them the way issue #1 was fixed: reproduce, failing test, fix, playtest skill, code review.
    The parent checklist is at the end of `docs/TESTING.md`.
-3. The gameplay gaps in `docs/REVIEW-2026-11-25.md`, most important first: guard Pokémon release
-   and item toss on Little Trainer, then the party screen that CHANGE opens.
 4. Leftovers in `ROADMAP.md`: pictures for the boy/girl choice, bag and party screens; Fly without
    a menu; missable Pokémon; storage-full handling; simpler dialogue; Milestone 6.
 

@@ -1,6 +1,22 @@
 # Known issues and limitations
 
 ## Open
+_The QA play-through of 2026-11-26 (`docs/QA-2026-11-26.md`) is the full list with reproduction
+steps; the items below are its confirmed bugs and main points._
+- **QA-01 (#3): an item can be thrown away for good** from the bag on Little Trainer (TOSS, then
+  YES, which is pre-selected).
+- **QA-02 (#4): a Pokémon, even the starter, can be released for good** from the PC. Pressing A
+  alone never does it (the question starts on NO).
+- **QA-03 (#5): after CHANGE while trapped** (Bind, Wrap, Mean Look), pressing A alone loops in the
+  party screen; B gets out.
+- **QA-04 (#6): Chansey and Golbat keep starting an evolution the game always stops** (Little
+  Trainer's lower friendship threshold; Blissey and Crobat need the National Pokédex).
+- **QA-05: Arena Trap and Shadow Tag still stop RUN** on Little Trainer, although its
+  `alwaysRunAway` rule is described as "running from a wild Pokemon never fails".
+- **Pacing depends on the starter:** with Bulbasaur the Champion won twice and the Elite Four had
+  to be beaten three times; Erika and Blaine took 13 and 15 turns.
+- **After the Hall of Fame there is nothing for the arrow to point at**, and the post-game
+  (Sevii Islands, Cerulean Cave, National Pokédex) cannot be reached on Little Trainer.
 - **Rare Pokémon are now hard to catch on Little Trainer.** Five times the original odds is still
   small for the rarest: a healthy Snorlax about one ball in six, a healthy legendary bird or Mewtwo
   about two in a hundred (about four in a hundred when nearly beaten). Balls are free, so a child
@@ -30,9 +46,8 @@
 - **Save box and the player:** when the save box is open it covers the player except a sliver, so
   a couple of the player's pixels show at its edge. Same before and after the new pictures; not
   yet compared with unmodified FireRed.
-- **Permanent-loss rule is not comprehensive:** source review found original Pokémon-release and
-  item-toss flows without Little Trainer guards. See `docs/REVIEW-2026-11-25.md`; no gameplay fix
-  has been made yet.
+- **Permanent-loss rule is not comprehensive:** confirmed on the emulator by the QA play-through
+  (QA-01, QA-02 above); selling in shops also turns items into money with YES pre-selected.
 - **Preschool content pass remains:** Pokémon Tower death/ghost text and Game Corner coin/slot
   interactions are retained. Jake should choose whether to soften them; easier battles and
   friendly fainting text do not change those scenes.

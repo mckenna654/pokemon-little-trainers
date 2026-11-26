@@ -5,7 +5,7 @@
 #   check-forbidden.sh --history  check every blob ever committed on any branch
 set -euo pipefail
 cd "$(dirname "$0")/.."
-name_re='\.(gba|gb|gbc|nds|rom|sav|srm|ss[0-9]|state[^/]*|sgm|bps|ips|ups|pem|key|p12)$|(^|/)\.env($|\.)|(^|/)(gba_bios\.bin|baserom[^/]*)$|^(original-rom|builds|saves|savestates|bios|work|game)/'
+name_re='\.(gba|gb|gbc|nds|rom|sav|srm|ss[0-9]?|state[^/]*|sgm|bps|ips|ups|pem|key|p12)$|(^|/)\.env($|\.)|(^|/)(gba_bios\.bin|baserom[^/]*)$|^(original-rom|builds|saves|savestates|bios|work|game)/'
 secret_re='(ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|xox[bap]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9]{32,})'
 bad=0
 
