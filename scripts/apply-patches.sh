@@ -32,4 +32,4 @@ if [ ${#patches[@]} -gt 0 ]; then
   git -c user.name="Little Trainers" -c user.email="noreply@localhost" am --quiet --keep --committer-date-is-author-date "${patches[@]}" \
     || die "A patch failed to apply. Run 'git -C game am --abort' and fix the patch."
 fi
-git log --oneline "$UPSTREAM_COMMIT..HEAD" | head -n 40
+git log --oneline -n 40 "$UPSTREAM_COMMIT..HEAD"   # not "| head": with pipefail, head closing early killed CI (exit 141)
