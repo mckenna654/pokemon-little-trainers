@@ -6,6 +6,11 @@ Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 _Pre-releases (patch only, never a ROM): `v0.1.0-dev` (2026-11-24) is this list as it stood at commit
 `a749e31`; `v0.1.0-dev.2` (2026-11-25) adds the fixes from Jake's first playtest and the illustrated
 pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow._
+### Documentation
+- Reworked the README to introduce the three difficulty modes clearly, highlight Little Trainer
+  for ages 3–4, and explain that artwork supports written labels and shared reading. Simplified
+  the feature overview, installation guidance and credits; retained the development/test limits.
+
 ### Added
 - **Illustrated pictures in the game (patch 0034):** the 21 battle buttons, the Start menu pictures
   (Pokédex, Pokémon, bag, card, save, option) and the "LITTLE TRAINERS" title plaque are now the

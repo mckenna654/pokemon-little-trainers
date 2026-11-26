@@ -51,6 +51,12 @@ clean; same as the released `v0.1.0-dev.3`). Headless mGBA 0.10.5 only.
 **Not tested:** play by a person or a child; other emulators and devices; a whole game on Junior
 or Classic; the Game Corner, Power Plant, Seafoam and the legendary birds; the Sevii Islands.
 
+### 2026-11-26 — README copy and structure
+
+Documentation-only update. Checked all 28 README local links, images and section anchors, balanced
+code fences and the collapsible Steam Deck instructions; `git diff --check` passed. No game,
+artwork or tool changes; no ROM compilation or emulator tests were run for this edit.
+
 ### 2026-11-25 — Steam Deck installer (`steamdeck/install-little-trainers.py`)
 
 **Not run on a Steam Deck or on any Linux machine.** Everything below was on macOS.

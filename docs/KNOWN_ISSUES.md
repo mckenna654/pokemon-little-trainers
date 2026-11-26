@@ -11,8 +11,8 @@ steps; the items below are its confirmed bugs and main points._
   party screen; B gets out.
 - **QA-04 (#6): Chansey and Golbat keep starting an evolution the game always stops** (Little
   Trainer's lower friendship threshold; Blissey and Crobat need the National Pokédex).
-- **QA-05: Arena Trap and Shadow Tag still stop RUN** on Little Trainer, although the README says
-  running always works.
+- **QA-05: Arena Trap and Shadow Tag still stop RUN** on Little Trainer, although its
+  `alwaysRunAway` rule is described as "running from a wild Pokemon never fails".
 - **Pacing depends on the starter:** with Bulbasaur the Champion won twice and the Elite Four had
   to be beaten three times; Erika and Blaine took 13 and 15 turns.
 - **After the Hall of Fame there is nothing for the arrow to point at**, and the post-game
