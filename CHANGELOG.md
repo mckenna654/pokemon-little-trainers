@@ -9,6 +9,15 @@ pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the 
 `v0.1.0-dev.4` (2026-11-26) adds the fixes from the QA play-through; `v0.1.0-dev.5` (2026-11-26)
 adds the last fixes that don't change difficulty; `v0.1.0-dev.6` (2026-11-26) adds gentler type
 matchups on Little Trainer._
+### Changed
+- **Junior Trainer has Little Trainer's menus (patch 0048):** the picture battle buttons (ATTACK /
+  SPECIAL / CATCH or CHANGE / RUN), no typing or nickname questions, and automatic move learning.
+  Junior now differs from Little Trainer only in its numbers (PP, accuracy, damage, catching, team
+  sizes, experience) plus the original puzzles and the Sevii Islands trip. When every attack is
+  out of PP, ATTACK borrows a simple attack for that battle, as it already did for a Pokémon with
+  no attacks. Oak's text-only battle lecture is now skipped on Junior too. The README and the
+  accessibility table describe Junior this way.
+
 ### Documentation
 - Reworked the README to introduce the three difficulty modes clearly, highlight Little Trainer
   for ages 3–4, and explain that artwork supports written labels and shared reading. Simplified

@@ -1,6 +1,25 @@
 # Progress and handoff
 
-_Last updated: 2026-11-26 (session 10: gentler type matchups on Little Trainer, patch 0047)_
+_Last updated: 2026-11-26 (session 11: Junior Trainer uses Little Trainer's menus, patch 0048)_
+
+## Session 11 — Junior Trainer uses Little Trainer's menus (patch 0048)
+
+Jake: "implement the little trainer artwork menu to junior mode as well. so junior is just more
+easier from a numbers standpoint instead of menus", then "update it on the readme".
+- Junior now has `simpleBattleMenu`, `noTyping` and `autoLearnMoves` on (the Start menu pictures,
+  hearts and Yes/No pictures it already had). Its numbers are unchanged: PP used, attacks can miss,
+  120%/80% damage, 2.5× catching, teams of 3/3/5, original puzzles, Sevii trip offered. Oak's
+  text-only lecture now skips on Junior too (it is tied to the picture menu).
+- When all attacks run out of PP on Junior, ATTACK borrows Tackle for that battle (the existing
+  last-resort rule), so the child is never stuck.
+- README, `docs/ACCESSIBILITY.md`, `docs/KNOWN_ISSUES.md`, `ROADMAP.md` and the changelog describe
+  Junior this way.
+- **Results on ROM SHA-1 `96e8235eafeb99425d2a0bc51e8970c16bfb4900`:** `scripts/test.sh` 55 unit and
+  107 emulator tests pass; the two new Junior tests fail on dev.6. Junior battle screen looked at.
+  Not played by hand; no whole-game run on Junior.
+- Branch `feature/junior-picture-menus`, PR to `develop`. **Next:** Jake to merge (and say if he
+  wants a dev.7 build); a whole-game run on Junior would show whether no potions mid-battle plus
+  Junior's harder numbers is too tough.
 
 ## Session 10 — gentler type matchups (patch 0047)
 
