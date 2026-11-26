@@ -6,6 +6,8 @@ steps; the items below are its confirmed bugs and main points._
 - **QA play-through fixes (v0.1.0-dev.4):** tossing items, releasing Pokémon, CHANGE while trapped,
   the evolution that always stopped, Arena Trap stopping RUN and CATCH where it can't work are
   fixed (#3–#6, patches 0039–0042). Still open from that report: the items below.
+- **#8: in a double battle, CHANGE may be offered to the second Pokémon** when the partner has
+  already chosen the only Pokémon left on the bench (found by code review, not reproduced yet).
 - **Selling in shops** turns items into money, with YES already chosen (QA-08, D-02: Jake to decide).
 - **Pacing depends on the starter:** with Bulbasaur the Champion won twice and the Elite Four had
   to be beaten three times; Erika and Blaine took 13 and 15 turns.

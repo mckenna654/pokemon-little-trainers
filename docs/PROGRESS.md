@@ -14,6 +14,8 @@ Jake: "fix all issues, build a new build for github".
 - **Testing:** each regression test failed on the QA build and passes on the fixed one. The screen
   tour of the fixed build matches the QA tour tile for tile (319 screens). The changed screens
   (bag menu, PC menu, trapped, ghost and full-PC battle buttons) were looked at.
+- **Found by the fixes' code review:** the Berry Pouch had its own TOSS (fixed, patch 0043); a
+  double-battle CHANGE case filed as #8 (not reproduced yet).
 - **Left for Jake's decisions:** selling (D-02), saving after a catch (D-01), the post-game
   (D-03), MODE lock (D-04), words-only screens (D-05), story themes (D-06), and the pacing and
   attack-picture points S-01 and S-02.

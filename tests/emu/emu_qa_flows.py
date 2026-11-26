@@ -23,6 +23,9 @@ PIDGEY, DIGLETT, RATTATA, CHANSEY = 16, 50, 19, 113
 ITEM_RARE_CANDY = 68
 ITEM_SILPH_SCOPE = 359
 ITEMMENUACTION_TOSS = 1
+BP_ACTION_TOSS = 1                          # berry_pouch.c enum: USE, TOSS, GIVE, EXIT
+ITEM_ORAN_BERRY = 139
+ABILITY_SHADOW_TAG = 23
 MAROWAK = 105
 SPECIAL_START_MAROWAK_BATTLE = 0x156          # StartMarowakBattle in data/specials.inc
 ABILITY_ARENA_TRAP = 71
@@ -135,20 +138,51 @@ class PermanentLoss(QaTestCase):
     def test_an_item_cannot_be_thrown_away(self):
         """QA-01 (#3, fixed): the bag's item menu has no TOSS on Little Trainer."""
         g = self.g
-        g.give_item(ITEM_POTION, 1)                      # set-up
+        actions = self.open_item_menu(ITEM_POTION)
+        g.shot("qa-toss")
+        self.assertNotIn(ITEMMENUACTION_TOSS, actions, f"no TOSS in the item menu ({actions})")
+        self.assertEqual(len(actions), 3, "USE, GIVE, CANCEL")
+        for key in ("DOWN", "DOWN", "A", "A", "A", "A"):  # the presses that used to throw it away
+            g.press(key, wait=40)
+        self.assertEqual(bag_count(g, ITEM_POTION), 1, "the Potion is still in the bag")
+
+    def open_item_menu(self, item):
+        """Start -> BAG -> the item's menu (the first item in the Items pocket)."""
+        g = self.g
+        g.give_item(item, 1)                             # set-up
         open_start_entry(g, START_BAG)
         g.press("A", wait=20)
         g.run_until(lambda: g.callback2() == "CB2_BagMenuRun", max_frames=600, what="the bag")
         g.frames(60)
-        g.press("A", wait=40)                            # the Potion: its menu opens
+        g.press("A", wait=40)
         count = g.r8(g.sym("sContextMenuNumItems"))
-        actions = list(g.read(g.r32(g.sym("sContextMenuItemsPtr")), count))
-        g.shot("qa-toss")
-        self.assertNotIn(ITEMMENUACTION_TOSS, actions, f"no TOSS in the item menu ({actions})")
-        self.assertEqual(count, 3, "USE, GIVE, CANCEL")
-        for key in ("DOWN", "DOWN", "A", "A", "A", "A"):  # the presses that used to throw it away
-            g.press(key, wait=40)
-        self.assertEqual(bag_count(g, ITEM_POTION), 1, "the Potion is still in the bag")
+        return list(g.read(g.r32(g.sym("sContextMenuItemsPtr")), count))
+
+    def test_classic_keeps_the_original_toss(self):
+        """The rule is per preset: Classic is the original game."""
+        g = self.g
+        g.set_var(VAR_LT_DIFFICULTY, CLASSIC)                # set-up
+        self.assertIn(ITEMMENUACTION_TOSS, self.open_item_menu(ITEM_POTION))
+
+    def test_no_berry_can_be_thrown_away(self):
+        """The Berry Pouch has its own menu, and picking up any berry gives the pouch."""
+        g = self.g
+        g.give_item(ITEM_ORAN_BERRY, 1)                  # set-up: a berry (the pouch comes with it)
+        open_start_entry(g, START_BAG)
+        g.press("A", wait=20)
+        g.run_until(lambda: g.callback2() == "CB2_BagMenuRun", max_frames=600, what="the bag")
+        g.frames(60)
+        g.press("RIGHT", wait=45)                        # KEY ITEMS: the Berry Pouch
+        g.press("A", wait=40)                            # its menu: OPEN first
+        g.press("A", wait=30)
+        g.run_until(lambda: "BerryPouch" in g.callback2(), max_frames=600, what="the Berry Pouch")
+        g.frames(60)
+        g.press("A", wait=40)                            # the Oran Berry's menu
+        count = g.r8(g.sym("sContextMenuNumOptions"))
+        options = list(g.read(g.r32(g.sym("sContextMenuOptions")), count))
+        g.shot("qa-berry-pouch")
+        self.assertEqual(count, 3, f"USE, GIVE, EXIT ({options})")
+        self.assertNotIn(BP_ACTION_TOSS, options)
 
     def test_no_pokemon_can_be_released_whatever_is_pressed(self):
         """QA-02 (#4, fixed): the PC's menu for a Pokemon has no RELEASE on Little Trainer. Every
@@ -231,7 +265,7 @@ class CatchingWhenFull(QaTestCase):
         self.assertEqual(g.party_count(), 6)
         self.assertEqual(storage_count(g), 1, "the new Pokemon went to the PC")
 
-    def test_with_the_pc_full_catch_is_refused_and_the_battle_can_still_end(self):
+    def test_with_the_pc_full_there_is_no_catch_button_and_the_battle_can_still_end(self):
         """QA-07 (fixed): with nowhere to put another Pokemon, CATCH is left out (it used to play
         only a failure sound), and the battle can still be finished."""
         g = self.g
@@ -292,6 +326,19 @@ class Trapped(QaTestCase):
         self.trapped_battle()
         self.assertNotIn(g.CHANGE, buttons_reachable(g), "no CHANGE while held in battle")
         g.shot("qa-change-when-trapped")
+
+    def test_no_change_button_against_a_trapping_ability(self):
+        """CanLeaveField's ability branch: an opponent with Shadow Tag (set-up)."""
+        g = self.g
+        give_mon(g, PIDGEY)                              # set-up: someone to change to
+        g.start_trainer_battle(BUG_CATCHER_RICK)
+        self.assertTrue(g.wait_action_menu())
+        g.w8(g.sym("gBattleMons") + 0x58 + 0x20, ABILITY_SHADOW_TAG)   # set-up: battler 1's ability
+        g.set_battle_hp(1, 300)
+        g.set_battle_hp(0, g.battle_mon(0)["max_hp"])
+        g.attack()
+        self.assertTrue(g.wait_action_menu())
+        self.assertNotIn(g.CHANGE, buttons_reachable(g))
 
     def test_change_comes_back_when_free_again(self):
         g = self.g
