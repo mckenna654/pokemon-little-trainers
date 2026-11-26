@@ -61,12 +61,14 @@ steps; the items below are its confirmed bugs and main points._
   the name screen (B rubs out). Caught Pokémon keep their species names; the Name Rater in
   Lavender Town can still rename them. The Start menu has pictures but no trainer card entry on the Little and
   Junior presets.
-- **No bag or switching in wild battles** on the Little Trainer preset (by design; healing is
-  automatic). If party and PC storage are both full, CATCH only plays an error sound.
+- **No bag or switching in wild battles** on the Little and Junior presets (by design; healing is
+  automatic after each battle). On Junior this also means no potions during a battle, and Junior's
+  opponents hit harder; it has not been played through the whole game on Junior yet. If party and
+  PC storage are both full, CATCH only plays an error sound.
 - **Status protection is shown as SAFEGUARD:** when an opponent tries a status move the game says
   the party is protected by Safeguard. Opponents' AI therefore avoids status moves.
-- **Oak's battle lecture is skipped** in the first rival battle on the Little Trainer preset (it
-  is all text, and explains a menu the picture menu replaces). Junior and Classic keep it.
+- **Oak's battle lecture is skipped** in the first rival battle on the Little and Junior presets (it
+  is all text, and explains a menu the picture menu replaces). Classic keeps it.
 - **Buttons come and go.** A Pokémon with one attacking move has one attack button; SPECIAL
   appears when there is a second attack to offer. CHANGE appears only when another Pokémon can
   come in. So the first rival battle has a single button, and the same picture can sit in a

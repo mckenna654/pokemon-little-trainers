@@ -144,5 +144,35 @@ class SimpleBattleMenu(BattleTestCase):
         self.assertEqual(g.battle_mon(1)["hp"], hp)
 
 
+class JuniorPictureMenu(BattleTestCase):
+    """Junior Trainer has the same picture menu (Jake, 2026-11-26: "junior is just more easier from
+    a numbers standpoint instead of menus"); its own numbers still apply, so attacks use up PP."""
+
+    VAR_LT_DIFFICULTY, JUNIOR = 0x4029, 1
+    start_battle = SimpleBattleMenu.start_battle
+    press_and_watch = SimpleBattleMenu.press_and_watch
+
+    def setUp(self):
+        super().setUp()
+        self.g.set_var(self.VAR_LT_DIFFICULTY, self.JUNIOR)
+
+    def test_junior_attacks_use_pp_and_never_run_dry(self):
+        g = self.start_battle([SCRATCH, GROWL, 0, 0])
+        g.set_battle_hp(1, TOUGH)
+        g.w8(g.sym("gBattleMons") + 0x24, 1)          # set-up: one use of Scratch left
+        seen = self.press_and_watch(g.attack)
+        self.assertEqual(seen, set(), "no move list and no bag on Junior either")
+        self.assertEqual(g.last_move(0), SCRATCH)
+        self.assertEqual(g.battle_mon(0)["pp"][0], 0, "Junior keeps PP: the last use is spent")
+        self.assertTrue(g.wait_action_menu())
+        g.set_battle_hp(1, TOUGH)
+        self.press_and_watch(g.attack)
+        self.assertEqual(g.last_move(0), TACKLE, "with no PP left a simple attack is borrowed")
+        self.assertLess(g.battle_mon(1)["hp"], TOUGH)
+        g.set_battle_hp(1, 1)
+        self.assertEqual(self.fight(), WON)
+        self.assertEqual(g.party()[0].moves, [SCRATCH, GROWL, 0, 0], "real moves untouched after the battle")
+
+
 if __name__ == "__main__":
     unittest.main()

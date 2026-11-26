@@ -31,6 +31,20 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
+### 2026-11-26 — Junior Trainer uses Little Trainer's menus (patch 0048)
+ROM SHA-1 `96e8235eafeb99425d2a0bc51e8970c16bfb4900`.
+- `scripts/test.sh`: hygiene OK, 55 unit tests and 107 emulator tests pass (1 skipped, as before).
+  The whole-game run (`scripts/test.sh full`) was not repeated: it plays on Little Trainer, which
+  this change does not touch.
+- **New, emulator (automated):** `emu_milestone2.JuniorPictureMenu` (Junior: ATTACK is one press,
+  no move list or bag; the last PP of Scratch is spent; with no PP left ATTACK borrows Tackle; the
+  real moves are unchanged after the battle) and `emu_menus` Junior test (no move list after
+  ATTACK). Both **fail on the dev.6 code** and pass on this build.
+- **Looked at:** the Junior wild-battle screen shows the four picture buttons with the ring on the
+  suggested attack (`builds/screenshots/menu-junior-picture-menu.png`).
+- Not tested on Junior: a whole play-through, the nickname and move-learning screens (the same
+  switches as Little Trainer, which are tested there). Not played by hand.
+
 ### 2026-11-26 — QA fixes (patches 0039–0043, v0.1.0-dev.4)
 
 Build: ROM SHA-1 `ec6579987f7a43ff665e84a5eafc8d85d4d5376f`. Headless mGBA 0.10.5 only.

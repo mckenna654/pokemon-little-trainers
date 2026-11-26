@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 16:30:05 +1100
+Subject: feat: Junior Trainer uses Little Trainer's menus
+
+Picture battle menu, no typing and automatic move learning on Junior too;
+Junior now differs from Little Trainer only in its numbers.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index 0e10c867b..53d714d5d 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -92,19 +92,19 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .noPlayerRecoil = TRUE,
+         .alwaysRunAway = TRUE,
+         .noSwitchPrompt = TRUE,
+-        .noTyping = FALSE,
++        .noTyping = TRUE,                 // Junior has Little Trainer's menus; only the numbers differ
+         .shortIntro = TRUE,
+         .badgeCelebration = TRUE,
+         .noSideTrips = FALSE,
+         .trainerPartyCap = 3,
+         .leaderPartyCap = 3,
+         .bossPartyCap = 5,
+-        .autoLearnMoves = FALSE,
++        .autoLearnMoves = TRUE,
+         .tradeEvoLevel = 36,
+         .friendshipEvoThreshold = 150,
+         .noEvolutionCancel = TRUE,
+         .vividColors = TRUE,
+-        .simpleBattleMenu = FALSE,
++        .simpleBattleMenu = TRUE,
+         .heartHealth = TRUE,
+         .menuIcons = TRUE,
+     },

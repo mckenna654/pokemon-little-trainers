@@ -50,7 +50,7 @@ New games start in **Little Trainer** mode. Change the setting in **OPTION → M
 | Mode | Intended audience | Experience |
 | --- | --- | --- |
 | **Little Trainer** | Ages **3–4**, with adult support as needed | The most assistance: illustrated battle buttons, one or two selected attacks, easier catching, reduced incoming damage and simplified puzzles. |
-| **Junior Trainer** | Ages **5–6**, or players ready for more choices | Standard battle menus with easier catching, gentler battles, navigation guidance and automatic healing. Original puzzles remain. |
+| **Junior Trainer** | Ages **5–6**, or players ready for a bigger challenge | The same illustrated battle buttons and menus as Little Trainer, with tougher numbers: attacks use PP and can miss, opponents hit harder, catching is less generous and teams are larger. Original puzzles remain. |
 | **Classic Trainer** | Older children and adults who prefer the original challenge | Original-style battle and progression rules, with shared presentation changes. Navigation assistance and automatic healing are disabled. |
 
 Modes can be changed during a play-through. Changes adjust the assistance available; they do
@@ -80,7 +80,8 @@ Little Trainer mode includes:
   field moves without teaching HMs once their requirements are met.
 - **Simplified obstacles:** selected gym and story puzzles are opened or bypassed.
 
-Junior Trainer retains several assists while restoring standard battle choices and puzzles.
+Junior Trainer uses the same menus, pictures and battle buttons as Little Trainer; only the
+numbers are harder, and the original puzzles and the Sevii Islands trip return.
 The [changelog](CHANGELOG.md) documents the full set of changes.
 
 ## Getting started

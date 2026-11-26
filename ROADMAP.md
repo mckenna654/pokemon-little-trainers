@@ -27,6 +27,7 @@ Legend: [x] done and emulator-tested · [~] built, test incomplete · [ ] not st
 - [x] Automatic move learning from Rare Candy
 - [ ] Trainer party trims for the early routes
 - [x] Junior and Classic presets exercised by tests (through OPTION → MODE)
+- [x] Junior uses Little Trainer's menus (picture battle buttons, no typing, automatic move learning); only its numbers differ
 - [~] Manual play session by a person, then tag v0.1.0 (Jake played the opening on 2026-11-24; his findings, issue #1, are fixed; more play needed)
 
 ## Milestone 2 — Child-friendly battle interface (v0.2.0)

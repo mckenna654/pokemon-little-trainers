@@ -34,12 +34,14 @@ and earn badges with very little adult help.
 | Rival, Elite Four, Champion bring | At most 3 Pokémon | At most 5 | Original teams |
 | Healing | Automatic after every battle | Automatic | Pokémon Centres |
 | Experience | ×2.5, whole party | ×1.5, whole party | Original |
-| Attacks | 2 chosen for you, no PP, never miss | 4 moves, generous | Original |
+| Battle menu | Picture buttons (ATTACK / SPECIAL / CATCH or CHANGE / RUN) | Picture buttons | Original |
+| Attacks | 2 chosen for you, no PP, never miss | 2 chosen for you, PP used, can miss | Original |
 | Losing | No penalty, friendly message | No money loss | Original |
 | Throwing items away, releasing Pokémon | Not offered | Not offered | Original |
 | Running from wild Pokémon | Always works | Always works | Original |
 | Navigation help | On | On | Off |
-| Typing and nicknames | Never asked | Asked as usual | Original |
+| Typing and nicknames | Never asked | Never asked | Original |
+| Learning a new move | Automatic | Automatic | Original |
 | Written instructions at the start | Skipped | Skipped | Original |
 | Sevii Islands side trip | Not offered | Offered | Original |
 | Badge confetti | On | On | Off |
@@ -48,6 +50,11 @@ Little Trainer is twice as easy as Junior. Nothing on Little Trainer is a certai
 matter of odds in the original: common Pokémon are caught almost every time, rare ones usually
 break free, and weakening one first helps. Experience is the one number left where Jake set it
 (×2.5; twice Junior would be ×3).
+
+**Menus are the same on Little and Junior (Jake, 2026-11-26):** "junior is just more easier from a
+numbers standpoint instead of menus". Junior has the picture battle menu, the Start menu pictures,
+no typing and automatic move learning; only the numbers above (and the original puzzles and the
+Sevii Islands trip) set it apart.
 
 A parent can change the preset at any time in OPTION → MODE. (It is not locked: a child who opens
 the options could change it.) The exact numbers for every preset are in `src/little_trainers.c`.

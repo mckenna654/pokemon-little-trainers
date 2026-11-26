@@ -91,7 +91,7 @@ class DifficultyPresets(unittest.TestCase):
         g.run_until(g.at_move_menu, max_frames=300, what="the original move list")
         g.shot("menu-classic-move-list")
 
-    def test_junior_mode_keeps_helpers_but_shows_all_moves(self):
+    def test_junior_mode_has_the_little_trainer_menus(self):
         from . import story
         g = self.g
         g.set_var(self.VAR_LT_DIFFICULTY, 1)
@@ -99,9 +99,14 @@ class DifficultyPresets(unittest.TestCase):
         self.assertIsNotNone(g.nav_arrow(), "Junior still has the arrow")
         story.find_wild_battle(g)
         self.assertTrue(g.wait_action_menu())
-        g.press("A", wait=30)
-        g.run_until(g.at_move_menu, max_frames=300, what="the move list")
-
+        g.frames(30)
+        g.shot("menu-junior-picture-menu")
+        g.attack()
+        for _ in range(200):
+            self.assertFalse(g.at_move_menu(), "ATTACK is one press: no move list on Junior")
+            if not g.in_battle() or g.at_action_menu():
+                break
+            g.press("B", hold=3, wait=13)
 
 if __name__ == "__main__":
     unittest.main()
