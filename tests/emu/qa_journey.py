@@ -39,12 +39,16 @@ STALL_FRAMES = 60 * 60 * 60     # an hour of play with no new map or badge: stop
 
 
 class Journey:
-    def __init__(self, starter, shots, out=None, states=None, max_shots=900, from_state=None):
+    def __init__(self, starter, shots, name=None, max_shots=900, from_state=None):
         self.starter = starter
+        self.name = name or starter
         self.from_state = from_state
         self.mode = shots
-        self.out = out or os.path.join(ROOT, "builds", "qa", f"journey-{starter}")
-        self.states = states or os.path.join(ROOT, "work", "qa-states", starter)
+        self.out = os.path.join(ROOT, "builds", "qa", f"journey-{self.name}")
+        self.states = os.path.join(ROOT, "work", "qa-states", self.name)
+        if from_state and os.path.abspath(os.path.dirname(from_state)) == os.path.abspath(self.states):
+            # Clearing the folder would delete the very state to start from (and the rest of that run).
+            raise SystemExit(f"--from-state is in {self.states}, which this run would clear: give a different --name")
         for folder in (self.out, self.states):
             os.makedirs(folder, exist_ok=True)
             for name in os.listdir(folder):
@@ -190,7 +194,8 @@ class Journey:
     # --- the run -------------------------------------------------------------------------------
     def run(self):
         self.g = g = FireRed()
-        result = {"starter": self.starter, "finished": False}
+        result = {"starter": self.starter, "name": self.name, "from_state": self.from_state, "finished": False,
+                  "hall_of_fame_screen_seen": False}
         try:
             if self.from_state:                                     # the second half of a journey
                 g.frames(5)
@@ -209,6 +214,7 @@ class Journey:
             self.event("hall of fame", party=self.party())
             for _ in range(300):
                 if "HallOfFame" in g.callback2():
+                    result["hall_of_fame_screen_seen"] = True
                     break
                 g.press("A", hold=3, wait=17)
             g.frames(600)
@@ -224,10 +230,14 @@ class Journey:
             self.save_state("stopped")
             self.event("stopped", error=str(error))
         finally:
+            try:
+                party = self.party()
+            except Exception as error:                              # the emulator itself may have died
+                party = f"unreadable: {error}"
             result.update({
                 "frames": g.frame, "minutes_of_play": round(g.frame / 3600, 1),
                 "seconds": round(time.time() - self.started), "badges": len(self.badges),
-                "party": self.party(), "maps": len(self.maps), "battles": len(self.battles),
+                "party": party, "maps": len(self.maps), "battles": len(self.battles),
                 "trainer_battles": sum(b["trainer"] for b in self.battles),
                 "battles_lost": sum(b["outcome"] == 2 for b in self.battles),
                 "longest_battle_presses": max((b["presses"] for b in self.battles), default=0),
@@ -259,13 +269,11 @@ def main():
     parser = argparse.ArgumentParser(description="QA journey: the whole game with pictures, a log and save states")
     parser.add_argument("--starter", choices=["arrow", "bulbasaur", "charmander", "squirtle"], default="arrow")
     parser.add_argument("--from-state", help="carry on from a save state (pictures for the rest of the game)")
-    parser.add_argument("--name", help="folder name (default: the starter)")
+    parser.add_argument("--name", help="folder name for pictures and states (default: the starter)")
     parser.add_argument("--shots", choices=["full", "key"], default="full",
                         help="full: pictures throughout; key: new places, badges, first battle screens, arrows")
     args = parser.parse_args()
-    name = args.name or args.starter
-    result = Journey(name, args.shots, out=os.path.join(ROOT, "builds", "qa", f"journey-{name}"),
-                     states=os.path.join(ROOT, "work", "qa-states", name), from_state=args.from_state).run()
+    result = Journey(args.starter, args.shots, name=args.name, from_state=args.from_state).run()
     print(json.dumps({k: v for k, v in result.items() if k not in ("arrows", "arrow_by_map")}, indent=1))
     sys.exit(0 if result["finished"] else 1)
 

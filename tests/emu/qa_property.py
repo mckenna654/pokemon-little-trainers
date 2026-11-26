@@ -16,9 +16,10 @@ Needs the save states written by `python3 -m tests.emu.qa_journey` for the same 
     arrows     follow the arrow and look at every direction it shows: each picture must be one
                whole arrow pointing the way it says
 
-Every check is seeded. A failure is replayed and shrunk to the shortest list of actions that still
-fails, and written with its seed, state and actions to builds/qa/property/failures/.
-The emulator is deterministic, so replaying the actions from the same state repeats the result.
+Every check is seeded. A failure is replayed and shrunk (at most 150 replays) to a shorter list of
+actions that still fails the same way, and written with its seed, state, actions and the ROM's and
+state's SHA-1 to builds/qa/property/failures/. Replay one with `--replay FILE`. The emulator is
+deterministic, so replaying the actions from the same state on the same ROM repeats the result.
 """
 import argparse
 import json
@@ -158,22 +159,54 @@ def run_one(task, actions=None):
         g.close()
 
 
-def shrink(task, actions):
-    """Delta debugging: the shortest list of actions (from the same state) that still fails."""
-    n = 2
-    while len(actions) >= 2:
+def same_failure(a, b):
+    """Two failure details describe the same problem (same kind of failure, same first words)."""
+    return str(a).split(":")[0] == str(b).split(":")[0]
+
+
+def shrink(task, actions, detail, budget=150):
+    """Delta debugging: a shorter list of actions (from the same state) that fails *the same way*.
+    A candidate that fails differently is not accepted, and at most `budget` replays are made."""
+    n, runs = 2, 0
+    while len(actions) >= 2 and runs < budget:
         chunk = max(1, len(actions) // n)
         for start in range(0, len(actions), chunk):
+            if runs >= budget:
+                break
             candidate = actions[:start] + actions[start + chunk:]
-            ok, _, _ = run_one(task, candidate)
-            if not ok:
+            ok, candidate_detail, _ = run_one(task, candidate)
+            runs += 1
+            if not ok and same_failure(candidate_detail, detail):
                 actions, n = candidate, max(n - 1, 2)
                 break
         else:
             if chunk == 1:
                 break
             n = min(len(actions), n * 2)
-    return actions
+    return actions, runs
+
+
+def file_sha1(path):
+    import hashlib
+    with open(path, "rb") as f:
+        return hashlib.sha1(f.read()).hexdigest()
+
+
+def FireRed_rom():
+    from .firered import ROM
+    return ROM
+
+
+def replay(path):
+    """Replay a saved failure: its shrunk actions (or all of them) from its state, on this ROM."""
+    with open(path) as f:
+        failure = json.load(f)
+    if failure.get("rom_sha1") and failure["rom_sha1"] != file_sha1(FireRed_rom()):
+        print("warning: this ROM is not the one the failure was found on; save states may not load", file=sys.stderr)
+    actions = [tuple(a) if a[0] != "press" else ("press", tuple(a[1])) for a in failure.get("shrunk_actions") or failure["actions"]]
+    ok, detail, _ = run_one(failure, actions)
+    print(json.dumps({"reproduced": not ok, "detail": detail, "actions": len(actions)}, default=str))
+    return 0 if ok else 1
 
 
 def worker(task):
@@ -181,19 +214,23 @@ def worker(task):
     ok, detail, actions = run_one(task)
     result = dict(task, ok=ok, detail=detail, seconds=round(time.time() - started), actions_count=len(actions))
     if not ok and task.get("shrink", True):
-        small = shrink(task, actions)
+        small, runs = shrink(task, actions, detail)
         ok2, detail2, _ = run_one(task, small)
-        result.update(shrunk_actions=small, shrunk_detail=detail2, shrunk_reproduces=not ok2)
+        result.update(shrunk_actions=small, shrunk_detail=detail2, shrink_runs=runs,
+                      shrunk_reproduces=not ok2 and same_failure(detail2, detail))
         os.makedirs(os.path.join(OUT, "failures"), exist_ok=True)
         name = f"{task['check']}-{os.path.basename(task['state'])[:-3]}-seed{task['seed']}.json"
         with open(os.path.join(OUT, "failures", name), "w") as f:
-            json.dump(dict(result, actions=actions), f, indent=1)
+            json.dump(dict(result, actions=actions, rom_sha1=file_sha1(FireRed_rom()), state_sha1=file_sha1(task["state"])),
+                      f, indent=1)
     return result
 
 
 # --- arrow pictures ---------------------------------------------------------------------------------
 def judge_arrow(grid, shown):
     """None if the picture is one whole arrow pointing the way `shown` says, else what is wrong."""
+    if not any(any(row) for row in grid):
+        return "the picture is blank"
     if "-" in shown:                                      # turn it to point up and to the right
         if "DOWN" in shown:
             grid = grid[::-1]
@@ -253,8 +290,9 @@ def arrow_pictures(starter, budget=300):
 
             try:
                 g.follow_arrow(look, max_actions=budget, what="(looking at arrows)")
-            except EmulatorError:
-                pass                      # the budget ran out: that is the point, not a failure
+            except EmulatorError as error:
+                if "did not reach" not in str(error):       # only the spent budget is expected
+                    problems.append({"state": state, "shown": None, "problem": f"stopped: {error}"})
         finally:
             g.close()
     return seen, problems
@@ -271,17 +309,23 @@ def tasks_for(starter, checks, seeds, every, length):
 def main():
     parser = argparse.ArgumentParser(description="QA generated checks from journey save states")
     parser.add_argument("--starter", default="arrow")
-    parser.add_argument("--check", nargs="*", default=["wander", "backtrack", "mash"])
+    parser.add_argument("--check", nargs="*", default=["wander", "backtrack", "mash"],
+                        choices=["wander", "backtrack", "mash", "arrows"])
+    parser.add_argument("--replay", help="replay a failure file from builds/qa/property/failures/")
     parser.add_argument("--seeds", nargs="*", type=int, default=[1, 2])
     parser.add_argument("--every", type=int, default=3, help="use every Nth goal state")
     parser.add_argument("--jobs", type=int, default=4)
     args = parser.parse_args()
+    if args.replay:
+        sys.exit(replay(args.replay))
     length = {"wander": 40, "backtrack": 30, "mash": 150}
     if "arrows" in args.check:
         seen, problems = arrow_pictures(args.starter)
         os.makedirs(OUT, exist_ok=True)
         with open(os.path.join(OUT, f"arrows-{args.starter}.json"), "w") as f:
             json.dump({"seen": seen, "problems": problems}, f, indent=1)
+        if not seen:
+            problems.append({"state": None, "shown": None, "problem": "no arrow was seen at all"})
         print(json.dumps({"directions": {k: v["count"] for k, v in seen.items()}, "problems": problems}, indent=1))
         args.check = [c for c in args.check if c != "arrows"]
         if not args.check:
