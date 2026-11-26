@@ -2,7 +2,11 @@
 
 _Last updated: 2026-11-26 (session 8: QA fixes, v0.1.0-dev.4)_
 
-## Session 8 — fixes from the QA play-through (patches 0039–0042)
+## Session 8 — fixes from the QA play-through (patches 0039–0043)
+
+**Released as pre-release `v0.1.0-dev.4`** (2026-11-26, at Jake's request): patch and checksum only,
+from `main` at `e8b2d22`, patched ROM SHA-1 `ec6579987f7a43ff665e84a5eafc8d85d4d5376f`. CI green on
+`develop` and `main` (whole-game run included). Issues #3–#6 closed; #8 open.
 
 Jake: "fix all issues, build a new build for github".
 - Fixed the four filed bugs and three smaller confirmed points from `docs/QA-2026-11-26.md`:
