@@ -1,6 +1,25 @@
 # Progress and handoff
 
-_Last updated: 2026-11-26 (session 8: QA fixes, v0.1.0-dev.4)_
+_Last updated: 2026-11-26 (session 9: remaining non-difficulty bugs, patches 0044–0046)_
+
+## Session 9 — bugs that don't change difficulty (patches 0044–0046)
+
+Jake: "fix all bugs which dont alter gameplay difficulty anymore".
+- **#8 fixed:** reproduced on the emulator first (the right-hand Pokémon in a double battle was
+  offered CHANGE with nobody left), then fixed; test fails before, passes after.
+- **QA-08 fixed:** the tick and cross on the shop's, bag's, Berry Pouch's, TM Case's and PC's Yes/No
+  boxes (Little and Junior). Each was looked at on screen: the PC and TM Case needed another palette
+  (the tick was black at first), so `YesNoPictures` now checks their colours on screen.
+- **Tests:** `DoubleBattle` (#8 and a control that CHANGE still shows when the bench is free) and
+  `YesNoPictures`; all fail on the dev.4 build and pass on this one. Code review: no bugs found.
+- **Results on ROM SHA-1 `665375d75f8d0c4ca86049d034810494ac8b284d`:** `scripts/test.sh full` 55 unit and
+  98 emulator tests pass (whole game included); the final `emu_qa_flows.py` (19 tests) passes on the
+  same frozen ROM. Screen tour: 316 of 319 screens identical to the QA tour; the 3 that differ are
+  the "… defeated …" line. Not played by hand.
+- **Text:** "JANNE defeated …" instead of FireRed's "Player defeated …".
+- **Left alone on purpose:** QA-09 (the arrow over people: cosmetic); S-01 and S-02 (they change
+  battle difficulty or the moves offered); D-01 to D-07 (Jake's decisions). Version 0.1.0-dev.5:
+  Jake then asked "merge and build".
 
 ## Session 8 — fixes from the QA play-through (patches 0039–0043)
 

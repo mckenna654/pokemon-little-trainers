@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 14:16:53 +1100
+Subject: fix: tick and cross on the remaining Yes/No boxes (shop, bag, Berry
+ Pouch, TM Case, PC)
+
+QA-08. CreateYesNoMenuWithCallbacks (buying and selling in shops, the bag,
+the Berry Pouch, the TM Case) and the PC's own Yes/No now draw the pictures
+the field's Yes/No box has (Little Trainer's menuIcons rule). The PC's box is
+one tile wider and in the standard palette on Little Trainer, and the TM
+Case's uses palette 10: in their usual palettes the tick came out black.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/menu_helpers.c b/src/menu_helpers.c
+index 584e94eaa..d3dde8f75 100644
+--- a/src/menu_helpers.c
++++ b/src/menu_helpers.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "task.h"
+ #include "menu.h"
+@@ -63,6 +64,7 @@ static void Task_CallYesOrNoCallback(u8 taskId)
+ void CreateYesNoMenuWithCallbacks(u8 taskId, const struct WindowTemplate *template, u8 fontId, u8 left, u8 top, u16 tileStart, u8 palette, const struct YesNoFuncTable *yesNo)
+ {
+     CreateYesNoMenu(template, fontId, left, top, tileStart, palette, 0);
++    LT_DrawYesNoIcons(GetYesNoMenuWindowId(), top, GetFontAttribute(fontId, FONTATTR_MAX_LETTER_HEIGHT) + GetFontAttribute(fontId, FONTATTR_LINE_SPACING));
+     sYesNo = yesNo;
+     gTasks[taskId].func = Task_CallYesOrNoCallback;
+ }
+diff --git a/src/pokemon_storage_system_tasks.c b/src/pokemon_storage_system_tasks.c
+index fdc5250c3..c3d606a21 100644
+--- a/src/pokemon_storage_system_tasks.c
++++ b/src/pokemon_storage_system_tasks.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "gflib.h"
+ #include "data.h"
+ #include "decompress.h"
+@@ -316,6 +317,20 @@ static const struct WindowTemplate sYesNoWindowTemplate = {
+     .baseBlock = 0x05c
+ };
+ 
++// Little Trainers: one tile wider, to fit the tick and cross beside YES and NO (the same tiles: the
++// menu window that shares them is never open at the same time), and in palette 13, the standard
++// window palette the PC loads for its message box (palette 15 has no green or red: they came out
++// black)
++static const struct WindowTemplate sYesNoWindowTemplate_Pictures = {
++    .bg = 0,
++    .tilemapLeft = 23,
++    .tilemapTop = 11,
++    .width = 6,
++    .height = 4,
++    .paletteNum = 13,
++    .baseBlock = 0x05c
++};
++
+ static const struct OamData sOamData_DisplayMon = {
+     .y = 0,
+     .affineMode = ST_OAM_AFFINE_OFF,
+@@ -2594,7 +2609,8 @@ static void PrintStorageMessage(u8 id)
+ 
+ static void ShowYesNoWindow(s8 cursorPos)
+ {
+-    CreateYesNoMenu(&sYesNoWindowTemplate, FONT_NORMAL_COPY_1, 0, 2, 11, 14, 1);
++    CreateYesNoMenu(LT_Rules()->menuIcons ? &sYesNoWindowTemplate_Pictures : &sYesNoWindowTemplate, FONT_NORMAL_COPY_1, 0, 2, 11, 14, 1);
++    LT_DrawYesNoIcons(GetYesNoMenuWindowId(), 2, GetFontAttribute(FONT_NORMAL_COPY_1, FONTATTR_MAX_LETTER_HEIGHT) + GetFontAttribute(FONT_NORMAL_COPY_1, FONTATTR_LINE_SPACING));
+     Menu_MoveCursorNoWrapAround(cursorPos);
+ }
+ 
+diff --git a/src/tm_case.c b/src/tm_case.c
+index 8975761a5..cdfabc8c1 100644
+--- a/src/tm_case.c
++++ b/src/tm_case.c
+@@ -1,4 +1,5 @@
+ #include "global.h"
++#include "little_trainers.h"
+ #include "tm_case.h"
+ #include "gflib.h"
+ #include "decompress.h"
+@@ -336,6 +337,18 @@ static const struct WindowTemplate sYesNoWindowTemplate = {
+     .baseBlock = 0x335
+ };
+ 
++// Little Trainers: the same window in palette 10, the plain standard menu palette. Palette 15 has
++// its green replaced (sPal3Override), which turned the tick beside YES black.
++static const struct WindowTemplate sYesNoWindowTemplate_Pictures = {
++    .bg = 1,
++    .tilemapLeft = 21,
++    .tilemapTop = 9,
++    .width = 6,
++    .height = 4,
++    .paletteNum = 10,
++    .baseBlock = 0x335
++};
++
+ static const struct WindowTemplate sWindowTemplates_ContextMenu[] = {
+     [WIN_USE_GIVE_EXIT] = {
+         .bg = 1,
+@@ -1596,7 +1609,7 @@ static void PrintPlayersMoney(void)
+ 
+ static void HandleCreateYesNoMenu(u8 taskId, const struct YesNoFuncTable *ptrs)
+ {
+-    CreateYesNoMenuWithCallbacks(taskId, &sYesNoWindowTemplate, FONT_NORMAL, 0, 2, 91, 14, ptrs);
++    CreateYesNoMenuWithCallbacks(taskId, LT_Rules()->menuIcons ? &sYesNoWindowTemplate_Pictures : &sYesNoWindowTemplate, FONT_NORMAL, 0, 2, 91, 14, ptrs);
+ }
+ 
+ static u8 AddContextMenu(u8 * windowId, u8 windowIndex)

@@ -27,6 +27,8 @@ BP_ACTION_TOSS = 1                          # berry_pouch.c enum: USE, TOSS, GIV
 ITEM_ORAN_BERRY = 139
 ABILITY_SHADOW_TAG = 23
 MAROWAK = 105
+ITEM_TM01 = 289
+TWINS_ELI_ANNE = 484                        # a double battle (include/constants/opponents.h)
 SPECIAL_START_MAROWAK_BATTLE = 0x156          # StartMarowakBattle in data/specials.inc
 ABILITY_ARENA_TRAP = 71
 SPECIAL_SHOW_STORAGE_PC = 0x3C              # ShowPokemonStorageSystemPC in data/specials.inc
@@ -349,6 +351,116 @@ class Trapped(QaTestCase):
         g.attack()
         self.assertTrue(g.wait_action_menu())
         self.assertIn(g.CHANGE, buttons_reachable(g))
+
+
+class DoubleBattle(QaTestCase):
+    def at_menu(self, battler):
+        g = self.g
+        return g.in_battle() and g.r32(g.sym("gBattlerControllerFuncs") + 4 * battler) & ~1 == g._choose_action
+
+    def reachable(self, battler):
+        """The buttons battler's ring can reach (its own cursor in gActionSelectionCursor)."""
+        g = self.g
+        cursor = lambda: g.r8(g.sym("gActionSelectionCursor") + battler)
+        seen = {cursor()}
+        for key in ("LEFT",) * 4 + ("RIGHT",) * 4:
+            g.press(key, wait=8)
+            seen.add(cursor())
+        return seen
+
+    def start_double_battle(self):
+        g = self.g
+        give_mon(g, PIDGEY)                              # set-up: two to fight, one on the bench
+        give_mon(g, PIDGEY)
+        buf = g.sym("gStringVar4") + 0x2F0
+        g.w8(buf, 0xFF)                                  # set-up: empty texts for the script
+        text = list(struct.pack("<I", buf))
+        # set-up: trainerbattle TRAINER_BATTLE_DOUBLE, the Twins (a double battle), with texts
+        g.run_script([0x5C, 0x04, *struct.pack("<H", TWINS_ELI_ANNE), 0, 0] + text * 3, wait=False)
+        g.run_until(g.in_battle, mash="A", step=20, max_frames=1800, what="the double battle")
+        g.run_until(lambda: self.at_menu(0), mash="B", step=13, max_frames=3000, what="the left Pokemon's buttons")
+        g.frames(10)
+
+    def test_the_second_pokemon_can_change_when_the_bench_is_free(self):
+        """The control for the test below: the left Pokemon attacks, so the bench is free and the
+        right-hand Pokemon is offered CHANGE as usual."""
+        g = self.g
+        self.start_double_battle()
+        g.press_button(g.ATTACK)
+        for _ in range(60):
+            if self.at_menu(2):
+                break
+            g.press("A", hold=3, wait=20)
+        self.assertTrue(self.at_menu(2), "set-up: the right Pokemon's turn to choose")
+        g.frames(10)
+        buttons = self.reachable(2)
+        self.assertGreater(len(buttons), 1, "set-up: the ring moves")
+        self.assertIn(g.CHANGE, buttons)
+
+    def test_no_change_for_the_second_pokemon_when_the_bench_is_already_taken(self):
+        """#8 (fixed): in a double battle, once the left-hand Pokemon has chosen to change to the
+        only Pokemon on the bench, the right-hand one must not be offered CHANGE (its party
+        screen would have nobody to send out)."""
+        g = self.g
+        self.start_double_battle()
+        self.assertIn(g.CHANGE, self.reachable(0), "set-up: CHANGE for the left Pokemon")
+        g.press_button(g.CHANGE)                         # CHANGE -> the party screen
+        for _ in range(60):                              # A: the Pokemon on the bench, SHIFT
+            if self.at_menu(2):
+                break
+            g.press("A", hold=3, wait=20)
+        self.assertTrue(self.at_menu(2), "set-up: the right Pokemon's turn to choose")
+        self.assertEqual(g.r8(g.sym("gChosenActionByBattler")), 2, "set-up: the left Pokemon chose to switch (B_ACTION_SWITCH)")
+        g.frames(10)
+        g.shot("qa-double-change")
+        # Without CHANGE a trainer battle leaves ATTACK alone, so the ring cannot move here: the
+        # control test above shows it does move for this Pokemon when CHANGE is there.
+        self.assertNotIn(g.CHANGE, self.reachable(2), "no CHANGE: nobody is left to change to")
+
+
+class YesNoPictures(QaTestCase):
+    """QA-08 (fixed): the tick and cross on the PC's and the TM Case's Yes/No boxes. Their usual
+    palettes turned the tick black, so the colours on screen are checked, not just the drawing."""
+
+    def colours_beside_yes_no(self):
+        """Clearly green and clearly red pixels in the lower right of the screen."""
+        pixels = self.g.pixels()
+        area = [pixels[y][x] for y in range(60, 130) for x in range(170, 240)]
+        green = sum(1 for r, gr, b in area if gr > 150 and r < 120 and b < 120)
+        red = sum(1 for r, gr, b in area if r > 180 and gr < 90 and b < 90)
+        return green, red
+
+    def test_the_pcs_question_has_a_green_tick_and_a_red_cross(self):
+        g = self.g
+        give_mon(g, PIDGEY)                              # set-up: someone to deposit
+        open_pc(g)
+        g.press("DOWN", wait=45)                         # DEPOSIT POKeMON
+        g.press("A", wait=45)
+        g.frames(60)
+        g.press("B", wait=60)                            # "Continue BOX operations?"
+        g.frames(20)
+        g.shot("qa-yes-no-pc")
+        green, red = self.colours_beside_yes_no()
+        self.assertGreater(green, 10, "a green tick")
+        self.assertGreater(red, 10, "a red cross")
+
+    def test_the_tm_cases_question_has_a_green_tick_and_a_red_cross(self):
+        g = self.g
+        g.give_item(ITEM_TM01, 1)                        # set-up: a TM to sell
+        g.run_script([0x86, *struct.pack("<I", g.sym("ViridianCity_Mart_Items"))], wait=False)   # set-up: a shop
+        g.frames(60)
+        g.press("DOWN", wait=45)                         # SELL: the bag opens
+        g.press("A", wait=45)
+        g.frames(90)
+        g.press("RIGHT", wait=45)                        # KEY ITEMS: the TM Case
+        g.press("A", wait=45)
+        g.frames(90)
+        g.press("A", wait=45)                            # the TM (only one: no quantity) -> "I can pay ... okay?"
+        g.frames(20)
+        g.shot("qa-yes-no-tm-case")
+        green, red = self.colours_beside_yes_no()
+        self.assertGreater(green, 10, "a green tick")
+        self.assertGreater(red, 10, "a red cross")
 
 
 class GhostBattle(QaTestCase):
