@@ -65,6 +65,9 @@ Little Trainer mode includes:
 
 - **Simpler battles:** illustrated action buttons, a recommended attack marker and fewer
   decisions each turn. Player attacks do not use up PP or miss through normal accuracy checks.
+- **Gentler type matchups:** an attack the opponent resists still does three-quarters damage
+  (not half), and attacks that are strong against your Pokémon do 1.5 times (not double). This
+  is the same for every Pokémon, so no starter gets stuck against a gym leader.
 - **Easier catching:** five times the original catch odds, with free Poké Balls. Catching can
   still fail, particularly for rare and legendary Pokémon; weakening them improves the odds.
 - **Gentler recovery:** automatic healing after battles, no money lost on defeat and a return

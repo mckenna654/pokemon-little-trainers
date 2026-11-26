@@ -128,6 +128,7 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0044 | Double battles: no CHANGE when the partner has taken the only bench Pokémon | `little_trainers_battle_ui.c` → `SomeoneToChangeTo` | `simpleBattleMenu` |
 | 0045 | Tick and cross on more Yes/No boxes | `menu_helpers.c` → `CreateYesNoMenuWithCallbacks`; `pokemon_storage_system_tasks.c` → `ShowYesNoWindow` (wider window, palette 13); `tm_case.c` (palette 10) | `menuIcons` |
 | 0046 | The player's name in "… defeated …" | `battle_message.c` (`sText_PlayerDefeatedLinkTrainerTrainer1`) | all presets (text) |
+| 0047 | Gentler type matchups | `battle_script_commands.c` → `Cmd_typecalc` calls `LT_TypeDamage` after the type chart; `little_trainers.c` → `EffectiveScore` | `gentleTypes` (Little only) |
 
 ### Navigation arrow
 - **Goals:** `tools/nav/objectives.json` lists the story goals in order; each has a "done"

@@ -30,6 +30,7 @@ and earn badges with very little adult help.
 | --- | --- | --- | --- |
 | Catching | 5× the original odds, no balls needed, a miss costs nothing | 2.5× the original odds | Original |
 | Damage dealt / taken | 150% / 50% | 120% / 80% | Original |
+| Type matchups | Resisted hits by the player do ¾ (not ½); super-effective hits on the player do 1.5× (not 2×); mixed matchups unchanged | Original | Original |
 | Rival, Elite Four, Champion bring | At most 3 Pokémon | At most 5 | Original teams |
 | Healing | Automatic after every battle | Automatic | Pokémon Centres |
 | Experience | ×2.5, whole party | ×1.5, whole party | Original |

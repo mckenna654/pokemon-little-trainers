@@ -1,6 +1,30 @@
 # Progress and handoff
 
-_Last updated: 2026-11-26 (session 9: remaining non-difficulty bugs, patches 0044–0046)_
+_Last updated: 2026-11-26 (session 10: gentler type matchups on Little Trainer, patch 0047)_
+
+## Session 10 — gentler type matchups (patch 0047)
+
+**v0.1.0-dev.5 published** (pre-release, patch and checksum only) from `main` at `f991ca1` (PR #10),
+patched ROM SHA-1 `665375d75f8d0c4ca86049d034810494ac8b284d`; CI green on `main` (whole game).
+Also fixed: `apply-patches.sh` piped `git log` into `head`, which failed CI at random (exit 141)
+once there were more than 40 patches.
+
+Jake asked why Bulbasaur struggles (FireRed's own type matchups: Erika, Koga, Blaine, the rival's
+Charizard), then: "dont just make special discounts for bulbasaur, maybe with little trainer only,
+make type match ups a little bit easier".
+- **`gentleTypes` (Little only):** applied once to the overall matchup after the type chart: the
+  player's resisted hits ×1.5 (½ → ¾), the opponent's super-effective hits ×¾ (2× → 1.5×). Mixed
+  matchups, immunities, messages and the Poké Dude's lessons unchanged; the suggested attack uses
+  the same numbers. A first version applied it per type; code review pointed out that made mixed
+  matchups 1.5× and left the suggested attack on the weaker move, so it was reworked.
+- **Bulbasaur whole-game run** (`qa_journey --starter bulbasaur`), turns in the leader's battle,
+  before → after: Erika 13 → 8, Koga 10 → 4, Blaine 15 → 8, Lance 15 → 10, Champion 29 → 11;
+  battles lost 4 → 1; 272 → 231 minutes of play.
+- **Results on ROM SHA-1 `20a1cd9ab87dd432631728cb84d403fbf279b825`:** `scripts/test.sh full` 55 unit
+  and 106 emulator tests pass (whole game included). `emu_types.py` softened cases fail on dev.5.
+  The Arena Trap test now gives the Diglett Arena Trap itself (its ability is random: the new
+  build's random numbers gave Sand Veil). Not played by hand; mGBA core only.
+- Jake: "merge all, build": version 0.1.0-dev.6.
 
 ## Session 9 — bugs that don't change difficulty (patches 0044–0046)
 

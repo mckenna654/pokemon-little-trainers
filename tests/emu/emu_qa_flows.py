@@ -295,8 +295,9 @@ class Trapped(QaTestCase):
         g = self.g
         g.start_wild_battle(DIGLETT, 5)                  # set-up: a wild Diglett on Route 1
         self.assertTrue(g.wait_action_menu())
-        ability = g.r8(g.sym("gBattleMons") + 0x58 + 0x20)
-        self.assertEqual(ability, ABILITY_ARENA_TRAP, "set-up: this Diglett has Arena Trap, not Sand Veil")
+        # set-up: Arena Trap, whatever the random ability was (a wild Diglett can have Sand Veil)
+        g.w8(g.sym("gBattleMons") + 0x58 + 0x20, ABILITY_ARENA_TRAP)
+        self.assertEqual(g.r8(g.sym("gBattleMons") + 0x58 + 0x20), ABILITY_ARENA_TRAP)
         g.run_away()
         for _ in range(200):
             if not g.in_battle() or g.at_action_menu():

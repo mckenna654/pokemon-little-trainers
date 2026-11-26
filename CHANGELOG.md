@@ -2,12 +2,13 @@
 
 Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 
-## [Unreleased] (0.1.0-dev.5)
+## [Unreleased] (0.1.0-dev.6)
 _Pre-releases (patch only, never a ROM): `v0.1.0-dev` (2026-11-24) is this list as it stood at commit
 `a749e31`; `v0.1.0-dev.2` (2026-11-25) adds the fixes from Jake's first playtest and the illustrated
 pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow;
 `v0.1.0-dev.4` (2026-11-26) adds the fixes from the QA play-through; `v0.1.0-dev.5` (2026-11-26)
-adds the last fixes that don't change difficulty._
+adds the last fixes that don't change difficulty; `v0.1.0-dev.6` (2026-11-26) adds gentler type
+matchups on Little Trainer._
 ### Documentation
 - Reworked the README to introduce the three difficulty modes clearly, highlight Little Trainer
   for ages 3–4, and explain that artwork supports written labels and shared reading. Simplified
@@ -93,6 +94,13 @@ adds the last fixes that don't change difficulty._
   Pokédex, Safari flag). The trainer card entry is left out on Little and Junior presets.
 - Control symbols (ring, star, hearts, arrow, confetti, tick/cross) drawn by `assets/ui/make_battle_icons.py`.
 - Gentle wording: Pokémon are "tired", not fainted; losing says "Your POKéMON need a little rest!".
+### Changed (after `v0.1.0-dev.5`, Little Trainer only)
+- **Gentler type matchups** (patch 0047, rule `gentleTypes`): the player's "not very effective"
+  hits do half as much again (½ → ¾, ¼ → ⅜), and the opponent's "super effective" hits a quarter
+  less (2× → 1.5×, 4× → 3×). The same for every type and Pokémon: a starter whose type struggles
+  later in the game (Bulbasaur against Erika, Koga, Blaine and the Champion's Charizard) is never
+  stuck. Mixed matchups that cancel out, immunities, the messages and the Poké Dude's lessons are
+  unchanged; the suggested attack uses the same numbers. Junior and Classic keep the original.
 ### Fixed (after `v0.1.0-dev.4`; no change to difficulty)
 - **Double battles:** the second Pokémon is no longer offered CHANGE when its partner has already
   chosen the only Pokémon left on the bench (#8, patch 0044). Pressing A in that party screen went
