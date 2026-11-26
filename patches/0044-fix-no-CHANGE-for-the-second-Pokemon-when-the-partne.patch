@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 14:16:53 +1100
+Subject: fix: no CHANGE for the second Pokemon when the partner has taken the
+ only one on the bench (#8)
+
+In a double battle the right-hand Pokemon chooses second. If the left-hand one
+has already chosen to switch to the only Pokemon left on the bench, CHANGE
+would open a party screen with nobody to send out. SomeoneToChangeTo now
+skips that Pokemon, as battle_main.c does.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index 41b069ddf..90c0b04a0 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -237,7 +237,7 @@ static u8 ButtonIcon(u8 battler, u8 slot)
+ }
+ 
+ // Is there a Pokemon in the party that CHANGE could bring in?
+-static bool32 SomeoneToChangeTo(void)
++static bool32 SomeoneToChangeTo(u8 chooser)
+ {
+     u8 i, battler;
+ 
+@@ -248,6 +248,11 @@ static bool32 SomeoneToChangeTo(void)
+         if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(mon, MON_DATA_IS_EGG)
+          || GetMonData(mon, MON_DATA_HP) == 0)
+             continue;
++        // In a double battle the right-hand Pokemon chooses second: one its partner has already
++        // chosen to send out is taken (the battle engine's own rule, battle_main.c).
++        if (chooser == 2 && gChosenActionByBattler[0] == B_ACTION_SWITCH
++         && *(gBattleStruct->monToSwitchIntoId + 0) == i)
++            continue;
+         for (battler = 0; battler < gBattlersCount; battler++)
+         {
+             if (GetBattlerSide(battler) == B_SIDE_PLAYER && gBattlerPartyIndexes[battler] == i)
+@@ -370,7 +375,7 @@ void LT_BattleMenu_Show(u8 battler)
+ 
+     LT_ChooseAttackSlots(battler, &sBasicSlot, &sSpecialSlot);
+     sRecommended = LT_RecommendedAttack(battler, sBasicSlot, sSpecialSlot);
+-    sSomeoneToChangeTo = SomeoneToChangeTo();
++    sSomeoneToChangeTo = SomeoneToChangeTo(battler);
+     sCanLeave = CanLeaveField(battler);
+     sCanCatch = !(gBattleTypeFlags & BATTLE_TYPE_GHOST) && !IsPlayerPartyAndPokemonStorageFull();
+ 

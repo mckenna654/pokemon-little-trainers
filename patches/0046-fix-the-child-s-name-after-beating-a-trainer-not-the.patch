@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 14:16:53 +1100
+Subject: fix: the child's name after beating a trainer, not the word "Player"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+FireRed's own text reads "Player defeated BUG CATCHER RICK!" while the next
+line says "JANNE got ¥...". Now both use the player's name.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/src/battle_message.c b/src/battle_message.c
+index eb87217e1..ab451a725 100644
+--- a/src/battle_message.c
++++ b/src/battle_message.c
+@@ -370,7 +370,8 @@ static const u8 sText_PkmnTurnedAway[] = _("{B_ATK_NAME_WITH_PREFIX} turned away
+ static const u8 sText_PkmnPretendNotNotice[] = _("{B_ATK_NAME_WITH_PREFIX} pretended\nnot to notice!");
+ static const u8 sText_EnemyAboutToSwitchPkmn[] = _("{B_TRAINER1_CLASS} {B_TRAINER1_NAME} is\nabout to use {B_BUFF2}.\pWill {B_PLAYER_NAME} change\nPOKéMON?");
+ static const u8 sText_PkmnLearnedMove2[] = _("{B_ATK_NAME_WITH_PREFIX} learned\n{B_BUFF1}!");
+-static const u8 sText_PlayerDefeatedLinkTrainerTrainer1[] = _("Player defeated\n{B_TRAINER1_CLASS} {B_TRAINER1_NAME}!\p");
++// Little Trainers: the child's name, as in every other line ("JANNE got ¥..."), not the word "Player"
++static const u8 sText_PlayerDefeatedLinkTrainerTrainer1[] = _("{B_PLAYER_NAME} defeated\n{B_TRAINER1_CLASS} {B_TRAINER1_NAME}!\p");
+ static const u8 sText_ThrewARock[] = _("{B_PLAYER_NAME} threw a ROCK\nat the {B_OPPONENT_MON1_NAME}!");
+ static const u8 sText_ThrewSomeBait[] = _("{B_PLAYER_NAME} threw some BAIT\nat the {B_OPPONENT_MON1_NAME}!");
+ static const u8 sText_PkmnWatchingCarefully[] = _("{B_OPPONENT_MON1_NAME} is watching\ncarefully!");

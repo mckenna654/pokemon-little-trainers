@@ -2,11 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 
-## [Unreleased] (0.1.0-dev.4)
+## [Unreleased] (0.1.0-dev.5)
 _Pre-releases (patch only, never a ROM): `v0.1.0-dev` (2026-11-24) is this list as it stood at commit
 `a749e31`; `v0.1.0-dev.2` (2026-11-25) adds the fixes from Jake's first playtest and the illustrated
 pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow;
-`v0.1.0-dev.4` (2026-11-26) adds the fixes from the QA play-through._
+`v0.1.0-dev.4` (2026-11-26) adds the fixes from the QA play-through; `v0.1.0-dev.5` (2026-11-26)
+adds the last fixes that don't change difficulty._
 ### Documentation
 - Reworked the README to introduce the three difficulty modes clearly, highlight Little Trainer
   for ages 3–4, and explain that artwork supports written labels and shared reading. Simplified
@@ -92,6 +93,15 @@ pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the 
   Pokédex, Safari flag). The trainer card entry is left out on Little and Junior presets.
 - Control symbols (ring, star, hearts, arrow, confetti, tick/cross) drawn by `assets/ui/make_battle_icons.py`.
 - Gentle wording: Pokémon are "tired", not fainted; losing says "Your POKéMON need a little rest!".
+### Fixed (after `v0.1.0-dev.4`; no change to difficulty)
+- **Double battles:** the second Pokémon is no longer offered CHANGE when its partner has already
+  chosen the only Pokémon left on the bench (#8, patch 0044). Pressing A in that party screen went
+  nowhere.
+- **Tick and cross on more Yes/No boxes** on Little Trainer and Junior: buying and selling in
+  shops, the bag, the Berry Pouch, the TM Case and the PC (QA-08, patch 0045). The PC's and the TM Case's
+  boxes needed a different palette, or the tick came out black.
+- **The child's name after beating a trainer** ("JANNE defeated BUG CATCHER RICK!"), instead of
+  FireRed's own "Player defeated", in every mode, Classic included (patch 0046).
 ### Fixed (after `v0.1.0-dev.3`, from the QA play-through, `docs/QA-2026-11-26.md`)
 - **Nothing can be thrown away or released for good** on Little and Junior (#3, #4, patches 0039
   and 0043): the bag's and the Berry Pouch's item menus have no TOSS, and the PC's menu for a
