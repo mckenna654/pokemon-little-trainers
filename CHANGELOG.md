@@ -2,13 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 
-## [Unreleased] (0.1.0-dev.6)
+## [Unreleased] (0.1.0-dev.7)
 _Pre-releases (patch only, never a ROM): `v0.1.0-dev` (2026-11-24) is this list as it stood at commit
 `a749e31`; `v0.1.0-dev.2` (2026-11-25) adds the fixes from Jake's first playtest and the illustrated
 pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow;
 `v0.1.0-dev.4` (2026-11-26) adds the fixes from the QA play-through; `v0.1.0-dev.5` (2026-11-26)
 adds the last fixes that don't change difficulty; `v0.1.0-dev.6` (2026-11-26) adds gentler type
-matchups on Little Trainer._
+matchups on Little Trainer; `v0.1.0-dev.7` (2026-11-26) gives Junior Trainer the Little Trainer
+menus._
 ### Changed
 - **Junior Trainer has Little Trainer's menus (patch 0048):** the picture battle buttons (ATTACK /
   SPECIAL / CATCH or CHANGE / RUN), no typing or nickname questions, and automatic move learning.
