@@ -1,6 +1,24 @@
 # Progress and handoff
 
-_Last updated: 2026-11-26 (session 7: QA play-through, branch `qa/2026-11-26-playthrough`)_
+_Last updated: 2026-11-26 (session 8: QA fixes, v0.1.0-dev.4)_
+
+## Session 8 — fixes from the QA play-through (patches 0039–0042)
+
+Jake: "fix all issues, build a new build for github".
+- Fixed the four filed bugs and three smaller confirmed points from `docs/QA-2026-11-26.md`:
+  - no TOSS and no RELEASE on Little and Junior (#3, #4; new rule `keepEverything`);
+  - no evolution the game would only stop (#6);
+  - no CHANGE while trapped (#5);
+  - no CATCH against the Tower ghost or with a full PC;
+  - RUN wins over Arena Trap and the other trapping abilities.
+- **Testing:** each regression test failed on the QA build and passes on the fixed one. The screen
+  tour of the fixed build matches the QA tour tile for tile (319 screens). The changed screens
+  (bag menu, PC menu, trapped, ghost and full-PC battle buttons) were looked at.
+- **Found by the fixes' code review:** the Berry Pouch had its own TOSS (fixed, patch 0043); a
+  double-battle CHANGE case filed as #8 (not reproduced yet).
+- **Left for Jake's decisions:** selling (D-02), saving after a catch (D-01), the post-game
+  (D-03), MODE lock (D-04), words-only screens (D-05), story themes (D-06), and the pacing and
+  attack-picture points S-01 and S-02.
 
 ## Session 7 — QA play-through and accessibility review (no gameplay changes)
 
@@ -186,9 +204,8 @@ the whole-game run on `main`.
   sprite pack is used.
 
 ## Next actions (in order)
-1. **Fix the QA bugs** (issues #3–#6), worst first, each by removing its test's
-   `expectedFailure` and making it pass. Then the S-01 pacing question and Jake's D-decisions in
-   `docs/QA-2026-11-26.md`.
+1. **Jake's decisions on the QA report** (D-01 to D-07), then the S-01 pacing and S-02
+   attack-picture changes.
 2. **Jake's answers wanted:** the QA report's decisions; whether rare Pokémon are now too hard to
    catch on Little Trainer (a floor would be one rule); how the Steam Deck installer behaves on a
    real Deck; and what he thinks of the pictures (small Start menu pictures; CHANGE has no "swap" cue).

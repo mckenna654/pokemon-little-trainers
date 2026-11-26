@@ -1,0 +1,131 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 13:04:13 +1100
+Subject: fix: no TOSS in the Berry Pouch either on Little and Junior; review
+ notes
+
+The Berry Pouch has its own item menu, and picking up any berry gives the
+pouch, so keepEverything now leaves TOSS out there too (field: USE, GIVE,
+EXIT; battle: USE, EXIT). Also from the code review: CanLeaveField checks
+abilities on every battler as the engine does (no HP test); comments for
+the Teleport and Ingrain effect of the run rule, the second meaning of
+noEvolutionCancel and the CATCH fallback sound.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index 2d2cdd448..6e53926b3 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -75,7 +75,9 @@ struct LtRules
+ 
+     // Moves and evolution
+     bool8 autoLearnMoves;       // new moves replace the weakest one automatically, no prompts
+-    bool8 noEvolutionCancel;    // pressing B during an evolution does not stop it
++    bool8 noEvolutionCancel;    // pressing B during an evolution does not stop it, and no evolution is
++                                // started that the evolution scene would cancel (beyond the first
++                                // 151 Pokemon before the National Pokedex)
+     u8 tradeEvoLevel;           // level at which trade evolutions happen by themselves (0 = trading only)
+     u8 friendshipEvoThreshold;  // friendship needed for friendship evolutions (220 = original)
+ 
+diff --git a/src/battle_controller_player.c b/src/battle_controller_player.c
+index 087694315..7a38ae483 100644
+--- a/src/battle_controller_player.c
++++ b/src/battle_controller_player.c
+@@ -242,7 +242,7 @@ static void LtHandleInputSimpleMenu(void)
+             }
+             else if (IsPlayerPartyAndPokemonStorageFull())
+             {
+-                PlaySE(SE_FAILURE); // nowhere to put another Pokemon
++                PlaySE(SE_FAILURE); // nowhere to put another Pokemon (fallback: CATCH is hidden then)
+                 return;
+             }
+             else
+diff --git a/src/battle_main.c b/src/battle_main.c
+index cd9171fee..12288f07a 100644
+--- a/src/battle_main.c
++++ b/src/battle_main.c
+@@ -3030,7 +3030,8 @@ u8 IsRunningFromBattleImpossible(void)
+     s32 i;
+ 
+     // Little Trainers: running from a wild Pokemon never fails, so Arena Trap, Shadow Tag, Magnet
+-    // Pull and trapping moves do not stop it either (TryRunFromBattle then always succeeds).
++    // Pull, trapping moves and the player's own Ingrain do not stop it either (TryRunFromBattle
++    // then always succeeds). The player's Teleport, which asks the same question, works too.
+     if (LT_BattleRulesActive() && LT_Rules()->alwaysRunAway && !(gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+      && GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER)
+         return BATTLE_RUN_SUCCESS;
+diff --git a/src/berry_pouch.c b/src/berry_pouch.c
+index 545d1450c..6f52dcaf9 100644
+--- a/src/berry_pouch.c
++++ b/src/berry_pouch.c
+@@ -7,6 +7,7 @@
+ #include "text.h"
+ #include "berry_pouch.h"
+ #include "item_menu.h"
++#include "little_trainers.h"
+ #include "menu_helpers.h"
+ #include "new_menu_helpers.h"
+ #include "scanline_effect.h"
+@@ -212,6 +213,21 @@ static const u8 sOptions_UseToss_Exit[] = {
+     BP_ACTION_DUMMY
+ };
+ 
++// Little Trainers (keepEverything): the same lists without TOSS
++static const u8 sOptions_UseGiveExit[] = {
++    BP_ACTION_USE,
++    BP_ACTION_GIVE,
++    BP_ACTION_EXIT,
++    BP_ACTION_DUMMY
++};
++
++static const u8 sOptions_Use_Exit[] = {
++    BP_ACTION_USE,
++    BP_ACTION_EXIT,
++    BP_ACTION_DUMMY,
++    BP_ACTION_DUMMY
++};
++
+ static const u8 sText_Space[] = _(" ");
+ 
+ static const struct WindowTemplate sWindowTemplates_Main[] = {
+@@ -1000,7 +1016,12 @@ static void CreateNormalContextMenu(u8 taskId)
+     u8 windowId;
+     u8 windowId2;
+ 
+-    if (sStaticCnt.type == BERRYPOUCH_FROMBATTLE)
++    if (sStaticCnt.type == BERRYPOUCH_FROMBATTLE && LT_Rules()->keepEverything)
++    {
++        sContextMenuOptions = sOptions_Use_Exit;
++        sContextMenuNumOptions = 2;
++    }
++    else if (sStaticCnt.type == BERRYPOUCH_FROMBATTLE)
+     {
+         sContextMenuOptions = sOptions_UseToss_Exit;
+         sContextMenuNumOptions = 3;
+@@ -1018,6 +1039,11 @@ static void CreateNormalContextMenu(u8 taskId)
+             sContextMenuNumOptions = 2;
+         }
+     }
++    else if (LT_Rules()->keepEverything)
++    {
++        sContextMenuOptions = sOptions_UseGiveExit;
++        sContextMenuNumOptions = 3;
++    }
+     else
+     {
+         sContextMenuOptions = sOptions_UseGiveTossExit;
+diff --git a/src/little_trainers_battle_ui.c b/src/little_trainers_battle_ui.c
+index d5202c830..41b069ddf 100644
+--- a/src/little_trainers_battle_ui.c
++++ b/src/little_trainers_battle_ui.c
+@@ -272,7 +272,7 @@ static bool32 CanLeaveField(u8 battler)
+         return FALSE;
+     for (i = 0; i < gBattlersCount; i++)
+     {
+-        if (i == battler || gBattleMons[i].hp == 0)
++        if (i == battler)
+             continue;
+         if (gBattleMons[i].ability == ABILITY_MAGNET_PULL && IS_BATTLER_OF_TYPE(battler, TYPE_STEEL))
+             return FALSE;

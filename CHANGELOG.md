@@ -2,10 +2,11 @@
 
 Versions follow [Semantic Versioning](https://semver.org/); dates are AEST/AEDT.
 
-## [Unreleased] (0.1.0-dev.3)
+## [Unreleased] (0.1.0-dev.4)
 _Pre-releases (patch only, never a ROM): `v0.1.0-dev` (2026-11-24) is this list as it stood at commit
 `a749e31`; `v0.1.0-dev.2` (2026-11-25) adds the fixes from Jake's first playtest and the illustrated
-pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow._
+pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the diagonal arrow;
+`v0.1.0-dev.4` (2026-11-26) adds the fixes from the QA play-through._
 ### Documentation
 - Reworked the README to introduce the three difficulty modes clearly, highlight Little Trainer
   for ages 3–4, and explain that artwork supports written labels and shared reading. Simplified
@@ -91,6 +92,20 @@ pictures; `v0.1.0-dev.3` (2026-11-25) adds the easier-not-certain rules and the 
   Pokédex, Safari flag). The trainer card entry is left out on Little and Junior presets.
 - Control symbols (ring, star, hearts, arrow, confetti, tick/cross) drawn by `assets/ui/make_battle_icons.py`.
 - Gentle wording: Pokémon are "tired", not fainted; losing says "Your POKéMON need a little rest!".
+### Fixed (after `v0.1.0-dev.3`, from the QA play-through, `docs/QA-2026-11-26.md`)
+- **Nothing can be thrown away or released for good** on Little and Junior (#3, #4, patches 0039
+  and 0043): the bag's and the Berry Pouch's item menus have no TOSS, and the PC's menu for a
+  Pokémon has no RELEASE (new rule `keepEverything`; Classic keeps the original).
+- **No more evolutions that always stop** (#6, patch 0040): Chansey and Golbat no longer start
+  evolving into Blissey and Crobat, which the game cancels until the National Pokédex.
+- **No CHANGE on Little Trainer while the Pokémon can't leave the battle** (#5, patch 0041): Wrap, Bind, Mean Look,
+  Ingrain and the trapping abilities used to send an A-masher round "can't be switched out!" for
+  ever.
+- **No CATCH on Little Trainer where no ball can work** (patch 0041): against the Pokémon Tower ghost, and when the
+  party and every PC box are full (it only beeped).
+- **Running from a wild Pokémon always works** on Little and Junior (patch 0042), Arena Trap,
+  Shadow Tag, Magnet Pull, trapping moves and the player's own Ingrain included. The player's
+  Teleport, which asks the same question, works too.
 ### Added (after `v0.1.0-dev.3`)
 - **QA play-through and accessibility review** (`docs/QA-2026-11-26.md`): the whole game with all
   three starters, generated wander / backtrack / mash checks, flows off the route, independent

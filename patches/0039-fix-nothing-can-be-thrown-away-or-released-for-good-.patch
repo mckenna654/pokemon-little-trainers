@@ -1,0 +1,110 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mckenna654 <mckenna654@gmail.com>
+Date: Thu, 26 Nov 2026 12:52:33 +1100
+Subject: fix: nothing can be thrown away or released for good on Little and
+ Junior (#3, #4)
+
+New rule keepEverything (Little and Junior; Classic keeps the original): the
+bag's item menu leaves out TOSS, and the PC's menu for a Pokemon leaves out
+RELEASE. Found by the QA play-through: an item could be tossed with YES
+already chosen, and the starter could be released.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CNqSDphYuD2Aqe9TExdQMP
+
+diff --git a/include/little_trainers.h b/include/little_trainers.h
+index e87fbb5dc..2d2cdd448 100644
+--- a/include/little_trainers.h
++++ b/include/little_trainers.h
+@@ -31,6 +31,8 @@ struct LtRules
+     // Recovery and losing
+     bool8 healAfterBattle;      // full party heal (HP, PP, status) when a battle ends
+     bool8 noLossPenalty;        // losing a battle never costs money
++    bool8 keepEverything;       // nothing can be given up for good: the bag has no TOSS and the
++                                // PC no RELEASE
+     bool8 autoSave;             // the game saves by itself each time a story goal is completed
+     bool8 autoRespawn;          // after losing, return to the last town visited (no need to have used its Centre)
+ 
+diff --git a/src/item_menu.c b/src/item_menu.c
+index 8f52ead00..531ff264f 100644
+--- a/src/item_menu.c
++++ b/src/item_menu.c
+@@ -11,6 +11,7 @@
+ #include "help_system.h"
+ #include "item.h"
+ #include "item_menu.h"
++#include "little_trainers.h"
+ #include "item_menu_icons.h"
+ #include "item_use.h"
+ #include "link.h"
+@@ -1416,6 +1417,20 @@ static void OpenContextMenu(u8 taskId)
+             }
+         }
+     }
++    if (LT_Rules()->keepEverything)
++    {
++        // Little Trainers: nothing is thrown away for good, so TOSS is left out of the list.
++        // (Compacted in place: the list may already be sContextMenuItemsBuffer.)
++        u8 i, count = 0;
++
++        for (i = 0; i < sContextMenuNumItems; i++)
++        {
++            if (sContextMenuItemsPtr[i] != ITEMMENUACTION_TOSS)
++                sContextMenuItemsBuffer[count++] = sContextMenuItemsPtr[i];
++        }
++        sContextMenuItemsPtr = sContextMenuItemsBuffer;
++        sContextMenuNumItems = count;
++    }
+     r6 = ShowBagWindow(10, sContextMenuNumItems - 1);
+     AddItemMenuActionTextPrinters(
+         r6,
+diff --git a/src/little_trainers.c b/src/little_trainers.c
+index d9cc20b40..1684f19b4 100644
+--- a/src/little_trainers.c
++++ b/src/little_trainers.c
+@@ -30,6 +30,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .catchRatePercent = 500,          // twice Junior
+         .healAfterBattle = TRUE,
+         .noLossPenalty = TRUE,
++        .keepEverything = TRUE,
+         .autoRespawn = TRUE,
+         .autoSave = TRUE,
+         .expPercent = 250,
+@@ -70,6 +71,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .catchRatePercent = 250,
+         .healAfterBattle = TRUE,
+         .noLossPenalty = TRUE,
++        .keepEverything = TRUE,
+         .autoRespawn = TRUE,
+         .autoSave = TRUE,
+         .expPercent = 150,
+@@ -110,6 +112,7 @@ static const struct LtRules sRules[LT_DIFFICULTY_COUNT] =
+         .catchRatePercent = 100,
+         .healAfterBattle = FALSE,
+         .noLossPenalty = FALSE,
++        .keepEverything = FALSE,
+         .autoRespawn = FALSE,
+         .autoSave = FALSE,
+         .expPercent = 100,
+diff --git a/src/pokemon_storage_system_data.c b/src/pokemon_storage_system_data.c
+index ed09bdb65..fe482967e 100644
+--- a/src/pokemon_storage_system_data.c
++++ b/src/pokemon_storage_system_data.c
+@@ -2,6 +2,7 @@
+ #include "gflib.h"
+ #include "data.h"
+ #include "item.h"
++#include "little_trainers.h"
+ #include "mail_data.h"
+ #include "menu.h"
+ #include "new_menu_helpers.h"
+@@ -1801,7 +1802,8 @@ static bool8 SetMenuTextsForMon(void)
+     }
+ 
+     SetMenuText(MENU_TEXT_MARK);
+-    SetMenuText(MENU_TEXT_RELEASE);
++    if (!LT_Rules()->keepEverything) // Little Trainers: nobody is let go for good
++        SetMenuText(MENU_TEXT_RELEASE);
+     SetMenuText(MENU_TEXT_CANCEL);
+     return TRUE;
+ }

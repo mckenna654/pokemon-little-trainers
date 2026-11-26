@@ -35,6 +35,8 @@ and earn badges with very little adult help.
 | Experience | ×2.5, whole party | ×1.5, whole party | Original |
 | Attacks | 2 chosen for you, no PP, never miss | 4 moves, generous | Original |
 | Losing | No penalty, friendly message | No money loss | Original |
+| Throwing items away, releasing Pokémon | Not offered | Not offered | Original |
+| Running from wild Pokémon | Always works | Always works | Original |
 | Navigation help | On | On | Off |
 | Typing and nicknames | Never asked | Asked as usual | Original |
 | Written instructions at the start | Skipped | Skipped | Original |

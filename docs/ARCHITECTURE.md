@@ -120,6 +120,11 @@ link, Battle Tower, Trainer Tower and e-Reader battles, so those are never alter
 | 0017 | MODE option (parent control) | `option_menu.c` (BATTLE STYLE row repurposed), strings | all presets |
 | 0017 | Respawn at the last town visited | `heal_location.c` → `LT_SetRespawnForCurrentMap()`, called from `LT_OnMapTransition()` | `autoRespawn` |
 | 0018 | Autosave when a story goal is completed | `start_menu.c` → `LT_AutoSave()` (reuses the save dialog from the "SAVING..." step), triggered in `little_trainers_nav.c` | `autoSave` |
+| 0039 | Nothing thrown away or released for good | `item_menu.c` → `OpenContextMenu` (TOSS left out of the list); `pokemon_storage_system_data.c` → `SetMenuTextsForMon` (RELEASE not added) | `keepEverything` |
+| 0040 | No evolution the scene would cancel | `pokemon.c` → `GetEvolutionTargetSpecies` (`EVO_MODE_NORMAL`: no target beyond Mew before the National Pokédex) | `noEvolutionCancel` |
+| 0041 | CHANGE left out while trapped; CATCH left out against a ghost or with the PC full | `little_trainers_battle_ui.c` → `SlotShown` (`CanLeaveField` mirrors the engine's switch checks) | `simpleBattleMenu` |
+| 0042 | Running from wild Pokémon wins over trapping (and the player's Teleport and Ingrain) | `battle_main.c` → `IsRunningFromBattleImpossible` | `alwaysRunAway` |
+| 0043 | No TOSS in the Berry Pouch | `berry_pouch.c` → `CreateNormalContextMenu` (toss-free lists) | `keepEverything` |
 
 ### Navigation arrow
 - **Goals:** `tools/nav/objectives.json` lists the story goals in order; each has a "done"

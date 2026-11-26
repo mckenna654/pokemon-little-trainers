@@ -31,6 +31,22 @@ a reviewer to inspect one by one. The procedure is the `playtest` skill
 - Speed: roughly 2,000 game frames per second (about 30× real time) on an M-series Mac.
 
 ## Results log
+### 2026-11-26 — QA fixes (patches 0039–0043, v0.1.0-dev.4)
+
+Build: ROM SHA-1 `ec6579987f7a43ff665e84a5eafc8d85d4d5376f`. Headless mGBA 0.10.5 only.
+
+| Check | Result |
+| --- | --- |
+| Each fix's test on the QA build (`7d7e33b7…`) and on the fixed build | Fails on the QA build (7 tests; the Berry Pouch test on the build before patch 0043), passes on the fixed build |
+| `tests/emu/emu_qa_flows.py` | 15 tests pass (toss, Berry Pouch, Classic keeps TOSS, release, evolution, full party, full PC, Arena Trap run, trapped and ability-trapped CHANGE, CHANGE back when free, ghost battle, saving, modes) |
+| `scripts/test.sh full` on the final build | 55 unit tests; 97 emulator tests, none skipped (the whole game by arrow and A included): pass |
+| Screen tour of the final build against the QA tour | 319 of 319 screens identical: the fixes change nothing on the tour's screens |
+| Changed screens looked at | Bag item menu (USE, GIVE, CANCEL); PC menu (STORE, SUMMARY, MARK, CANCEL); trapped battle (no CHANGE); Marowak and full-PC battles (no CATCH) |
+| Code review of the patches | One gap found (Berry Pouch TOSS), fixed in 0043; one double-battle case filed as #8 |
+
+**Not tested:** play by a person or a child; other emulators and devices; a whole game on Junior or
+Classic; a double battle with CHANGE (#8).
+
 ### 2026-11-26 — QA play-through and accessibility review (no gameplay changes)
 
 Full report with every finding, reproduction steps and evidence: **`docs/QA-2026-11-26.md`**.
