@@ -24,7 +24,11 @@ make type match ups a little bit easier".
   and 106 emulator tests pass (whole game included). `emu_types.py` softened cases fail on dev.5.
   The Arena Trap test now gives the Diglett Arena Trap itself (its ability is random: the new
   build's random numbers gave Sand Veil). Not played by hand; mGBA core only.
-- Jake: "merge all, build": version 0.1.0-dev.6.
+- Jake: "merge all, build": **v0.1.0-dev.6 published** (pre-release, patch and checksum only) from
+  `main` at `f874202` (PR #11), patched ROM SHA-1 `20a1cd9ab87dd432631728cb84d403fbf279b825`; CI green on
+  `main` (whole game).
+- **Next:** Jake's son playing by hand. Still waiting on Jake: D-01 to D-07, S-02 (the ring going
+  back to the suggested attack), QA-09 (the arrow over people).
 
 ## Session 9 — bugs that don't change difficulty (patches 0044–0046)
 
